@@ -6,6 +6,7 @@ Common Authentication Components Documentation
    :maxdepth: 3
    
    api/api.rst
+   contributing.rst
 
 
 Introduction and Purpose
