@@ -1,45 +1,30 @@
-PyAnsys Library Template
-########################
-
-This repository is a template repository where you can `Create a
-repository from a template`_ and create a new PyAnsys project that
-follows the guidelines specified in the `PyAnsys Developer's Guide`_.
-
-The following sections should be filled and documented for your project.
-
-.. _Create a repository from a template: https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-repository-from-a-template
-.. _PyAnsys Developer's Guide: https://github.com/pyansys/about
-
-
 Project Overview
 ----------------
-Provide a description of your PyAnsys Python library.
+The common library provides an authentication-aware client for OpenAPI client libraries.
+
+It is intended for use with the custom code generation template available in the pyAnsys project, 
+and currently supports authentication with Basic, Negotiate, NTLM, and OpenID Connect. Most features 
+of the underlying requests session are exposed for use, and some basic configuration is provided by 
+default.
 
 
 Installation
 ------------
-Include installation directions.  Note that this README will be
-included in your PyPI package, so be sure to include ``pip``
-directions along with developer installation directions.  For example.
 
-Install <PyAnsys Library> with:
+Install openapi-client-common with:
 
 .. code::
 
-   pip install ansys-<product/service>-<library>
+   pip install ansys-grantami-common
 
 Alternatively, clone and install in development mode with:
 
 .. code::
 
-   git clone https://github.com/pyansys/
-   cd <PyAnsys-Library>
+   git clone https://github.com/pyansys/openapi-client-common
+   cd openapi-client-common
    pip install -e .
 
-
-Documentation
--------------
-Include a link to the full sphinx documentation.  For example `PyAnsys <https://docs.pyansys.com/>`_
 
 
 Usage
@@ -61,6 +46,9 @@ You can feel free to include this at the README level or in CONTRIBUTING.md
 
 License
 -------
-Be sure to point out your license (and any acknowledgments).  State
-that the full license can be found in the root directory of the
-repository.
+
+The library is provided under the terms of the MIT license, you can find the license text in the LICENSE file
+at the root of the repository.
+
+parse_authenticate and helpers are Copyright (c) 2015 Alexander Dutton under terms of the MIT license.
+
