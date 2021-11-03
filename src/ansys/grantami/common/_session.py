@@ -40,7 +40,7 @@ if os.name == "nt":
     _platform_windows = True
 else:
     # noinspection PyUnresolvedReferences
-    from requests_kerberos import HttpKerberosAuth as NegotiateAuth  # type: ignore
+    from requests_kerberos import HTTPKerberosAuth as NegotiateAuth  # type: ignore
 
     _platform_windows = False
 
