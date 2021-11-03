@@ -29,6 +29,9 @@ jobs:
       - name: Codespell
         run: |
           make codespell
+          
+      - name: Install kerberos headers
+        run: sudo apt install krb5-devel krb5-workstation
 
       - name: Install linter
         run: |
@@ -51,6 +54,9 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+        
+    - name: Install kerberos headers
+      run: sudo apt install krb5-devel krb5-workstation
 
     - name: Install dependencies
       run: |
@@ -70,6 +76,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
+ 
+      - name: Install kerberos headers
+        run: sudo apt install krb5-devel krb5-workstation
 
       - name: Create wheel
         run: |
