@@ -4,6 +4,8 @@ Common Authentication Components Documentation
 .. toctree::
    :hidden:
    :maxdepth: 3
+   
+   api/api.rst
 
 
 Introduction and Purpose
