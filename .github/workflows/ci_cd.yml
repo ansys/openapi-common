@@ -112,7 +112,7 @@ jobs:
         run: sudo apt install libkrb5-dev
 
       - name: Install library
-        run: pip install .
+        run: pip install .[oidc]
 
       - name: Build HTML
         run: |
