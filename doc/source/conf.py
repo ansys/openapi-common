@@ -1,17 +1,17 @@
-from ansys.granta import auth_common
+from ansys.grantami import common
 import os
 import sys
 
 # -- Project information -----------------------------------------------------
 
-project = 'ansys.granta.auth_common'
+project = 'ansys.grantami.common'
 copyright = '(c) 2021 ANSYS, Inc. All rights reserved'
 author = 'ANSYS Inc.'
 
 sys.path.insert(0, os.path.abspath('../src'))
 
 # The short X.Y version
-release = version = auth_common.__version__
+release = version = common.__version__
 
 # -- General configuration ---------------------------------------------------
 extensions = [
@@ -69,7 +69,7 @@ copybutton_prompt_is_regexp = True
 html_theme = 'pyansys_sphinx_theme'
 html_logo = 'https://docs.pyansys.com/_static/pyansys-logo-black-cropped.png'
 html_theme_options = {
-    "github_url": "https://github.com/pyansys/granta-auth-common",
+    "github_url": "https://github.com/pyansys/openapi-client-common",
     "show_prev_next": False
 }
 
@@ -86,7 +86,7 @@ latex_elements = {}
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pyansys.tex', 'ansys.granta.auth_common Documentation',
+    (master_doc, 'pyansys.tex', 'ansys.grantami.common Documentation',
      author, 'manual'),
 ]
 
@@ -96,7 +96,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ansys.granta.auth_common', 'ansys.granta.auth_common Documentation',
+    (master_doc, 'ansys.granta.auth_common', 'ansys.grantami.common Documentation',
      [author], 1)
 ]
 
@@ -107,8 +107,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ansys.granta.auth_common', 'ansys.granta.auth_common Documentation',
-     author, 'ansys.granta.auth_common', 'Common authentication components for pyansys REST clients',
+    (master_doc, 'ansys.grantami.common', 'ansys.grantami.common Documentation',
+     author, 'ansys.grantami.common', 'Common authentication components for pyAnsys REST clients',
      'Engineering Software'),
 ]
 

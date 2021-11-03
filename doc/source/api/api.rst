@@ -5,18 +5,18 @@ Auth_Common
 
 Common objects for pyAnsys REST API clients
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. py:currentmodule::ansys.granta.auth_common
-.. autoclass:: ansys.granta.auth_common.ApiClient
+.. py:currentmodule::ansys.grantami.common
+.. autoclass:: ansys.grantami.common.ApiClient
    :members:
 
    .. automethod:: __init__
 
-.. autoclass:: ansys.granta.auth_common.ApiClientFactory
+.. autoclass:: ansys.grantami.common.ApiClientFactory
    :members:
 
    .. automethod:: __init__
 
-.. autoclass:: ansys.granta.auth_common.SessionConfiguration
+.. autoclass:: ansys.grantami.common.SessionConfiguration
    :members:
 
    .. automethod:: __init__
@@ -24,6 +24,6 @@ Common objects for pyAnsys REST API clients
 Exceptions
 ~~~~~~~~~~
 
-.. autoexception:: ansys.granta.auth_common.ApiException
+.. autoexception:: ansys.grantami.common.ApiException
 
-.. autoexception:: ansys.granta.auth_common.ApiConnectionException
+.. autoexception:: ansys.grantami.common.ApiConnectionException
