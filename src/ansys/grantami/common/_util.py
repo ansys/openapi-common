@@ -1,7 +1,7 @@
 import http.cookiejar
 import logging
 
-import pyparsing as pp
+import pyparsing as pp  # type: ignore
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from itertools import chain
