@@ -49,6 +49,3 @@ License
 
 The library is provided under the terms of the MIT license, you can find the license text in the LICENSE file
 at the root of the repository.
-
-parse_authenticate and helpers are Copyright (c) 2015 Alexander Dutton under terms of the MIT license.
-

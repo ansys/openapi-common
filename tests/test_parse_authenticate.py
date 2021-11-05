@@ -15,7 +15,7 @@ negotiate_challenges_with_tokens = (
 
 challenges = (
     ("Negotiate", {"negotiate": None}),
-    ("Bearer realm=example.com", {"bearer": {"realm": "example.com"}}),
+    ('Bearer realm="example.com"', {"bearer": {"realm": "example.com"}}),
     (
         'Bearer error="invalid_token", url="localhost:2314"',
         {"bearer": {"error": "invalid_token", "url": "localhost:2314"}},
