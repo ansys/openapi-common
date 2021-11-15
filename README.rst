@@ -26,22 +26,15 @@ Alternatively, clone and install in development mode with:
    pip install -e .
 
 
-
 Usage
 -----
 It's best to provide a sample code or even a figure demonstrating the usage of your library.  For example:
 
 .. code:: python
 
-   >>> from ansys.<product/service> import <library>
-   >>> my_object.<library>()
-   >>> my_object.foo()
-   'bar'
-
-
-Testing
--------
-You can feel free to include this at the README level or in CONTRIBUTING.md
+   >>> from ansys.grantami.common import ApiClientFactory
+   >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().build()
+   <ApiClient url: https://my-api.com/v1.svc>
 
 
 License

@@ -35,19 +35,19 @@ SerializedType = Union[None, str, int, float, bool, bytes, List, Tuple, Dict]
 
 # noinspection DuplicatedCode
 class ApiClient:
-    """Generic API client for Swagger client library builds.
+    """Generic API client for OpenAPI client library builds.
 
-    Swagger generic API client. This client handles the client-
-    server communication, and is invariant across implementations. Specifics of
-    the methods and models for each application are generated from the Swagger
-    templates.
+    This client handles the client-server communication, and is invariant across
+    implementations. Specifics of the methods and models for each application are
+    generated from OpenAPI templates and are responsible for interfacing with the
+    public API exposed by the client.
 
     Parameters
     ----------
     session : requests.Session
-        Base session object that the Api Client will use
+        Base session object that the API Client will use
     api_url : str
-        Base URL for the Api, all generated endpoint urls are relative to this address
+        Base URL for the API, all generated endpoint urls are relative to this address
     configuration : SessionConfiguration
         Configuration options for the Api Client
     """
@@ -69,7 +69,7 @@ class ApiClient:
         api_url: str,
         configuration: SessionConfiguration,
     ):
-        """Create a new instance of the ApiClient class
+        """Create a new instance of the ApiClient class.
 
         Examples
         --------
@@ -261,7 +261,7 @@ class ApiClient:
         If obj is list, sanitize each element in the list.
         If obj is tuple, sanitize each element in the tuple.
         If obj is dict, return the dict.
-        If obj is swagger model, return the properties dict.
+        If obj is an OpenAPI model, return the properties dict.
 
         Parameters
         ----------
@@ -320,7 +320,7 @@ class ApiClient:
         If response_type is datetime.date or datetime.datetime, parse the string and return the datetime object
         If response_type is list, recursively deserialize the list contents
         If response_type is dict, recursively deserialize the dictionary keys and values
-        If response_type is a model, return the model object
+        If response_type is an OpenAPI model, return the model object
 
         Parameters
         ----------

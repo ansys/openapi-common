@@ -260,7 +260,7 @@ class SessionConfiguration:
         proxies: Dict[str, str] = None,
         verify_ssl: bool = True,
         cert_store_path: str = None,
-        temp_folder_path: str = tempfile.gettempdir(),
+        temp_folder_path: str = None,
         debug: bool = False,
         safe_chars_for_path_param: str = "",
         retry_count: int = 3,
@@ -306,7 +306,7 @@ class SessionConfiguration:
         self.proxies = proxies or {}
         self.verify_ssl = verify_ssl
         self.cert_store_path = cert_store_path
-        self.temp_folder_path = temp_folder_path
+        self.temp_folder_path = temp_folder_path or tempfile.gettempdir()
         self.debug = debug
         self.safe_chars_for_path_param = safe_chars_for_path_param
         self.retry_count = retry_count

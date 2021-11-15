@@ -1,7 +1,5 @@
 # Contributing
 
-Repositories should have a contributing section, but we don't need to have all the contributing information here.  Have them reference the developer guide.
-
 We absolutely welcome any code contributions and we hope that this
 guide will facilitate an understanding of the TEMPLATE code
 repository. It is important to note that while the TEMPLATE software
