@@ -1,10 +1,11 @@
 import http.cookiejar
 import logging
-import re
+
+import pyparsing as pp  # type: ignore
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from itertools import chain
-from typing import Dict, Union, Tuple
+from typing import Dict, Union, Tuple, List, Optional, Set
 from ._exceptions import ApiException
 
 try:
@@ -16,33 +17,6 @@ import tempfile
 
 import requests
 from requests.structures import CaseInsensitiveDict
-
-"""
-LICENSE: parse_authenticate, _group_challenges, _group_pairs
-  
-Copyright (c) 2015 Alexander Dutton.
-All rights reserved.
-
-Redistribution and use in source and binary forms are permitted
-provided that the above copyright notice and this paragraph are
-duplicated in all such forms and that any documentation,
-advertising materials, and other materials related to such
-distribution and use acknowledge that the software was developed
-by the Alexander Dutton. The name of the Alexander Dutton may not
-be used to endorse or promote products derived from this software
-without specific prior written permission.
-THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-"""
-
-_tokens = (
-    ("token", re.compile(r"""^([!#$%&'*+\-.^_`|~\w/]+(?:={1,2}$)?)""")),
-    ("token", re.compile(r'''^"((?:[^"\\]|\\\\|\\")+)"''')),
-    (None, re.compile(r"^\s+")),
-    ("equals", re.compile(r"^(=)")),
-    ("comma", re.compile(r"^(,)")),
-)
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
@@ -98,35 +72,55 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         return "{0}({1})".format(type(self).__name__, super().__repr__())
 
 
-def _group_pairs(tokens):
-    i = 0
-    while i < len(tokens) - 2:
-        if (
-            tokens[i][0] == "token"
-            and tokens[i + 1][0] == "equals"
-            and tokens[i + 2][0] == "token"
-        ):
-            tokens[i : i + 3] = [("pair", (tokens[i][1], tokens[i + 2][1]))]
-        i += 1
+class Singleton(type):
+    _instances: Dict[type, object] = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
 
-def _group_challenges(tokens):
-    challenges = []
-    while tokens:
-        j = 1
-        if len(tokens) == 1:
-            pass
-        elif tokens[1][0] == "comma":
-            pass
-        elif tokens[1][0] == "token":
-            j = 2
-        else:
-            while j < len(tokens) and tokens[j][0] == "pair":
-                j += 2
-            j -= 1
-        challenges.append((tokens[0][1], tokens[1:j]))
-        tokens[: j + 1] = []
-    return challenges
+class AuthenticateHeaderParser(metaclass=Singleton):
+    def __init__(self):
+        token_char = "!#$%&'*+-.^_`|~" + pp.nums + pp.alphas
+        token68_char = "-._~+/" + pp.nums + pp.alphas
+
+        token = pp.Word(token_char)
+        token68 = pp.Combine(pp.Word(token68_char) + pp.ZeroOrMore("="))
+
+        name = pp.Word(pp.alphas, pp.alphanums)
+        value = pp.quotedString.setParseAction(pp.removeQuotes)
+        name_value_pair = name + pp.Suppress("=") + value
+
+        params = pp.Dict(pp.delimitedList(pp.Group(name_value_pair)))
+
+        credentials = token + (params ^ token68) ^ token
+
+        self.auth_parser = pp.delimitedList(credentials("schemes*"), delim=", ")
+
+    def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
+        try:
+            parsed_value = self.auth_parser.parseString(value, parseAll=True)
+        except pp.ParseException as exception_info:
+            raise ValueError("Failed to parse value").with_traceback(
+                exception_info.__traceback__
+            )
+        output = CaseInsensitiveOrderedDict({})
+        for scheme in parsed_value.schemes:
+            output[scheme[0]] = AuthenticateHeaderParser._render_options(scheme)
+        return output
+
+    @staticmethod
+    def _render_options(scheme: List[Union[str, List[str]]]):
+        if len(scheme) == 1:
+            return None
+        if isinstance(scheme[1], str):
+            return scheme[1]
+        scheme_options = scheme[1:]
+        return CaseInsensitiveOrderedDict(
+            {option_pair[0]: option_pair[1] for option_pair in scheme_options}
+        )
 
 
 def parse_authenticate(value):
@@ -143,30 +137,8 @@ def parse_authenticate(value):
     CaseInsensitiveOrderedDict
         Dictionary with supported auth types and the provided parameters (if any)
     """
-    tokens = []
-    while value:
-        for token_name, pattern in _tokens:
-            match = pattern.match(value)
-            if match:
-                value = value[match.end() :]
-                if token_name:
-                    tokens.append((token_name, match.group(1)))
-                break
-        else:
-            raise ValueError("Failed to parse value")
-    _group_pairs(tokens)
-
-    challenges = CaseInsensitiveOrderedDict()
-    for name, tokens in _group_challenges(tokens):
-        args, kwargs = [], {}
-        for token_name, value in tokens:
-            if token_name == "token":
-                args.append(value)
-            elif token_name == "pair":
-                kwargs[value[0]] = value[1]
-        challenges[name] = (args and args[0]) or kwargs or None
-
-    return challenges
+    parser = AuthenticateHeaderParser()
+    return parser.parse_header(value)
 
 
 def set_session_kwargs(
@@ -245,6 +217,15 @@ class OIDCCallbackHTTPServer(HTTPServer):
 
     async def get_auth_code(self):
         return self._auth_code.get(block=True)
+
+
+class RequestsConfiguration(TypedDict):
+    cert: Union[None, str, Tuple[str, str]]
+    verify: Union[None, str, bool]
+    cookies: http.cookiejar.CookieJar
+    proxies: Dict[str, str]
+    headers: CaseInsensitiveDict
+    max_redirects: int
 
 
 class SessionConfiguration:
@@ -389,15 +370,6 @@ class SessionConfiguration:
         new.headers = configuration_dict["headers"]
         new.max_redirects = configuration_dict["max_redirects"]
         return new
-
-
-class RequestsConfiguration(TypedDict):
-    cert: Union[None, str, Tuple[str, str]]
-    verify: Union[None, str, bool]
-    cookies: http.cookiejar.CookieJar
-    proxies: Dict[str, str]
-    headers: CaseInsensitiveDict
-    max_redirects: int
 
 
 class ModelType(type):

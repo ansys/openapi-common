@@ -39,7 +39,7 @@ def try_parse_and_assert_failed(response):
 
 def test_no_bearer_throws(authenticate_parsing_fixture):
     response = authenticate_parsing_fixture
-    response.headers["WWW-Authenticate"] = "Basic realm=example.com"
+    response.headers["WWW-Authenticate"] = 'Basic realm="example.com"'
     exception_info = try_parse_and_assert_failed(response)
     assert "not supported on this server" in str(exception_info.value)
 

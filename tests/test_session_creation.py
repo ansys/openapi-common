@@ -33,7 +33,7 @@ def test_can_connect_with_basic():
         m.get(
             SERVICELAYER_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "Basic realm=localhost"},
+            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
         )
         m.get(
             SERVICELAYER_URL,
@@ -51,7 +51,7 @@ def test_throws_with_invalid_credentials():
         m.get(
             SERVICELAYER_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "Basic realm=localhost"},
+            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
             reason=UNAUTHORIZED,
         )
         m.get(
@@ -202,7 +202,7 @@ def test_no_oidc_throws():
         m.get(
             SERVICELAYER_URL,
             status_code=401,
-            headers={"WWW-Authenticate": "Basic realm=localhost"},
+            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
         )
         with pytest.raises(ConnectionError) as exception_info:
             _ = ApiClientFactory(SERVICELAYER_URL).with_oidc(
