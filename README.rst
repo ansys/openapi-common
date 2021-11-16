@@ -28,7 +28,13 @@ Alternatively, clone and install in development mode with:
 
 Usage
 -----
-It's best to provide a sample code or even a figure demonstrating the usage of your library.  For example:
+The API client class is intended to be wrapped by code that implements a client library,
+it is suggested to override the ``__init__()`` or ``build()`` methods to add any
+additional behaviour that may be required.
+
+Authentication is configured through the ``ApiClientFactory`` object and its ``with_xxx()``
+methods, if no authentication is required you can use the ``with_anonymous()`` method.
+Additional configuration can be provided with the ``SessionConfiguration`` object.
 
 .. code:: python
 
@@ -42,6 +48,3 @@ License
 
 The library is provided under the terms of the MIT license, you can find the license text in the LICENSE file
 at the root of the repository.
-
-parse_authenticate and helpers are Copyright (c) 2015 Alexander Dutton under terms of the MIT license.
-

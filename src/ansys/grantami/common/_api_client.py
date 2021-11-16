@@ -4,7 +4,7 @@ import json
 import os
 import re
 import tempfile
-from typing import Any, Dict, Union, List, Tuple, Type, Optional, cast
+from typing import Dict, Union, List, Tuple, Type, Optional, cast
 
 from urllib.parse import quote
 
@@ -270,8 +270,7 @@ class ApiClient:
 
         Returns
         -------
-        SerializedType
-            The serialized form of data.
+        The serialized form of data.
 
         Examples
         --------
@@ -316,11 +315,11 @@ class ApiClient:
 
         For responses that are in JSON format, process the response and return it.
 
-        If response_type is "file", save the content to a temporary file and return the file name
-        If response_type is datetime.date or datetime.datetime, parse the string and return the datetime object
-        If response_type is list, recursively deserialize the list contents
-        If response_type is dict, recursively deserialize the dictionary keys and values
-        If response_type is an OpenAPI model, return the model object
+        If response_type is "file", save the content to a temporary file and return the file name.
+        If response_type is datetime.date or datetime.datetime, parse the string and return the datetime object.
+        If response_type is list, recursively deserialize the list contents.
+        If response_type is dict, recursively deserialize the dictionary keys and values.
+        If response_type is an OpenAPI model, return the model object.
 
         Parameters
         ----------
@@ -331,10 +330,7 @@ class ApiClient:
 
         Returns
         -------
-        DeserializedType
-            The deserialized form of the response object
-
-        :return: deserialized object.
+        The deserialized form of the response object.
 
         Examples
         --------
@@ -373,18 +369,17 @@ class ApiClient:
         Parameters
         ----------
         data : Union[Dict, List, str]
-            Response data to be deserialized
+            Response data to be deserialized.
         klass : Union[str, Type]
             Type of object the data should be deserialized into, one of:
 
-            * String class name
-            * String Type definition for list or dictionary
-            * Type
+            * String class name.
+            * String Type definition for list or dictionary.
+            * Type.
 
         Returns
         -------
-        DeserializedType
-            Deserialized form of response data
+        Deserialized form of response data.
         """
 
         if data is None:
@@ -461,7 +456,7 @@ class ApiClient:
         files : Dict[str, str]
             Dictionary of filename and path for `multipart/form-data`.
         _return_http_data_only : bool, default False
-            Return response data without head status code and headers
+            Return response data without head status code and headers.
         collection_formats : Dict[str, str]
             Collection format name for path, query, header, and post parameters. Maps parameter name to collection type.
         _preload_content : bool, default True
@@ -472,8 +467,7 @@ class ApiClient:
 
         Returns
         -------
-        DeserializedType
-            The deserialized response object.
+        The deserialized response object.
         """
         return self.__call_api(
             resource_path,
@@ -526,8 +520,7 @@ class ApiClient:
 
         Returns
         -------
-        requests.Response
-            The response object received from the API endpoint.
+        The response object received from the API endpoint.
         """
 
         if method == "GET":
@@ -625,14 +618,13 @@ class ApiClient:
         ----------
         params : Union[Dict, List[Tuple]]
             Parameters for the request, either a dictionary with name and value, or a list of tuples with names and
-            values
+            values.
         collection_formats : Dict[str, str]
-            Dictionary with parameter name and collection type specifier
+            Dictionary with parameter name and collection type specifier.
 
         Returns
         -------
-        List[Tuple]
-            Parameters as list of tuples, collections formatted as required
+        Parameters as list of tuples, where collections are formatted as specified.
         """
 
         new_params = []  # type: List[Tuple]
@@ -668,14 +660,13 @@ class ApiClient:
         Parameters
         ----------
         post_params : List[Tuple]
-            Plain form parameters
+            Plain form parameters.
         files : Dict[str, Union[str, List[str]]]
-            File parameters
+            File parameters.
 
         Returns
         -------
-        List[Tuple]
-            Form parameters with file name, contents and mime-type
+        Form parameters with file name, contents and mime-type.
         """
         params = []
 
@@ -706,12 +697,11 @@ class ApiClient:
         Parameters
         ----------
         accepts : Optional[List[str]]
-            List of accepted content types
+            List of accepted content types.
 
         Returns
         -------
-        Optional[str]
-            Joined list of accepted content types, if any, separated by commas
+        Joined list of accepted content types, if any, separated by commas.
 
         Examples
         --------
@@ -732,12 +722,11 @@ class ApiClient:
         Parameters
         ----------
         content_types : Optional[List[str]]
-            List of content types
+            List of content types.
 
         Returns
         -------
-        str, default 'application/json'
-            Content type to use.
+        Content type to use, default 'application/json'.
 
         Examples
         --------
@@ -773,12 +762,11 @@ class ApiClient:
         Parameters
         ----------
         response : requests.Response
-            The API response object to be deserialized
+            The API response object to be deserialized.
 
         Returns
         -------
-        str
-            File path to temporary file location
+        File path to temporary file location.
         """
         fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
         os.close(fd)
@@ -807,14 +795,13 @@ class ApiClient:
         Parameters
         ----------
         data : Union[str, int, float, bool, bytes]
-            Data to be deserialized into primitive type
+            Data to be deserialized into primitive type.
         klass : Type
-            Type of target object for deserialization
+            Type of target object for deserialization.
 
         Returns
         -------
-        Union[int, float, str, bool, bytes]
-            Primitive type of response
+        Primitive type of response.
         """
         try:
             return klass(data)
@@ -830,12 +817,11 @@ class ApiClient:
         Parameters
         ----------
         value : object
-            A general object that does not match any specific deserialization strategy
+            A general object that does not match any specific deserialization strategy.
 
         Returns
         -------
-        object
-            The original object
+        The original object.
         """
         return value
 
@@ -850,8 +836,7 @@ class ApiClient:
 
         Returns
         -------
-        datetime.date
-            Datetime object representing the specified date
+        Datetime object representing the specified date.
         """
         try:
             from dateutil.parser import parse
@@ -870,12 +855,11 @@ class ApiClient:
         Parameters
         ----------
         value : str
-            String representation of the datetime object in ISO 8601 format
+            String representation of the datetime object in ISO 8601 format.
 
         Returns
         -------
-        datetime.datetime
-            Datetime object representing the specified date and time
+        Datetime object representing the specified date and time.
         """
         try:
             from dateutil.parser import parse
@@ -901,14 +885,13 @@ class ApiClient:
         Parameters
         ----------
         data : Union[Dict, List]
-            Serialized representation of the model object
+            Serialized representation of the model object.
         klass : ModelType
-            Type of the model to be deserialized
+            Type of the model to be deserialized.
 
         Returns
         -------
-        Union[Model, Dict, List]
-            Instance of the model class if it's a valid Model, otherwise return data as-is
+        Instance of the model class if it's a valid Model, otherwise return data as-is.
         """
 
         if not klass.swagger_types and not self.__hasattr(

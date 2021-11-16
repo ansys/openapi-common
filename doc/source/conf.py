@@ -84,7 +84,7 @@ html_theme_options = {
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pymapdldoc'
+htmlhelp_basename = 'openapiclientcommondoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -104,7 +104,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ansys.granta.auth_common', 'ansys.grantami.common Documentation',
+    (master_doc, 'ansys.grantami.common', 'ansys.grantami.common Documentation',
      [author], 1)
 ]
 
