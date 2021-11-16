@@ -89,7 +89,9 @@ class OIDCSessionFactory:
             mi_requests_configuration.get_configuration_for_requests()
         )
 
-        self._mi_requests_configuration["headers"]["X-Granta-ApplicationName"] = OIDC_HEADER_APPLICATION_NAME
+        self._mi_requests_configuration["headers"][
+            "X-Granta-ApplicationName"
+        ] = OIDC_HEADER_APPLICATION_NAME
 
         idp_configuration = idp_requests_configuration.get_configuration_for_requests()
 
@@ -416,5 +418,7 @@ class OIDCSessionFactory:
         if "apiAudience" in self._authenticate_parameters:
             mi_headers: CaseInsensitiveDict = self._mi_requests_configuration["headers"]
             mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
-            idp_headers: CaseInsensitiveDict = self._idp_requests_configuration["headers"]
+            idp_headers: CaseInsensitiveDict = self._idp_requests_configuration[
+                "headers"
+            ]
             idp_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
