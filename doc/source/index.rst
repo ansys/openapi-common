@@ -4,7 +4,7 @@ Common Authentication Components Documentation
 .. toctree::
    :hidden:
    :maxdepth: 3
-   
+
    api/api.rst
    contributing.rst
 
@@ -41,16 +41,16 @@ Here's a brief example of how the client works:
 The client is now ready and available for use with an OpenAPI client.
 
 Different API servers will have different authentication requirements, the library currently
-supports
+supports:
 
 - Anonymous (no authentication)
 - Basic
 - NTLM with credentials
 - Negotiate
-- OpenID Connect
+- OpenID Connect (With Granta MI only)
 
 Advanced Features
-~~~~~~~~~~~~~~~~~
+-----------------
 All options that are available in the python library *requests* can be set through
 the client, this enables you to configure custom SSL certificate validation, send
 client certificates if your API server requires them, and many other options.
@@ -64,10 +64,15 @@ For example to send a client certificate with every request
    >>> client.configuration = configuration
 
 API Reference
-~~~~~~~~~~~~~
-For full details of the API available see the API reference: `_ref_auth_common_api`
+-------------
+For full details of the API available see the :doc:`API reference <api/api>`.
+
+Contributing
+------------
+Contributions to this repository are welcomed, please see the :doc:`Contributor Guide<contributing>`
+for more information.
 
 Project Index
-*************
+-------------
 
 * :ref:`genindex`

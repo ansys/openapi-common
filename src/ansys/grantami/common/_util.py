@@ -144,14 +144,14 @@ def parse_authenticate(value):
 def set_session_kwargs(
     session: requests.Session, property_dict: "RequestsConfiguration"
 ) -> None:
-    """[TECHDOCS]Sets session parameters from a provided dictionary
+    """[TECHDOCS]Sets session parameters from a provided dictionary.
 
     Parameters
     ----------
     session : :obj:`requests.Session`
-        requests Session object to be configured
+        requests Session object to be configured.
     property_dict : dict
-        Mapping from requests session parameter to value
+        Mapping from requests session parameter to value.
 
     Returns
     -------
@@ -167,7 +167,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
     Attributes
     ----------
     _response_html : str
-        HTML to be rendered to the user when redirected after successful authentication with the IDP
+        HTML to be rendered to the user when redirected after successful authentication with the Identity Provider.
     """
 
     def __init__(self, *args, **kwargs):
@@ -206,7 +206,7 @@ class OIDCCallbackHTTPServer(HTTPServer):
     Attributes
     ----------
     _auth_code : Queue
-        Store for provided authentication code received from the user's browser when authentication completes
+        Store for provided authentication code received from the user's browser when authentication completes.
     """
 
     def __init__(self):
@@ -229,7 +229,7 @@ class RequestsConfiguration(TypedDict):
 
 
 class SessionConfiguration:
-    """Provides configuration for the API client session"""
+    """Provides configuration for the API client session."""
 
     def __init__(
         self,
@@ -241,7 +241,7 @@ class SessionConfiguration:
         proxies: Dict[str, str] = None,
         verify_ssl: bool = True,
         cert_store_path: str = None,
-        temp_folder_path: str = tempfile.gettempdir(),
+        temp_folder_path: str = None,
         debug: bool = False,
         safe_chars_for_path_param: str = "",
         retry_count: int = 3,
@@ -265,15 +265,15 @@ class SessionConfiguration:
         verify_ssl : bool
             Verify the SSL certificate of the remote host (default True).
         cert_store_path : str
-            Path to custom certificate store (in .pem format)
+            Path to custom certificate store (in .pem format).
         temp_folder_path : str
-            Path to temporary directory where downloaded files will be stored (default is user TEMP directory)
+            Path to temporary directory where downloaded files will be stored (default is user TEMP directory).
         debug : bool
             Controls whether debug logging will be generated, this will include sensitive information if either the
             `auth_logger` or `transport_logger` are configured to output logs.
         safe_chars_for_path_param : str
             Additional characters to treat as 'safe' when creating path parameters, see
-            `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_ for more information
+            `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_ for more information.
         retry_count : int
             Number of attempts to make if the API server fails to return a valid response (default 3).
         request_timeout : int
@@ -287,7 +287,7 @@ class SessionConfiguration:
         self.proxies = proxies or {}
         self.verify_ssl = verify_ssl
         self.cert_store_path = cert_store_path
-        self.temp_folder_path = temp_folder_path
+        self.temp_folder_path = temp_folder_path or tempfile.gettempdir()
         self.debug = debug
         self.safe_chars_for_path_param = safe_chars_for_path_param
         self.retry_count = retry_count
@@ -319,8 +319,7 @@ class SessionConfiguration:
 
         Returns
         -------
-        RequestsConfiguration
-            The configuration as a dictionary suitable for configuring a requests Session
+        The configuration as a dictionary suitable for configuring a requests Session.
         """
         output: RequestsConfiguration = {
             "cert": self._cert,
@@ -339,8 +338,15 @@ class SessionConfiguration:
         """
         Create a SessionConfiguration object from its dictionary form, inverse of
         :meth:`.get_configuration_for_requests`.
-        :param configuration_dict: dict form of the session parameters
-        :return: session configuration object
+
+        Parameters
+        ----------
+        configuration_dict : Dict
+            Dictionary form of the session parameters.
+
+        Returns
+        -------
+        Session configuration object.
         """
         new = cls()
         if configuration_dict["cert"] is not None:
@@ -381,24 +387,23 @@ class ModelType(type):
 
 
 def handle_response(response: requests.Response) -> requests.Response:
-    """Helper method to check the status code of a response
+    """Helper method to check the status code of a response.
 
-    If the response is a 2XX then it is returned as-is, otherwise an ApiException will be raised
+    If the response is a 2XX then it is returned as-is, otherwise an ApiException will be raised.
 
     Parameters
     ----------
     response : requests.Response
-        Response from the API server
+        Response from the API server.
 
     Returns
     -------
-    requests.Response
-        The response as-is if the status_code was 2XX
+    The response as-is if the status_code was 2XX.
 
     Throws
     ------
     ApiException
-        If the status code was not 2XX
+        If the status code was not 2XX.
     """
     logger = logging.getLogger(__name__)
 

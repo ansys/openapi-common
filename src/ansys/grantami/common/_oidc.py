@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import webbrowser
-from typing import Dict, Any
+from typing import Dict
 
 import requests
 from requests.models import CaseInsensitiveDict
@@ -33,10 +33,10 @@ logger = logging.getLogger("MI_Session")
 
 class OIDCSessionFactory:
     """
-    [TECHDOCS]Creates an OAuth2 session with configuration fetched from MI server. Either uses provided token
+    [TECHDOCS]Creates an OpenID Connect session with configuration fetched from MI server. Either uses provided token
     credentials, or can authorize a user with a browser-based interactive prompt.
     If your Identity provider does not provide the exact scopes requested by MI you will be unable to connect, to force
-    STK to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
+    the client to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
     """
 
     def __init__(
@@ -52,7 +52,7 @@ class OIDCSessionFactory:
         Parameters
         ----------
         initial_session : requests.Session
-            Session for use whilst negotiating with the identity provider
+            Session for use whilst negotiating with the identity provider.
         login_timeout : int
             Number of seconds to wait for the user to authenticate, default 60s.
         mi_requests_configuration : SessionConfiguration
@@ -89,7 +89,9 @@ class OIDCSessionFactory:
             mi_requests_configuration.get_configuration_for_requests()
         )
 
-        self._mi_requests_configuration["headers"]["X-Granta-ApplicationName"] = OIDC_HEADER_APPLICATION_NAME  # type: ignore[index]
+        self._mi_requests_configuration["headers"][
+            "X-Granta-ApplicationName"
+        ] = OIDC_HEADER_APPLICATION_NAME
 
         idp_configuration = idp_requests_configuration.get_configuration_for_requests()
 
@@ -138,7 +140,7 @@ class OIDCSessionFactory:
 
         Returns
         -------
-        int
+        Login timeout in seconds.
         """
         return self._login_timeout
 
@@ -162,7 +164,7 @@ class OIDCSessionFactory:
 
         Returns
         -------
-        SessionConfiguration
+        Session configuration options for connection to API.
         """
         return SessionConfiguration.from_dict(self._mi_requests_configuration)
 
@@ -179,12 +181,12 @@ class OIDCSessionFactory:
 
     @property
     def idp_requests_configuration(self) -> "SessionConfiguration":
-        """[TECHDOCS]Configuration options for the requests session when communicating with Granta MI. See
-        :class:`SessionConfiguration` for options to set.
+        """[TECHDOCS]Configuration options for the requests session when communicating with the OpenID Connect Identity
+        Provider. See :class:`SessionConfiguration` for available options.
 
         Returns
         -------
-        SessionConfiguration
+        Session configuration options for connection to OpenID Identity Provider.
 
         Notes
         -----
@@ -221,11 +223,9 @@ class OIDCSessionFactory:
         refresh_token : Optional[str]
             Refresh token for the API server.
 
-
         Returns
         -------
-        OAuth2Session
-            Session object for use
+        OpenID Connect supporting session object for use.
         """
         logger.info("[TECHDOCS]Setting tokens...")
         if access_token is not None:
@@ -244,11 +244,11 @@ class OIDCSessionFactory:
 
     def authorize(self) -> OAuth2Session:
         """[TECHDOCS] Finalizes creation of the underlying :class:`OAuth2Session` object, authorizing the user via their
-        system web browser
+        system web browser.
 
         Returns
-        OAuth2Session
-            Session object for use
+        -------
+        Authorized OpenID Connect supporting session object for use.
         """
 
         async def await_callback():
@@ -257,12 +257,12 @@ class OIDCSessionFactory:
             thread.start()
             return await self._callback_server.get_auth_code()
 
-        authr_url, state = self._oauth_session.authorization_url(
+        authorization_url, state = self._oauth_session.authorization_url(
             self._well_known_parameters["authorization_endpoint"]
         )
         logger.info("[TECHDOCS]Authenticating user...")
-        logger.debug(f"[TECHDOCS]Opening web browser with url {authr_url}")
-        webbrowser.open(authr_url)
+        logger.debug(f"[TECHDOCS]Opening web browser with url {authorization_url}")
+        webbrowser.open(authorization_url)
         auth_code = asyncio.wait_for(await_callback(), self._login_timeout)
         logger.info("[TECHDOCS]Authentication complete, fetching token...")
         if _log_tokens:
@@ -295,13 +295,12 @@ class OIDCSessionFactory:
         Parameters
         ----------
         unauthorized_response : requests.Response
-            Response obtained by fetching the target URI with no Authorization header
+            Response obtained by fetching the target URI with no Authorization header.
 
         Returns
         -------
-        CaseInsensitiveDict
-            Information provided in the WWW-Authenticate header, including at least the Authority, Client ID and
-            redirect URI.
+        Information provided in the WWW-Authenticate header, including at least the Authority, Client ID and
+        redirect URI.
         """
         logger.debug("[TECHDOCS]Parsing bearer authentication parameters...")
         auth_header = unauthorized_response.headers["WWW-Authenticate"]
@@ -326,14 +325,15 @@ class OIDCSessionFactory:
             )
         )
         if len(missing_headers) > 1:
+            missing_header_string = '", "'.join(missing_headers)
             raise ConnectionError(
-                '[TECHDOCS]Unable to connect with OpenID Connect, mandatory headers "{}" were not provided, '
-                "cannot continue...".format('", "'.join(missing_headers))
+                f"[TECHDOCS]Unable to connect with OpenID Connect, mandatory headers '{missing_header_string}' "
+                f"were not provided, cannot continue..."
             )
         elif len(missing_headers) == 1:
             raise ConnectionError(
-                '[TECHDOCS]Unable to connect with OpenID Connect, mandatory header "{}" was not provided, '
-                "cannot continue...".format(missing_headers[0])
+                f"[TECHDOCS]Unable to connect with OpenID Connect, mandatory header '{missing_headers[0]}' "
+                f"was not provided, cannot continue..."
             )
         else:
             return authenticate_parameters["bearer"]
@@ -345,26 +345,25 @@ class OIDCSessionFactory:
         Parameters
         ----------
         url : str
-            URL referencing the OpenID Identity Provider's well-known endpoint
+            URL referencing the OpenID Identity Provider's well-known endpoint.
 
         Returns
         -------
-        CaseInsensitiveDict
-            Information returned by the Identity Provider
+        Well-known configuration information returned by the Identity Provider.
         """
         logger.info(
             f"[TECHDOCS]Fetching configuration information from identity provider {url}"
         )
         set_session_kwargs(self._initial_session, self._idp_requests_configuration)
         authority_response = self._initial_session.get(
-            "{}.well-known/openid-configuration".format(url),
+            f"{url}.well-known/openid-configuration",
         )
         set_session_kwargs(self._initial_session, self._mi_requests_configuration)
 
         logger.debug("[TECHDOCS]Received configuration:")
         oidc_configuration = CaseInsensitiveDict(
             authority_response.json()
-        )  # type: CaseInsensitiveDict[str]
+        )  # type: CaseInsensitiveDict
 
         mandatory_parameters = ["authorization_endpoint", "token_endpoint"]
         missing_headers = []
@@ -377,14 +376,15 @@ class OIDCSessionFactory:
             logger.debug(f"{k}:\t{v}")
 
         if len(missing_headers) > 1:
+            missing_headers_string = ", ".join(missing_headers)
             raise ConnectionError(
-                "[TECHDOCS]Unable to connect with OpenID Connect, mandatory well-known parameters '{0}' were not provided, "
-                "cannot continue...".format(", ".join(missing_headers))
+                f"[TECHDOCS]Unable to connect with OpenID Connect, mandatory well-known parameters "
+                f"'{missing_headers_string}' were not provided, cannot continue..."
             )
         elif len(missing_headers) == 1:
             raise ConnectionError(
-                '[TECHDOCS]Unable to connect with OpenID Connect, well-known parameter "{}" was not provided, '
-                "cannot continue...".format(missing_headers[0])
+                f"[TECHDOCS]Unable to connect with OpenID Connect, well-known parameter '{missing_headers[0]}' "
+                f"was not provided, cannot continue..."
             )
 
         return oidc_configuration
@@ -403,8 +403,7 @@ class OIDCSessionFactory:
 
         Returns
         -------
-        RequestsConfiguration
-            Configuration with valid Accept and Content-Type headers for connection to the OpenID Identity Provider.
+        Configuration with valid Accept and Content-Type headers for connection to the OpenID Identity Provider.
         """
         if requests_configuration["headers"] is not None:
             headers = requests_configuration["headers"]

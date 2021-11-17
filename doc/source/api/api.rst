@@ -1,7 +1,5 @@
-.. _ref_auth_common_api:
-
-Auth_Common
-===========
+API Reference
+=============
 
 Common objects for pyAnsys REST API clients
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

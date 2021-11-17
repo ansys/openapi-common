@@ -26,22 +26,21 @@ Alternatively, clone and install in development mode with:
    pip install -e .
 
 
-
 Usage
 -----
-It's best to provide a sample code or even a figure demonstrating the usage of your library.  For example:
+The API client class is intended to be wrapped by code that implements a client library,
+it is suggested to override the ``__init__()`` or ``build()`` methods to add any
+additional behaviour that may be required.
+
+Authentication is configured through the ``ApiClientFactory`` object and its ``with_xxx()``
+methods, if no authentication is required you can use the ``with_anonymous()`` method.
+Additional configuration can be provided with the ``SessionConfiguration`` object.
 
 .. code:: python
 
-   >>> from ansys.<product/service> import <library>
-   >>> my_object.<library>()
-   >>> my_object.foo()
-   'bar'
-
-
-Testing
--------
-You can feel free to include this at the README level or in CONTRIBUTING.md
+   >>> from ansys.grantami.common import ApiClientFactory
+   >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().build()
+   <ApiClient url: https://my-api.com/v1.svc>
 
 
 License

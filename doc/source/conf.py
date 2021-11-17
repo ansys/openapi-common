@@ -29,6 +29,14 @@ extensions = [
 # return type inline with the description.
 napoleon_use_rtype = False
 
+#
+autodoc_type_aliases = {
+    'DeserializedType': 'ansys.grantami.common._api_client.DeserializedType',
+    'SerializedType': 'ansys.grantami.common._api_client.SerializedType'
+}
+
+autodoc_typehints = 'description'
+
 # static path
 html_static_path = ['_static']
 
@@ -67,7 +75,7 @@ copybutton_prompt_is_regexp = True
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'pyansys_sphinx_theme'
-html_logo = 'https://docs.pyansys.com/_static/pyansys-logo-black-cropped.png'
+html_logo = './_static/pyansys-logo-black-cropped.png'
 html_theme_options = {
     "github_url": "https://github.com/pyansys/openapi-client-common",
     "show_prev_next": False
@@ -76,7 +84,7 @@ html_theme_options = {
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pymapdldoc'
+htmlhelp_basename = 'openapiclientcommondoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -96,7 +104,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ansys.granta.auth_common', 'ansys.grantami.common Documentation',
+    (master_doc, 'ansys.grantami.common', 'ansys.grantami.common Documentation',
      [author], 1)
 ]
 

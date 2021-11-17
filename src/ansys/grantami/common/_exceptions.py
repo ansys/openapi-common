@@ -10,7 +10,7 @@ if MYPY:
 class ApiConnectionException(Exception):
     """
     Exception raised when connection to MI Servicelayer fails. Inspect the `.status_code` and `.reason_phrase` for more
-    information about the failure
+    information about the failure.
     """
 
     def __init__(self, status_code: int, reason_phrase: str, message: str) -> None:
@@ -36,18 +36,18 @@ class ApiConnectionException(Exception):
 class ApiException(Exception):
     """
     Exception raised when the remote server returns an unsuccessful response. Inspect the `.status` and `.reason` for
-    more information about the failure
+    more information about the failure.
 
     Attributes
     ----------
     status_code : int
-        HTTP status code associated with the response
+        HTTP status code associated with the response.
     reason_phrase : str
-        Description of the response as provided by the server
+        Description of the response as provided by the server.
     body : Optional[str]
-        Content of the response as provided by the server
+        Content of the response as provided by the server.
     headers : Optional[CaseInsensitiveDict]
-        Response headers as provided by the server
+        Response headers as provided by the server.
     """
 
     status_code: int
@@ -66,13 +66,13 @@ class ApiException(Exception):
         Parameters
         ----------
         status_code : int
-            HTTP status code associated with the response
+            HTTP status code associated with the response.
         reason_phrase : str
-            Description of the response as provided by the server
+            Description of the response as provided by the server.
         body : Optional[str]
-            Contents of the response message, if present
+            Contents of the response message, if present.
         headers : Optional[CaseInsensitiveDict]
-            Headers dictionary, if present
+            Headers dictionary, if present.
 
         Examples
         --------
