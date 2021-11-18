@@ -90,7 +90,7 @@ class ApiClient:
         self.api_url = api_url
         self.rest_client = session
         self.default_headers: CaseInsensitiveDict = CaseInsensitiveDict()
-        self.user_agent = "Swagger-Codegen/1.0.0/python"
+        self.default_headers['User-Agent'] = "Swagger-Codegen/1.0.0/python"
         self.configuration = configuration
 
     def __repr__(self) -> str:
