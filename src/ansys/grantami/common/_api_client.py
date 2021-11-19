@@ -90,7 +90,7 @@ class ApiClient:
         self.api_url = api_url
         self.rest_client = session
         self.default_headers: CaseInsensitiveDict = CaseInsensitiveDict()
-        self.default_headers['User-Agent'] = "Swagger-Codegen/1.0.0/python"
+        self.default_headers["User-Agent"] = "Swagger-Codegen/1.0.0/python"
         self.configuration = configuration
 
     def __repr__(self) -> str:
@@ -617,7 +617,7 @@ class ApiClient:
 
     @staticmethod
     def parameters_to_tuples(
-        params: Union[Dict, List[Tuple]], collection_formats: Dict[str, str]
+        params: Union[Dict, List[Tuple]], collection_formats: Optional[Dict[str, str]]
     ) -> List[Tuple]:
         """Get parameters as list of tuples, formatting collections.
 
