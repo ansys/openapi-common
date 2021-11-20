@@ -5,10 +5,6 @@ from ._util import SessionConfiguration
 from ._exceptions import ApiConnectionException, ApiException
 from ._api_client import ApiClient
 
-logging.basicConfig(
-    format="%(asctime)s\t%(levelname)s\t%(message)s", level=logging.DEBUG
-)
-
 __all__ = [
     "ApiClient",
     "ApiClientFactory",
