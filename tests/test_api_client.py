@@ -507,7 +507,6 @@ class TestResponseHandling:
         do this."""
         resource_path = "/health"
         method = "GET"
-        response_type = "str"
 
         expected_url = TEST_URL + resource_path
 
@@ -519,10 +518,10 @@ class TestResponseHandling:
             headers={"Content-Type": "text/plain"},
         )
         response, status_code, headers = self._client.call_api(
-            resource_path, method, response_type=response_type
+            resource_path, method, response_type=None
         )
 
-        assert response == "OK"
+        assert response is None
         assert status_code == 200
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
