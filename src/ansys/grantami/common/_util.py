@@ -199,7 +199,6 @@ class ResponseHandler(BaseHTTPRequestHandler):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._response_html = (
             r"<!DOCTYPE html>"
             r'    <html lang="en">'
@@ -213,8 +212,8 @@ class ResponseHandler(BaseHTTPRequestHandler):
             r"    </body>"
             r"</html>".format(
                 title="Login successful", paragraph="You can now close this tab."
-            ).encode("utf-8")
-        )
+            ).encode("utf-8"))
+        super().__init__(*args, **kwargs)
 
     # noinspection PyPep8Naming
     def do_GET(self) -> None:
@@ -323,9 +322,7 @@ class SessionConfiguration:
 
     @property
     def _verify(self) -> Union[None, bool, str]:
-        if self.verify_ssl is None:
-            return None
-        elif self.cert_store_path is None:
+        if self.cert_store_path is None:
             return self.verify_ssl
         else:
             return self.cert_store_path

@@ -73,7 +73,8 @@ class ApiClientFactory:
         logger.info(f"[TECHDOCS]Creating new session at '{servicelayer_url}")
 
         if session_configuration is None:
-            self._session_configuration = SessionConfiguration()
+            session_configuration = SessionConfiguration()
+        self._session_configuration = session_configuration
 
         logger.debug(
             f"[TECHDOCS]Setting requests session parameter 'max_retries' with value '{self._session_configuration.retry_count}'"
