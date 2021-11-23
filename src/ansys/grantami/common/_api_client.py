@@ -55,7 +55,6 @@ class ApiClient:
     PRIMITIVE_TYPES = (float, bool, bytes, str, int)
     NATIVE_TYPES_MAPPING = {
         "int": int,
-        "long": int,
         "float": float,
         "str": str,
         "bool": bool,
@@ -256,7 +255,7 @@ class ApiClient:
         Based on the object type, return the sanitized JSON representation to be sent to the server.
 
         If obj is None, return None.
-        If obj is str, int, long, float, bool, return directly.
+        If obj is str, int, float, bool, return directly.
         If obj is datetime.datetime, datetime.date convert to string in iso8601 format.
         If obj is list, sanitize each element in the list.
         If obj is tuple, sanitize each element in the tuple.
