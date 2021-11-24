@@ -10,7 +10,6 @@ from requests.auth import HTTPBasicAuth  # type: ignore
 from requests_ntlm import HttpNtlmAuth  # type: ignore
 
 from ._api_client import ApiClient
-from ._oidc import OIDCSessionFactory
 from ._util import (
     parse_authenticate,
     SessionConfiguration,
@@ -18,7 +17,7 @@ from ._util import (
 )
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 
-logger = logging.getLogger("pyansys.grantami.common")
+logger = logging.getLogger("ansys.openapi.common")
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -31,6 +30,7 @@ try:
     # noinspection PyUnresolvedReferences
     import requests_oauthlib  # type: ignore
     import keyring
+    from ._oidc import OIDCSessionFactory
 except ImportError:
     _oidc_enabled = False
 

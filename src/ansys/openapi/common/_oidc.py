@@ -28,7 +28,7 @@ if os.getenv("VERBOSE_TOKEN_DEBUGGING"):
 else:
     _log_tokens = False
 
-logger = logging.getLogger("MI_Session")
+logger = logging.getLogger("ansys.openapi.common")
 
 
 class OIDCSessionFactory:
