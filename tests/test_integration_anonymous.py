@@ -4,7 +4,11 @@ import pytest
 import uvicorn
 from fastapi import FastAPI
 
-from ansys.grantami.common import ApiClientFactory, SessionConfiguration, AuthenticationWarning
+from ansys.grantami.common import (
+    ApiClientFactory,
+    SessionConfiguration,
+    AuthenticationWarning,
+)
 from .integration.common import ExampleModelPyd, TEST_MODEL_ID, TEST_URL, TEST_PORT
 
 app = FastAPI()
@@ -52,18 +56,18 @@ class TestAnonymous:
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_anonymous().build()
 
-        resp = client.request('GET', TEST_URL + "/test_api")
+        resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
-        assert 'OK' in resp.text
+        assert "OK" in resp.text
 
     def test_basic_credentials_raises_warning(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.warns(AuthenticationWarning, match="anonymous"):
             client = client_factory.with_credentials("TEST_USER", "TEST_PASS").build()
 
-        resp = client.request('GET', TEST_URL + "/test_api")
+        resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
-        assert 'OK' in resp.text
+        assert "OK" in resp.text
 
     def test_patch_model(self):
         from .models import ExampleModel

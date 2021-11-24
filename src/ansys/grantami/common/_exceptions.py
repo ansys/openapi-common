@@ -50,6 +50,7 @@ class AuthenticationWarning(Warning):
     def __repr__(self) -> str:
         return f"AuthenticationWarning({self.message})"
 
+
 class ApiException(Exception):
     """
     Exception raised when the remote server returns an unsuccessful response. Inspect the `.status` and `.reason` for

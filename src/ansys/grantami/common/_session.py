@@ -371,7 +371,9 @@ class ApiClientFactory:
         else:
             raise ApiConnectionException(resp.status_code, resp.reason, resp.text)
 
-    def __handle_initial_response(self, initial_response: requests.Response) -> "Optional[ApiClientFactory]":
+    def __handle_initial_response(
+        self, initial_response: requests.Response
+    ) -> "Optional[ApiClientFactory]":
         """[TECHDOCS]Verifies that an initial 401 is returned if we expect to require authentication. If a 2XX response
         is returned then all is well, but we will not use any authentication in future. Otherwise something else has
         gone awry: return an :obj:`ApiConnectionException` with information about the response.
@@ -392,8 +394,12 @@ class ApiClientFactory:
             If the connection succeeds when the user's requested authentication suggests it should fail.
         """
         if 200 <= initial_response.status_code < 300:
-            warnings.warn(AuthenticationWarning("[TECHDOCS]Credentials were provided but server accepts anonymous "
-                                                "connections. Continuing without credentials."))
+            warnings.warn(
+                AuthenticationWarning(
+                    "[TECHDOCS]Credentials were provided but server accepts anonymous "
+                    "connections. Continuing without credentials."
+                )
+            )
             logger.info("[TECHDOCS]Connection success")
             self._configured = True
             return self

@@ -13,7 +13,9 @@ def test_api_connection_exception_repr():
     reason_phrase = "Forbidden"
     message = "You do not have permission to access this resource"
 
-    api_connection_exception = ApiConnectionException(status_code, reason_phrase, message)
+    api_connection_exception = ApiConnectionException(
+        status_code, reason_phrase, message
+    )
     exception_repr = api_connection_exception.__repr__()
 
     exception_from_repr = eval(exception_repr)
@@ -57,7 +59,9 @@ def test_api_exception_str(include_headers, include_body):
         body = f"Record with ID '{str(uuid.uuid4())}' not found"
     else:
         body = None
-    api_connection_exception = ApiException(status_code, reason_phrase, body=body, headers=headers)
+    api_connection_exception = ApiException(
+        status_code, reason_phrase, body=body, headers=headers
+    )
     exception_str = api_connection_exception.__str__()
 
     assert "ApiException" in exception_str

@@ -212,7 +212,8 @@ class ResponseHandler(BaseHTTPRequestHandler):
             r"    </body>"
             r"</html>".format(
                 title="Login successful", paragraph="You can now close this tab."
-            ).encode("utf-8"))
+            ).encode("utf-8")
+        )
         super().__init__(*args, **kwargs)
 
     # noinspection PyPep8Naming

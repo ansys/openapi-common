@@ -5,7 +5,7 @@ from fastapi import HTTPException, status
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
 
-TEST_MODEL_ID = '37630523-deac-44b4-b920-b150ff8a2308'
+TEST_MODEL_ID = "37630523-deac-44b4-b920-b150ff8a2308"
 TEST_PORT = 27768
 TEST_URL = f"http://localhost:{TEST_PORT}"
 TEST_USER = "api_user"

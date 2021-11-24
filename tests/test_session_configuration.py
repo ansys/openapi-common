@@ -127,7 +127,6 @@ def test_redirects():
 
 
 class TestDeserialization:
-
     @pytest.fixture(autouse=True)
     def _test_input_dict(self):
         self.blank_input = {
@@ -136,7 +135,7 @@ class TestDeserialization:
             "cookies": None,
             "proxies": None,
             "headers": None,
-            "max_redirects": None
+            "max_redirects": None,
         }
 
     def test_blank_input_returns_default_object(self):
