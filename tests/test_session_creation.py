@@ -4,7 +4,7 @@ from functools import wraps
 import pytest
 import requests_mock
 
-from ansys.grantami.common import (
+from ansys.openapi.common import (
     SessionConfiguration,
     ApiClientFactory,
     ApiConnectionException,

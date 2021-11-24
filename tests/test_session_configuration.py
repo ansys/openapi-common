@@ -6,7 +6,7 @@ import pytest
 import requests
 from requests.utils import CaseInsensitiveDict
 
-from ansys.grantami.common import SessionConfiguration
+from ansys.openapi.common import SessionConfiguration
 
 CLIENT_CERT_PATH = "./client-cert.pem"
 CLIENT_CERT_KEY = "5up3rS3c43t!"

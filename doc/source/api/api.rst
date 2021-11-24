@@ -3,18 +3,18 @@ API Reference
 
 Common objects for pyAnsys REST API clients
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-.. py:currentmodule::ansys.grantami.common
-.. autoclass:: ansys.grantami.common.ApiClient
+.. py:currentmodule::ansys.openapi.common
+.. autoclass:: ansys.openapi.common.ApiClient
    :members:
 
    .. automethod:: __init__
 
-.. autoclass:: ansys.grantami.common.ApiClientFactory
+.. autoclass:: ansys.openapi.common.ApiClientFactory
    :members:
 
    .. automethod:: __init__
 
-.. autoclass:: ansys.grantami.common.SessionConfiguration
+.. autoclass:: ansys.openapi.common.SessionConfiguration
    :members:
 
    .. automethod:: __init__
@@ -22,6 +22,6 @@ Common objects for pyAnsys REST API clients
 Exceptions
 ~~~~~~~~~~
 
-.. autoexception:: ansys.grantami.common.ApiException
+.. autoexception:: ansys.openapi.common.ApiException
 
-.. autoexception:: ansys.grantami.common.ApiConnectionException
+.. autoexception:: ansys.openapi.common.ApiConnectionException

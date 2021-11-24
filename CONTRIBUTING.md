@@ -1,10 +1,10 @@
 # Contributing
 
 We absolutely welcome any code contributions, and we hope that this
-guide will facilitate an understanding of the openapi-client-common code
+guide will facilitate an understanding of the openapi-common code
 repository.
 
-It is important to note that while the openapi-client-common
+It is important to note that while the openapi-common
 software package is maintained by ANSYS and any submissions will be
 reviewed thoroughly before merging, we still seek to foster a community
 that can support user questions and develop new features to make this

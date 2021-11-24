@@ -1,10 +1,10 @@
-from ansys.grantami import common
+from ansys.openapi import common
 import os
 import sys
 
 # -- Project information -----------------------------------------------------
 
-project = 'ansys.grantami.common'
+project = 'ansys.openapi.common'
 copyright = '(c) 2021 ANSYS, Inc. All rights reserved'
 author = 'ANSYS Inc.'
 
@@ -31,8 +31,8 @@ napoleon_use_rtype = False
 
 #
 autodoc_type_aliases = {
-    'DeserializedType': 'ansys.grantami.common._api_client.DeserializedType',
-    'SerializedType': 'ansys.grantami.common._api_client.SerializedType'
+    'DeserializedType': 'ansys.openapi.common._api_client.DeserializedType',
+    'SerializedType': 'ansys.openapi.common._api_client.SerializedType'
 }
 
 autodoc_typehints = 'description'
@@ -77,14 +77,14 @@ copybutton_prompt_is_regexp = True
 html_theme = 'pyansys_sphinx_theme'
 html_logo = './_static/pyansys-logo-black-cropped.png'
 html_theme_options = {
-    "github_url": "https://github.com/pyansys/openapi-client-common",
+    "github_url": "https://github.com/pyansys/openapi-common",
     "show_prev_next": False
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'openapiclientcommondoc'
+htmlhelp_basename = 'openapicommondoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
@@ -94,7 +94,7 @@ latex_elements = {}
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pyansys.tex', 'ansys.grantami.common Documentation',
+    (master_doc, 'ansys_openapi_common.tex', 'ansys.openapi.common Documentation',
      author, 'manual'),
 ]
 
@@ -104,7 +104,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'ansys.grantami.common', 'ansys.grantami.common Documentation',
+    (master_doc, 'ansys.openapi.common', 'ansys.openapi.common Documentation',
      [author], 1)
 ]
 
@@ -115,8 +115,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'ansys.grantami.common', 'ansys.grantami.common Documentation',
-     author, 'ansys.grantami.common', 'Common authentication components for pyAnsys REST clients',
+    (master_doc, 'ansys.openapi.common', 'ansys.openapi.common Documentation',
+     author, 'ansys.openapi.common', 'Common authentication components for pyAnsys REST clients',
      'Engineering Software'),
 ]
 

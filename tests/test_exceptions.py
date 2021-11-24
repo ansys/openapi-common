@@ -3,8 +3,8 @@ import uuid
 import pytest
 from requests.utils import CaseInsensitiveDict
 
-from ansys.grantami.common import ApiException, ApiConnectionException
-from ansys.grantami.common._exceptions import AuthenticationWarning
+from ansys.openapi.common import ApiException, ApiConnectionException
+from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
 @pytest.mark.skip("Awaiting documentation review")

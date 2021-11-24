@@ -16,13 +16,13 @@ welcome and encourage any questions or submissions to this repository.
 Cloning the Source Repository
 -----------------------------
 
-You can clone the source repository from `GitHub <https://github.com/pyansys/openapi-client-common>`_
+You can clone the source repository from `GitHub <https://github.com/pyansys/openapi-common>`_
 and install the latest version in development mode by running:
 
 .. code::
 
-    git clone https://github.com/pyansys/openapi-client-common
-    cd openapi-client-common
+    git clone https://github.com/pyansys/openapi-common
+    cd openapi-common
     pip install -e .
 
 
@@ -30,7 +30,7 @@ Questions
 ---------
 For general or technical questions about the project, its
 applications, or about software usage, please create an issue at
-`GitHub Issues <https://github.com/pyansys/openapi-client-common/issues>`_
+`GitHub Issues <https://github.com/pyansys/openapi-common/issues>`_
 where the community or PyAnsys developers can collectively address your
 questions.  The project support team can be reached at
 `alexander.kaszynski@ansys.com <alexander.kaszynski@ansys.com>`_
@@ -43,7 +43,7 @@ will remain available on the issues page for other users.
 Reporting Bugs
 --------------
 If you encounter any bugs or crashes while using the OpenAPI client,
-please report it at `GitHub Issues <https://github.com/pyansys/openapi-client-common/issues>`_
+please report it at `GitHub Issues <https://github.com/pyansys/openapi-common/issues>`_
 with an appropriate label so we can promptly address it.  When
 reporting an issue, please be overly descriptive so that we may
 reproduce it. Whenever possible, please provide tracebacks,
@@ -53,7 +53,7 @@ screenshots, and sample files to help us address the issue.
 Feature Requests
 ----------------
 We encourage users to submit ideas for improvements to the OpenAPI client!
-Please create an issue on the `PyAnsys Issues <https://github.com/pyansys/openapi-client-common/issues>`_
+Please create an issue on the `PyAnsys Issues <https://github.com/pyansys/openapi-common/issues>`_
 with a **Feature Request** label to suggest an improvement.
 Please use a descriptive title and provide ample background information to help
 the community implement that functionality. For example, if you would like a
@@ -120,8 +120,8 @@ Finally, please take a look at our `Code of Conduct <https://github.com/pyansys/
 
 Contributing to PyMAPDL through GitHub
 ---------------------------------------------
-To submit new code to PyMAPDL, first fork the `openapi-client-common GitHub Repo
-<https://github.com/pyansys/openapi-client-common>`_ and then clone the forked
+To submit new code to PyMAPDL, first fork the `openapi-common GitHub Repo
+<https://github.com/pyansys/openapi-common>`_ and then clone the forked
 repository to your computer.  Next, create a new branch based on the
 `Branch Naming Conventions Section <#branch-naming-conventions>`__ in
 your local repository.
@@ -138,9 +138,9 @@ section <#creating-a-new-pull-request>`__.
 
 Opening Issues
 ~~~~~~~~~~~~~~
-Should you come across a bug in ``openapi-client-common`` or otherwise
+Should you come across a bug in ``openapi-common`` or otherwise
 encounter some unexpected behaviour you should create an "issue" regarding it.
-Issues are created and submitted `here <https://github.com/pyansys/openapi-client-common/issues>`_.
+Issues are created and submitted `here <https://github.com/pyansys/openapi-common/issues>`_.
 Issues are used when developing to keep track of what is being
 worked on at any one time, and by who. We have two issue templates
 that we recommend you use:
@@ -164,7 +164,7 @@ discretion of the maintainers.
 Should it turn out the fix did not work, or your issue was closed
 erroneously, please re-open your issue with a comment addressing why.
 
-Open ended questions should be opened in `Discussions <https://github.com/pyansys/openapi-client-common/discussions>`_,
+Open ended questions should be opened in `Discussions <https://github.com/pyansys/openapi-common/discussions>`_,
 and should an issue generate additional discussion, further issues
 should be spun out into their own separate issues. This helps developers
 keep track of what is being done and what needs to be done.
@@ -174,7 +174,7 @@ Discussions
 ~~~~~~~~~~~
 
 General questions about PyMAPDL should be raised in
-`Discussions <https://github.com/pyansys/openapi-client-common/discussions>`_ in
+`Discussions <https://github.com/pyansys/openapi-common/discussions>`_ in
 this repository rather than as issues themselves. Issues can be spun out of
 discussions depending on what is decided, but general Q&A content
 should start as discussions where possible.
@@ -187,7 +187,7 @@ should start as discussions where possible.
 Creating a New Pull Request
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Once you have tested your branch locally, create a pull request on
-`GitHub <https://github.com/pyansys/openapi-client-common>`_ and target your
+`GitHub <https://github.com/pyansys/openapi-common>`_ and target your
 merge to `main`.  This will automatically run continuous
 integration (CI) testing and verify your changes will work across all
 supported platforms.
@@ -259,7 +259,7 @@ Documentation
 -------------
 Documentation for openapi-client-common is generated from three sources:
 
-- Docstrings from the classes, functions, and modules of ``ansys.grantami.common`` using `sphinx.ext.autodoc <https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html>`_.
+- Docstrings from the classes, functions, and modules of ``ansys.openapi.common`` using `sphinx.ext.autodoc <https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html>`_.
 - Restructured test from `doc/`
 
 General usage and API descriptions should be placed within `doc/source` and
@@ -291,7 +291,7 @@ html documentation locally by install ``sphinx`` and the other
 documentation build dependencies by running the following from the
 openapi-client-common source directory:
 
-First, optionally install ``openapi-client-common`` in development mode with:
+First, optionally install ``openapi-common`` in development mode with:
 
 .. code::
 
@@ -355,7 +355,7 @@ The main features of our branching model are:
   release branches will have their `__version__.py` updated and be
   tagged with a patched semantic version (e.g. `0.2.1`).  This
   triggers CI to push to PyPi, and allow us to rapidly push hotfixes
-  for past versions of ``ansys.grantami.common`` without having to worry about
+  for past versions of ``ansys.openapi.common`` without having to worry about
   untested features.
 - When a minor release candidate is ready, a new `release` branch will
   be created from `main` with the next incremented minor version
@@ -371,7 +371,7 @@ The main features of our branching model are:
 Minor Release Steps
 ~~~~~~~~~~~~~~~~~~~
 Minor releases are feature and bug releases that improve the
-functionality and stability of ``openapi-client-common``.  Before a
+functionality and stability of ``openapi-common``.  Before a
 minor release is created the following will occur:
 
 1.  Create a new branch from the ``main`` branch with name
@@ -393,7 +393,7 @@ cached.
 4. After building the documentation, open the local build and examine
    the examples gallery for any obvious issues.
 
-5. Update the version numbers in ``ansys/grantami/common/__init__.py`` and commit it.
+5. Update the version numbers in ``ansys/openapi/common/__init__.py`` and commit it.
    Push the branch to GitHub and create a new PR for this release that
    merges it to main.  Development to main should be limited at
    this point while effort is focused on the release.
@@ -417,14 +417,14 @@ cached.
 
 8. Create a list of all changes for the release. It is often helpful
    to leverage `GitHub's compare feature
-   <https://github.com/pyansys/openapi-client-common/compare>`_ to see the
+   <https://github.com/pyansys/openapi-common/compare>`_ to see the
    differences from the last tag and the `main` branch.  Be sure to
    acknowledge new contributors by their GitHub username and place
    mentions where appropriate if a specific contributor is to thank
    for a new feature.
 
 9. Place your release notes from step 8 in the description within
-   `PyMAPDL Releases <https://github.com/pyansys/openapi-client-common/releases/new>`_
+   `PyMAPDL Releases <https://github.com/pyansys/openapi-common/releases/new>`_
 
 
 Patch Release Steps

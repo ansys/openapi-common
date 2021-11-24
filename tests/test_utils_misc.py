@@ -5,7 +5,7 @@ import threading
 import pytest
 import requests
 
-from ansys.grantami.common._util import (
+from ansys.openapi.common._util import (
     CaseInsensitiveOrderedDict,
     OIDCCallbackHTTPServer,
 )

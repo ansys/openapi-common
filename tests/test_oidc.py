@@ -6,7 +6,7 @@ import requests_mock
 from unittest.mock import Mock
 from covertable import make
 
-from ansys.grantami.common._oidc import OIDCSessionFactory
+from ansys.openapi.common._oidc import OIDCSessionFactory
 
 REQUIRED_HEADERS = {
     "clientid": "3acde603-9bb9-48e7-9eaa-c624c4fd40ca",

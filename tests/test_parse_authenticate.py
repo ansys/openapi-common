@@ -2,7 +2,7 @@ import itertools
 
 import pytest
 
-from ansys.grantami.common._util import (
+from ansys.openapi.common._util import (
     parse_authenticate,
     CaseInsensitiveOrderedDict,
 )
