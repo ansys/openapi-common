@@ -1,4 +1,5 @@
 from multiprocessing import Process
+from time import sleep
 
 import pytest
 import uvicorn
@@ -65,6 +66,8 @@ class TestBasic:
         proc.start()
         yield
         proc.terminate()
+        while proc.is_alive():
+            sleep(1)
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
