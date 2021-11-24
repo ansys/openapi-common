@@ -26,6 +26,9 @@ deps =
     pytest-mock
     covertable
     pytest-cov
+    uvicorn
+    fastapi
+    pydantic
 commands = pytest ./tests
 
 [testenv:coverage]
