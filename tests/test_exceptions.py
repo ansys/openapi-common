@@ -4,8 +4,10 @@ import pytest
 from requests.utils import CaseInsensitiveDict
 
 from ansys.grantami.common import ApiException, ApiConnectionException
+from ansys.grantami.common._exceptions import AuthenticationWarning
 
 
+@pytest.mark.skip("Awaiting documentation review")
 def test_api_connection_exception_repr():
     status_code = 403
     reason_phrase = "Forbidden"
@@ -18,6 +20,7 @@ def test_api_connection_exception_repr():
     assert exception_from_repr == api_connection_exception
 
 
+@pytest.mark.skip("Awaiting documentation review")
 def test_api_exception_repr():
     status_code = 404
     reason_phrase = "Not Found"
@@ -28,6 +31,17 @@ def test_api_exception_repr():
 
     exception_from_repr = eval(exception_repr)
     assert exception_from_repr == api_connection_exception
+
+
+@pytest.mark.skip("Awaiting documentation review")
+def test_authentication_warning():
+    message = f"OpenID Connect was requested but no authentication was required."
+
+    authentication_warning = AuthenticationWarning(message)
+    warning_repr = authentication_warning.__repr__()
+
+    warning_from_repr = eval(warning_repr)
+    assert warning_from_repr == authentication_warning
 
 
 @pytest.mark.parametrize("include_headers", (False, True))

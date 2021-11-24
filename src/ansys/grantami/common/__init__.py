@@ -2,7 +2,7 @@ import logging
 
 from ._session import ApiClientFactory
 from ._util import SessionConfiguration
-from ._exceptions import ApiConnectionException, ApiException
+from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._api_client import ApiClient
 
 logging.basicConfig(
@@ -15,6 +15,7 @@ __all__ = [
     "SessionConfiguration",
     "ApiException",
     "ApiConnectionException",
+    "AuthenticationWarning",
 ]
 
 

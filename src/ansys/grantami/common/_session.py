@@ -1,5 +1,6 @@
 import logging
 import os
+import warnings
 from typing import Dict, Any, Tuple, Union, Container, Optional, Mapping
 
 import requests
@@ -15,7 +16,7 @@ from ._util import (
     SessionConfiguration,
     set_session_kwargs,
 )
-from ._exceptions import ApiConnectionException
+from ._exceptions import ApiConnectionException, AuthenticationWarning
 
 logger = logging.getLogger("pyansys.granta.auth_common")
 
@@ -176,12 +177,8 @@ class ApiClientFactory:
             )
 
         initial_response = self._session.get(self._sl_url)
-        if initial_response.status_code != 401:
-            raise ApiConnectionException(
-                initial_response.status_code,
-                initial_response.reason,
-                initial_response.text,
-            )
+        if self.__handle_initial_response(initial_response):
+            return self
         headers = self.__get_authenticate_header(initial_response)
         logger.debug(
             "[TECHDOCS]Detected authentication methods: "
@@ -218,12 +215,8 @@ class ApiClientFactory:
         information on how to configure this.
         """
         initial_response = self._session.get(self._sl_url)
-        if initial_response.status_code != 401:
-            raise ApiConnectionException(
-                initial_response.status_code,
-                initial_response.reason,
-                initial_response.text,
-            )
+        if self.__handle_initial_response(initial_response):
+            return self
         headers = self.__get_authenticate_header(initial_response)
         logger.debug(
             "[TECHDOCS]Detected authentication methods: "
@@ -282,12 +275,8 @@ class ApiClientFactory:
                 "[TECHDOCS]OIDC features are not enabled, to use them run `pip install {PACKAGE_NAME}[OIDC]`"
             )
         initial_response = self._session.get(self._sl_url)
-        if initial_response.status_code != 401:
-            raise ApiConnectionException(
-                initial_response.status_code,
-                initial_response.reason,
-                initial_response.text,
-            )
+        if self.__handle_initial_response(initial_response):
+            return self
         bearer_info = OIDCSessionFactory.parse_unauthorized_header(initial_response)
         if use_cached_tokens:
             refresh_token = keyring.get_password(
@@ -381,6 +370,41 @@ class ApiClientFactory:
             return True
         else:
             raise ApiConnectionException(resp.status_code, resp.reason, resp.text)
+
+    def __handle_initial_response(self, initial_response: requests.Response) -> "Optional[ApiClientFactory]":
+        """[TECHDOCS]Verifies that an initial 401 is returned if we expect to require authentication. If a 2XX response
+        is returned then all is well, but we will not use any authentication in future. Otherwise something else has
+        gone awry: return an :obj:`ApiConnectionException` with information about the response.
+
+        Parameters
+        ----------
+        initial_response : requests.Response
+            Response from querying the API server
+
+        Raises
+        ------
+        ApiConnectionError
+            If the API server returns a status code other than 2XX or 401
+
+        Warns
+        -----
+        AuthenticationWarning
+            If the connection succeeds when the user's requested authentication suggests it should fail.
+        """
+        if 200 <= initial_response.status_code < 300:
+            warnings.warn(AuthenticationWarning("[TECHDOCS]Credentials were provided but server accepts anonymous "
+                                                "connections. Continuing without credentials."))
+            logger.info("[TECHDOCS]Connection success")
+            self._configured = True
+            return self
+        elif initial_response.status_code != 401:
+            raise ApiConnectionException(
+                initial_response.status_code,
+                initial_response.reason,
+                initial_response.text,
+            )
+        else:
+            return None
 
     @staticmethod
     def __get_authenticate_header(
