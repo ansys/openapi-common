@@ -5,7 +5,7 @@ import pytest
 import uvicorn
 from fastapi import FastAPI
 
-from ansys.grantami.common import (
+from ansys.openapi.common import (
     ApiClientFactory,
     SessionConfiguration,
     AuthenticationWarning,

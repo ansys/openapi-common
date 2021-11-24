@@ -1,5 +1,3 @@
-import logging
-
 from ._session import ApiClientFactory
 from ._util import SessionConfiguration
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning

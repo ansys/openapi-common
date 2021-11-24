@@ -32,7 +32,7 @@ Here's a brief example of how the client works:
 
 .. code:: python
 
-    >>> from ansys.grantami.common import ApiClientFactory
+    >>> from ansys.openapi.common import ApiClientFactory
     >>> client = ApiClientFactory("https://my-api.com").with_autologon().build()
     >>> print(client)
 
@@ -59,7 +59,7 @@ For example to send a client certificate with every request
 
 .. code:: python
 
-   >>> from ansys.grantami.common import SessionConfiguration
+   >>> from ansys.openapi.common import SessionConfiguration
    >>> configuration = SessionConfiguration(client_cert_path='./my-client-cert.pwm', client_cert_key='secret-key')
    >>> client.configuration = configuration
 

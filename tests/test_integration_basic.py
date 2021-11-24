@@ -6,7 +6,7 @@ import uvicorn
 from fastapi import FastAPI, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from ansys.grantami.common import (
+from ansys.openapi.common import (
     ApiClientFactory,
     SessionConfiguration,
     ApiConnectionException,

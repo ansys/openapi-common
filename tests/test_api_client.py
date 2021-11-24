@@ -13,7 +13,7 @@ from requests.packages.urllib3.response import HTTPResponse
 from requests_mock.response import _IOReader, _FakeConnection
 import secrets
 
-from ansys.grantami.common import ApiClient, SessionConfiguration, ApiException
+from ansys.openapi.common import ApiClient, SessionConfiguration, ApiException
 
 TEST_URL = "http://localhost/api/v1.svc"
 UA_STRING = (
@@ -481,7 +481,7 @@ class TestRequestDispatch:
         #  function above?
         request_mock = mocker.patch.object(requests.Session, method_call)
         request_mock.return_value = True
-        handler_mock = mocker.patch("ansys.grantami.common._api_client.handle_response")
+        handler_mock = mocker.patch("ansys.openapi.common._api_client.handle_response")
         handler_mock.return_value = True
         _ = self.send_request(verb)
         self.assert_responses(verb, request_mock, handler_mock)

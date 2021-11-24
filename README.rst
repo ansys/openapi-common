@@ -11,18 +11,18 @@ default.
 Installation
 ------------
 
-Install openapi-client-common with:
+Install openapi-common with:
 
 .. code::
 
-   pip install ansys-grantami-common
+   pip install ansys-openapi-common
 
 Alternatively, clone and install in development mode with:
 
 .. code::
 
-   git clone https://github.com/pyansys/openapi-client-common
-   cd openapi-client-common
+   git clone https://github.com/pyansys/openapi-common
+   cd openapi-common
    pip install -e .
 
 
@@ -38,7 +38,7 @@ Additional configuration can be provided with the ``SessionConfiguration`` objec
 
 .. code:: python
 
-   >>> from ansys.grantami.common import ApiClientFactory
+   >>> from ansys.openapi.common import ApiClientFactory
    >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().build()
    <ApiClient url: https://my-api.com/v1.svc>
 
