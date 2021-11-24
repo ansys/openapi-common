@@ -171,7 +171,6 @@ class ResponseHandler(BaseHTTPRequestHandler):
     """
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._response_html = (
             r"<!DOCTYPE html>"
             r'    <html lang="en">'
@@ -187,6 +186,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
                 title="Login successful", paragraph="You can now close this tab."
             ).encode("utf-8")
         )
+        super().__init__(*args, **kwargs)
 
     # noinspection PyPep8Naming
     def do_GET(self) -> None:
@@ -304,9 +304,7 @@ class SessionConfiguration:
 
     @property
     def _verify(self) -> Union[None, bool, str]:
-        if self.verify_ssl is None:
-            return None
-        elif self.cert_store_path is None:
+        if self.cert_store_path is None:
             return self.verify_ssl
         else:
             return self.cert_store_path
@@ -371,10 +369,14 @@ class SessionConfiguration:
                 raise ValueError(
                     f"[TECHDOCS]Invalid 'verify' field, must be str or bool, not '{type(verify)}'"
                 )
-        new.cookies = configuration_dict["cookies"]
-        new.proxies = configuration_dict["proxies"]
-        new.headers = configuration_dict["headers"]
-        new.max_redirects = configuration_dict["max_redirects"]
+        if configuration_dict["cookies"] is not None:
+            new.cookies = configuration_dict["cookies"]
+        if configuration_dict["proxies"] is not None:
+            new.proxies = configuration_dict["proxies"]
+        if configuration_dict["headers"] is not None:
+            new.headers = configuration_dict["headers"]
+        if configuration_dict["max_redirects"] is not None:
+            new.max_redirects = configuration_dict["max_redirects"]
         return new
 
 

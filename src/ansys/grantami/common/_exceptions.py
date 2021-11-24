@@ -33,6 +33,24 @@ class ApiConnectionException(Exception):
         return f"[TECHDOCS]ApiConnectionException({self.status_code}, '{self.reason_phrase}',\n'{self.message}')"
 
 
+class AuthenticationWarning(Warning):
+    """
+    Warning raised when the server connection process completes but does proceed as expected.
+    """
+
+    def __init__(self, message: str) -> None:
+        """
+        Parameters
+        ----------
+        message : str
+            Cause of the warning and any additional information
+        """
+        self.message = message
+
+    def __repr__(self) -> str:
+        return f"AuthenticationWarning({self.message})"
+
+
 class ApiException(Exception):
     """
     Exception raised when the remote server returns an unsuccessful response. Inspect the `.status` and `.reason` for

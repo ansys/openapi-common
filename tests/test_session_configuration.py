@@ -1,7 +1,10 @@
 import http.cookiejar
+import secrets
+import tempfile
 
 import pytest
 import requests
+from requests.utils import CaseInsensitiveDict
 
 from ansys.grantami.common import SessionConfiguration
 
@@ -121,3 +124,69 @@ def test_cookies():
 def test_redirects():
     output = SessionConfiguration(max_redirects=12000).get_configuration_for_requests()
     assert output["max_redirects"] == 12000
+
+
+class TestDeserialization:
+    @pytest.fixture(autouse=True)
+    def _test_input_dict(self):
+        self.blank_input = {
+            "cert": None,
+            "verify": None,
+            "cookies": None,
+            "proxies": None,
+            "headers": None,
+            "max_redirects": None,
+        }
+
+    def test_blank_input_returns_default_object(self):
+        configuration_obj = SessionConfiguration.from_dict(self.blank_input)
+
+        assert configuration_obj.verify_ssl
+        assert configuration_obj.cert_store_path is None
+        assert configuration_obj.client_cert_key is None
+        assert configuration_obj.client_cert_path is None
+        assert isinstance(configuration_obj.cookies, http.cookiejar.CookieJar)
+        assert configuration_obj.cookies._cookies == {}  # noqa
+        assert configuration_obj.headers == CaseInsensitiveDict()
+        assert configuration_obj.proxies == {}
+        assert configuration_obj.max_redirects == 10
+        assert configuration_obj.temp_folder_path == tempfile.gettempdir()
+
+    def test_client_cert_tuple_sets_path_and_key(self):
+        test_input = self.blank_input
+        test_file_name = "/home/testuser/test_cert.pem"
+        test_key = secrets.token_hex(32)
+        test_input.update({"cert": (test_file_name, test_key)})
+
+        configuration_obj = SessionConfiguration.from_dict(test_input)
+
+        assert configuration_obj.client_cert_path == test_file_name
+        assert configuration_obj.client_cert_key == test_key
+
+    def test_client_cert_with_str_sets_path_only(self):
+        test_input = self.blank_input
+        test_file_name = "/home/testuser/test_cert.pem"
+        test_input.update({"cert": test_file_name})
+
+        configuration_obj = SessionConfiguration.from_dict(test_input)
+
+        assert configuration_obj.client_cert_path == test_file_name
+        assert configuration_obj.client_cert_key is None
+
+    def test_verify_ssl_with_str_sets_path_to_store(self):
+        test_input = self.blank_input
+        test_cert_path = "/home/testuser/test_cert.pem"
+        test_input.update({"verify": test_cert_path})
+
+        configuration_obj = SessionConfiguration.from_dict(test_input)
+
+        assert configuration_obj.verify_ssl
+        assert configuration_obj.cert_store_path == test_cert_path
+
+    def test_verify_ssl_with_bool_sets_verify_flag(self):
+        test_input = self.blank_input
+        test_input.update({"verify": False})
+
+        configuration_obj = SessionConfiguration.from_dict(test_input)
+
+        assert configuration_obj.verify_ssl is False
