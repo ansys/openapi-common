@@ -4,9 +4,9 @@ import tempfile
 
 import pytest
 import requests
+from requests.utils import CaseInsensitiveDict
 
 from ansys.grantami.common import SessionConfiguration
-from ansys.grantami.common._util import RequestsConfiguration, CaseInsensitiveOrderedDict
 
 CLIENT_CERT_PATH = "./client-cert.pem"
 CLIENT_CERT_KEY = "5up3rS3c43t!"
@@ -146,9 +146,10 @@ class TestDeserialization:
         assert configuration_obj.cert_store_path is None
         assert configuration_obj.client_cert_key is None
         assert configuration_obj.client_cert_path is None
-        assert configuration_obj.cookies is None
-        assert configuration_obj.headers is None
-        assert configuration_obj.proxies is None
+        assert isinstance(configuration_obj.cookies, http.cookiejar.CookieJar)
+        assert configuration_obj.cookies._cookies == {}  # noqa
+        assert configuration_obj.headers == CaseInsensitiveDict()
+        assert configuration_obj.proxies == {}
         assert configuration_obj.max_redirects == 10
         assert configuration_obj.temp_folder_path == tempfile.gettempdir()
 

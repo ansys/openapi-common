@@ -820,7 +820,7 @@ class ApiClient:
             return klass(data)
         except UnicodeEncodeError:
             return str(data)
-        except TypeError:
+        except (ValueError, TypeError):
             return data
 
     @staticmethod

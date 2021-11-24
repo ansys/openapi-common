@@ -1,7 +1,6 @@
 import asyncio
 import secrets
 import threading
-import uuid
 
 import pytest
 import requests

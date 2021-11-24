@@ -6,7 +6,7 @@ from fastapi import FastAPI, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from ansys.grantami.common import ApiClientFactory, SessionConfiguration, ApiConnectionException
-from .integration.common import ExampleModelPyd, validate_user_basic, TEST_MODEL_ID, TEST_URL, TEST_PASS, TEST_USER
+from .integration.common import ExampleModelPyd, validate_user_basic, TEST_MODEL_ID, TEST_URL, TEST_PASS, TEST_USER, TEST_PORT
 
 
 app = FastAPI()
@@ -39,7 +39,7 @@ async def read_main(credentials: HTTPBasicCredentials = Depends(security)):
 
 
 def run_server():
-    uvicorn.run(app)
+    uvicorn.run(app, port=TEST_PORT)
 
 
 class TestBasic:

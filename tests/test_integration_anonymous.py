@@ -4,8 +4,8 @@ import pytest
 import uvicorn
 from fastapi import FastAPI
 
-from ansys.grantami.common import ApiClientFactory, SessionConfiguration, ApiConnectionException
-from .integration.common import ExampleModelPyd, TEST_MODEL_ID, TEST_URL
+from ansys.grantami.common import ApiClientFactory, SessionConfiguration, AuthenticationWarning
+from .integration.common import ExampleModelPyd, TEST_MODEL_ID, TEST_URL, TEST_PORT
 
 app = FastAPI()
 
@@ -33,7 +33,7 @@ async def read_main():
 
 
 def run_server():
-    uvicorn.run(app)
+    uvicorn.run(app, port=TEST_PORT)
 
 
 class TestAnonymous:
@@ -56,14 +56,14 @@ class TestAnonymous:
         assert resp.status_code == 200
         assert 'OK' in resp.text
 
-    def test_basic_credentials_throws_useful_exception(self):
+    def test_basic_credentials_raises_warning(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials("TEST_USER", "TEST_PASS").build()
+        with pytest.warns(AuthenticationWarning, match="anonymous"):
+            client = client_factory.with_credentials("TEST_USER", "TEST_PASS").build()
 
-        with pytest.raises(ApiConnectionException) as exception_info:
-            _ = client.request('GET', TEST_URL + "/test_api")
-        assert exception_info.value.status_code == 200
-        assert 'anonymous' in exception_info.value.message
+        resp = client.request('GET', TEST_URL + "/test_api")
+        assert resp.status_code == 200
+        assert 'OK' in resp.text
 
     def test_patch_model(self):
         from .models import ExampleModel

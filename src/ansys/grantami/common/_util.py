@@ -381,10 +381,14 @@ class SessionConfiguration:
                 raise ValueError(
                     f"[TECHDOCS]Invalid 'verify' field, must be str or bool, not '{type(verify)}'"
                 )
-        new.cookies = configuration_dict["cookies"]
-        new.proxies = configuration_dict["proxies"]
-        new.headers = configuration_dict["headers"]
-        new.max_redirects = configuration_dict["max_redirects"]
+        if configuration_dict["cookies"] is not None:
+            new.cookies = configuration_dict["cookies"]
+        if configuration_dict["proxies"] is not None:
+            new.proxies = configuration_dict["proxies"]
+        if configuration_dict["headers"] is not None:
+            new.headers = configuration_dict["headers"]
+        if configuration_dict["max_redirects"] is not None:
+            new.max_redirects = configuration_dict["max_redirects"]
         return new
 
 
