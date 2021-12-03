@@ -11,19 +11,19 @@ class ApiConnectionException(Exception):
     """
     Exception raised when connection to MI Servicelayer fails. Inspect the `.status_code` and `.reason_phrase` for more
     information about the failure.
+
+    Attributes
+    ----------
+    status_code : int
+        HTTP status code associated with the response.
+    reason_phrase : str
+        Description of the response as provided by the server.
+    message : str
+        The content of the response as provided by the server.
+
     """
 
-    def __init__(self, status_code: int, reason_phrase: str, message: str) -> None:
-        """
-        Parameters
-        ----------
-        status_code : int
-            HTTP status code associated with the response.
-        reason_phrase : str
-            Description of the response as provided by the server.
-        message : str
-            The content of the response as provided by the server.
-        """
+    def __init__(self, status_code: int, reason_phrase: str, message: str):
         self.status_code = status_code
         self.reason_phrase = reason_phrase
         self.message = message
@@ -80,25 +80,6 @@ class ApiException(Exception):
         body: Optional[str] = None,
         headers: Optional[CaseInsensitiveDict] = None,
     ):
-        """
-        Parameters
-        ----------
-        status_code : int
-            HTTP status code associated with the response.
-        reason_phrase : str
-            Description of the response as provided by the server.
-        body : Optional[str]
-            Contents of the response message, if present.
-        headers : Optional[CaseInsensitiveDict]
-            Headers dictionary, if present.
-
-        Examples
-        --------
-        >>>raise ApiConnectionException(status_code=404, reason_phrase='Not Found')
-        Traceback (most recent call last):
-          File "<input>", line 1, in <module>
-        ApiException(404, 'Not Found')
-        """
         self.status_code = status_code
         self.reason_phrase = reason_phrase
         self.body = body

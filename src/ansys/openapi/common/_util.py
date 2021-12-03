@@ -73,6 +73,13 @@ class CaseInsensitiveOrderedDict(OrderedDict):
 
 
 class Singleton(type):
+    """
+    [TECHDOCS]Metaclass that adds Singleton behaviour.
+
+    The first time derived classes are created they are added to the `._instances` property, further instances of the
+    class will fetch the instance, rather than creating a new instance.
+    """
+
     _instances: Dict[type, object] = {}
 
     def __call__(cls, *args, **kwargs):
@@ -82,6 +89,13 @@ class Singleton(type):
 
 
 class AuthenticateHeaderParser(metaclass=Singleton):
+    """[TECHDOCS]Parser for WWW-Authenticate headers
+
+    This parser implements the RFC-7235 specification for the WWW-Authenticate header, together with
+    the extension by Microsoft to support Negotiate authentication. It's a singleton, since there is
+    a nontrivial amount of work to setup the parser engine.
+    """
+
     def __init__(self):
         token_char = "!#$%&'*+-.^_`|~" + pp.nums + pp.alphas
         token68_char = "-._~+/" + pp.nums + pp.alphas
@@ -100,6 +114,16 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         self.auth_parser = pp.delimitedList(credentials("schemes*"), delim=", ")
 
     def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
+        """
+        Parse a given header content and return a dictionary of authentication methods and parameters or tokens.
+
+        Invalid headers according to the specification above will return an empty response.
+
+        Parameters
+        ----------
+        value : str
+            String contents of a WWW-Authenticate header.
+        """
         try:
             parsed_value = self.auth_parser.parseString(value, parseAll=True)
         except pp.ParseException as exception_info:
@@ -123,7 +147,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         )
 
 
-def parse_authenticate(value):
+def parse_authenticate(value) -> CaseInsensitiveOrderedDict:
     """[TECHDOCS]Parses a string containing a `WWW-AUTHENTICATE` header and returns a dictionary with the supported
     authentication types and the provided parameters (if any exist)
 
@@ -131,11 +155,6 @@ def parse_authenticate(value):
     ----------
     value : str
         A WWW-AUTHENTICATE header
-
-    Returns
-    -------
-    CaseInsensitiveOrderedDict
-        Dictionary with supported auth types and the provided parameters (if any)
     """
     parser = AuthenticateHeaderParser()
     return parser.parse_header(value)
@@ -152,10 +171,6 @@ def set_session_kwargs(
         requests Session object to be configured.
     property_dict : dict
         Mapping from requests session parameter to value.
-
-    Returns
-    -------
-    None
     """
     for k, v in property_dict.items():
         session.__dict__[k] = v
@@ -314,10 +329,6 @@ class SessionConfiguration:
     ) -> "RequestsConfiguration":
         """
         Output configuration as a dictionary with keys corresponding to requests session properties.
-
-        Returns
-        -------
-        The configuration as a dictionary suitable for configuring a requests Session.
         """
         output: RequestsConfiguration = {
             "cert": self._cert,
@@ -341,10 +352,6 @@ class SessionConfiguration:
         ----------
         configuration_dict : Dict
             Dictionary form of the session parameters.
-
-        Returns
-        -------
-        Session configuration object.
         """
         new = cls()
         if configuration_dict["cert"] is not None:
@@ -393,19 +400,15 @@ def handle_response(response: requests.Response) -> requests.Response:
 
     If the response is a 2XX then it is returned as-is, otherwise an ApiException will be raised.
 
-    Parameters
-    ----------
-    response : requests.Response
-        Response from the API server.
-
-    Returns
-    -------
-    The response as-is if the status_code was 2XX.
-
     Throws
     ------
     ApiException
-        If the status code was not 2XX.
+        If the status code was not 2XX
+
+    Parameters
+    ----------
+    response : requests.Response
+        Response from the API server..
     """
     logger = logging.getLogger(__name__)
 
