@@ -24,6 +24,7 @@ if TYPE_CHECKING:
     from ._util import CaseInsensitiveOrderedDict
 
 _oidc_enabled = True
+_linux_kerberos_enabled = True
 _platform_windows = False
 
 try:
@@ -40,8 +41,12 @@ if os.name == "nt":
 
     _platform_windows = True
 else:
-    # noinspection PyUnresolvedReferences
-    from requests_kerberos import HTTPKerberosAuth as NegotiateAuth  # type: ignore
+    try:
+        # noinspection PyUnresolvedReferences
+        from requests_kerberos import HTTPKerberosAuth as NegotiateAuth  # type: ignore
+        _linux_kerberos_enabled = True
+    except ImportError:
+        _linux_kerberos_enabled = False
 
     _platform_windows = False
 
@@ -147,6 +152,10 @@ class ApiClientFactory:
         Negotiate, NTLM, or Basic Authentication should be used. The selected authentication method will then be
         configured for use.
 
+        Notes
+        -----
+        NTLM authentication on Linux requires the `[linux-kerberos]` extension to be installed.
+
         Parameters
         ----------
         username : str
@@ -172,12 +181,18 @@ class ApiClientFactory:
             + ", ".join([method for method in headers.keys()])
         )
         if "Negotiate" in headers or "NTLM" in headers:
-            logger.debug("[TECHDOCS]Attempting to connect with NTLM authentication...")
-            self._session.auth = HttpNtlmAuth(username, password)
-            if self.__test_connection():
-                logger.info("[TECHDOCS]Connection success")
-                self._configured = True
-                return self
+            if not _platform_windows or not _linux_kerberos_enabled:
+                logger.debug(
+                    '[TECHDOCS]Detected that the server supports NTLM, but we were not installed with the `kerberos` '
+                    'extension. Skipping...'
+                )
+            else:
+                logger.debug("[TECHDOCS]Attempting to connect with NTLM authentication...")
+                self._session.auth = HttpNtlmAuth(username, password)
+                if self.__test_connection():
+                    logger.info("[TECHDOCS]Connection success")
+                    self._configured = True
+                    return self
         if "Basic" in headers:
             logger.debug("[TECHDOCS]Attempting connection with Basic authentication...")
             self._session.auth = HTTPBasicAuth(username, password)
@@ -192,10 +207,18 @@ class ApiClientFactory:
 
         Notes
         -----
-        Requires the user to have a valid Kerberos Ticket-Granting-Ticket (TGT). On Windows this is provided by default,
-        on Linux this must be configured manually. See `here <https://github.com/requests/requests-kerberos>`_ for more
-        information on how to configure this.
+        Requires the user to have a valid Kerberos Ticket-Granting-Ticket (TGT).
+
+        On Windows this is provided by default.
+
+        On Linux this requires the `[linux-kerberos]` extension to be installed, and your Kerberos installation
+        must be configured manually. See `here <https://github.com/requests/requests-kerberos>`_ for more
+        information on how to configure your Kerberos installation.
         """
+        if not _platform_windows or not _linux_kerberos_enabled:
+            raise ImportError(
+                "[TECHDOCS]Kerberos is not enabled, to use it run `pip install openapi-client-common[linux-kerberos]`"
+            )
         initial_response = self._session.get(self._sl_url)
         if self.__handle_initial_response(initial_response):
             return self
