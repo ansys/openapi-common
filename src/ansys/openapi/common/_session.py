@@ -117,10 +117,6 @@ class ApiClientFactory:
 
         Authentication must be configured for this method to succeed.
 
-        Returns
-        -------
-        Configured API client.
-
         Raises
         ------
         ValueError
@@ -135,10 +131,6 @@ class ApiClientFactory:
 
         Clients relying on custom authentication such as client certificates, or non-standard tokens should use this
         method.
-
-        Returns
-        -------
-        Client factory with configured authentication.
         """
         if self.__test_connection():
             logger.info("[TECHDOCS]Connection success")
@@ -163,10 +155,6 @@ class ApiClientFactory:
             Password for connection.
         domain : Optional[str]
             Domain to use for connection if required.
-
-        Returns
-        -------
-        Client factory with configured authentication.
         """
         logger.info(f"[TECHDOCS]Setting credentials for user '{username}")
         if domain is not None:
@@ -201,10 +189,6 @@ class ApiClientFactory:
 
     def with_autologon(self) -> "ApiClientFactory":
         """Set up the client authentication for use with Kerberos (also known as integrated windows authentication).
-
-        Returns
-        -------
-        Client factory with configured authentication.
 
         Notes
         -----
@@ -252,16 +236,12 @@ class ApiClientFactory:
             Refresh token for authentication, if provided it will be used rather than interactive login.
         use_cached_tokens : bool, default False
             Fetch access and refresh tokens from the key vault if available. This may require additional setup on linux,
-            see 'here <https://github.com/jaraco/keyring>`_ for more information on configuring the keyvault
+            see `keyring <https://github.com/jaraco/keyring>`_ for more information on configuring the keyvault
             on different platforms.
         login_timeout : int, default 60
             Length of time in seconds to wait for user to login interactively.
         idp_session_configuration : Optional[SessionConfiguration]
             Additional configuration settings for the requests Session when connected to the OpenID Identity Provider.
-
-        Returns
-        -------
-        Client factory with configured authentication.
 
         Notes
         -----
@@ -314,10 +294,6 @@ class ApiClientFactory:
         oidc_idp_session_configuration : Optional[SessionConfiguration]
             Additional configuration settings for the requests Session when connected to the OpenID Identity Provider.
 
-        Returns
-        -------
-        Client factory with configured authentication.
-
         Notes
         -----
         Requires the user to have the Granta MI Scripting Toolkit installed with at least version {INSERT_VERSION},
@@ -350,10 +326,6 @@ class ApiClientFactory:
         True, else the method will throw a :obj:`APIConnectionError` with the status code and the reason phrase. If the
         underlying requests method returns an exception of its own it is left to propagate as-is (for example a
         :obj:`~requests.exceptions.SSLException` if the remote certificate is untrusted).
-
-        Returns
-        -------
-        True if the connection is valid, otherwise raises an exception.
 
         Raises
         ------
@@ -418,11 +390,7 @@ class ApiClientFactory:
         response : requests.Response
             Raw response from the API server.
 
-        Returns
-        -------
-        Parsed contents of the www-authenticate header provided with the response.
-
-        Throws
+        Raises
         ------
         ValueError
             If the response contains no www-authenticate header to be parsed.
@@ -480,10 +448,6 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
             User provided client certificate to send with the request, optionally with password.
         proxies : Optional[Mapping[str, str]]
             The proxies dictionary to apply to the request.
-
-        Returns
-        -------
-        Response from the API.
         """
         if timeout is None:
             timeout = self.timeout

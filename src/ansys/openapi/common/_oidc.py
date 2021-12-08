@@ -136,12 +136,7 @@ class OIDCSessionFactory:
 
     @property
     def login_timeout(self) -> int:
-        """[TECHDOCS]Time in seconds to wait for the user to authenticate via web browser.
-
-        Returns
-        -------
-        Login timeout in seconds.
-        """
+        """[TECHDOCS]Time in seconds to wait for the user to authenticate via web browser."""
         return self._login_timeout
 
     @login_timeout.setter
@@ -161,10 +156,6 @@ class OIDCSessionFactory:
     def mi_requests_configuration(self) -> "SessionConfiguration":
         """[TECHDOCS]Configuration options for the requests session when communicating with the API server. See
         :class:`SessionConfiguration` for options to set.
-
-        Returns
-        -------
-        Session configuration options for connection to API.
         """
         return SessionConfiguration.from_dict(self._mi_requests_configuration)
 
@@ -183,10 +174,6 @@ class OIDCSessionFactory:
     def idp_requests_configuration(self) -> "SessionConfiguration":
         """[TECHDOCS]Configuration options for the requests session when communicating with the OpenID Connect Identity
         Provider. See :class:`SessionConfiguration` for available options.
-
-        Returns
-        -------
-        Session configuration options for connection to OpenID Identity Provider.
 
         Notes
         -----
@@ -222,10 +209,6 @@ class OIDCSessionFactory:
             Access token for the API server, normally Base64 encoded JSON Web Token.
         refresh_token : Optional[str]
             Refresh token for the API server.
-
-        Returns
-        -------
-        OpenID Connect supporting session object for use.
         """
         logger.info("[TECHDOCS]Setting tokens...")
         if access_token is not None:
@@ -245,10 +228,6 @@ class OIDCSessionFactory:
     def authorize(self) -> OAuth2Session:
         """[TECHDOCS] Finalizes creation of the underlying :class:`OAuth2Session` object, authorizing the user via their
         system web browser.
-
-        Returns
-        -------
-        Authorized OpenID Connect supporting session object for use.
         """
 
         async def await_callback():
@@ -296,11 +275,6 @@ class OIDCSessionFactory:
         ----------
         unauthorized_response : requests.Response
             Response obtained by fetching the target URI with no Authorization header.
-
-        Returns
-        -------
-        Information provided in the WWW-Authenticate header, including at least the Authority, Client ID and
-        redirect URI.
         """
         logger.debug("[TECHDOCS]Parsing bearer authentication parameters...")
         auth_header = unauthorized_response.headers["WWW-Authenticate"]
@@ -346,10 +320,6 @@ class OIDCSessionFactory:
         ----------
         url : str
             URL referencing the OpenID Identity Provider's well-known endpoint.
-
-        Returns
-        -------
-        Well-known configuration information returned by the Identity Provider.
         """
         logger.info(
             f"[TECHDOCS]Fetching configuration information from identity provider {url}"
@@ -400,10 +370,6 @@ class OIDCSessionFactory:
         ----------
         requests_configuration : RequestsConfiguration
             Configuration options for connection to the OpenID Identity Provider.
-
-        Returns
-        -------
-        Configuration with valid Accept and Content-Type headers for connection to the OpenID Identity Provider.
         """
         if requests_configuration["headers"] is not None:
             headers = requests_configuration["headers"]

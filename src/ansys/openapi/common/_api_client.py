@@ -35,22 +35,6 @@ SerializedType = Union[None, str, int, float, bool, bytes, List, Tuple, Dict]
 
 # noinspection DuplicatedCode
 class ApiClient:
-    """Generic API client for OpenAPI client library builds.
-
-    This client handles the client-server communication, and is invariant across
-    implementations. Specifics of the methods and models for each application are
-    generated from OpenAPI templates and are responsible for interfacing with the
-    public API exposed by the client.
-
-    Parameters
-    ----------
-    session : requests.Session
-        Base session object that the API Client will use
-    api_url : str
-        Base URL for the API, all generated endpoint urls are relative to this address
-    configuration : SessionConfiguration
-        Configuration options for the Api Client
-    """
 
     PRIMITIVE_TYPES = (float, bool, bytes, str, int)
     NATIVE_TYPES_MAPPING = {
@@ -68,12 +52,28 @@ class ApiClient:
         api_url: str,
         configuration: SessionConfiguration,
     ):
-        """Create a new instance of the ApiClient class.
+        """Generic API client for OpenAPI client library builds.
+
+        This client handles the client-server communication, and is invariant across
+        implementations. Specifics of the methods and models for each application are
+        generated from OpenAPI templates and are responsible for interfacing with the
+        public API exposed by the client.
+
+        Parameters
+        ----------
+        session : requests.Session
+            Base session object that the API Client will use
+        api_url : str
+            Base URL for the API, all generated endpoint urls are relative to this address
+        configuration : SessionConfiguration
+            Configuration options for the Api Client
 
         Examples
         --------
-        >>> ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
-        <ApiClient url: http://my-api.com/API/v1.svc>
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
+        ... <ApiClient url: http://my-api.com/API/v1.svc>
 
         For testing purposes it is common to configure an API with a self-signed certificate, by default the ApiClient
         will not trust self-signed SSL certificates. To allow this, pass a path to the root certificate to the
@@ -81,7 +81,9 @@ class ApiClient:
         documentation.
 
         >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
-        ... ssl_client = ApiClient(requests.Session(), 'https://secure-api/API/v1.svc', session_config)
+        ... ssl_client = ApiClient(requests.Session(),
+        ...                    'https://secure-api/API/v1.svc',
+        ...                    session_config)
         ... ssl_client
         <ApiClient url: https://secure-api/API/v1.svc>
         """
@@ -106,7 +108,9 @@ class ApiClient:
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... import ApiModels as model_module
         ... client.setup_client(model_module)
         """
@@ -121,14 +125,20 @@ class ApiClient:
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... client.user_agent
         'Swagger-Codegen/1.0.0/python'
 
         Change the user-agent string to impersonate a fairly recent Mozilla Firefox browser
 
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
-        ... client.user_agent = 'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
+        ... client.user_agent = (
+        ...    'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'
+        ... )
 
         Notes
         -----
@@ -148,7 +158,9 @@ class ApiClient:
         and will be respected, for example if your API server is configured to require non OIDC tokens for
         authentication
 
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... client.set_default_header('Authorization', 'my-token-value')
 
         Notes
@@ -252,32 +264,32 @@ class ApiClient:
     def sanitize_for_serialization(self, obj: DeserializedType) -> SerializedType:
         """Builds a JSON POST object.
 
-        Based on the object type, return the sanitized JSON representation to be sent to the server.
+        Based on the object type, return the sanitized JSON representation to be sent to the server:
 
-        If obj is None, return None.
-        If obj is str, int, float, bool, return directly.
-        If obj is datetime.datetime, datetime.date convert to string in iso8601 format.
-        If obj is list, sanitize each element in the list.
-        If obj is tuple, sanitize each element in the tuple.
-        If obj is dict, return the dict.
-        If obj is an OpenAPI model, return the properties dict.
+        * If obj is None, return None.
+        * If obj is str, int, float, bool, return directly.
+        * If obj is datetime.datetime, datetime.date convert to string in iso8601 format.
+        * If obj is list, sanitize each element in the list.
+        * If obj is tuple, sanitize each element in the tuple.
+        * If obj is dict, return the dict.
+        * If obj is an OpenAPI model, return the properties dict.
 
         Parameters
         ----------
         obj : DeserializedType
             The data to be sanitized and serialized.
 
-        Returns
-        -------
-        The serialized form of data.
-
         Examples
         --------
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... client.sanitize_for_serialization({'key': 'value'})
         {'key': 'value'}
 
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... client.sanitize_for_serialization(datetime.datetime(2015, 10, 21, 10, 5, 10))
         '2015-10-21T10:05:10'
         """
@@ -314,11 +326,11 @@ class ApiClient:
 
         For responses that are in JSON format, process the response and return it.
 
-        If response_type is "file", save the content to a temporary file and return the file name.
-        If response_type is datetime.date or datetime.datetime, parse the string and return the datetime object.
-        If response_type is list, recursively deserialize the list contents.
-        If response_type is dict, recursively deserialize the dictionary keys and values.
-        If response_type is an OpenAPI model, return the model object.
+        * If response_type is "file", save the content to a temporary file and return the file name.
+        * If response_type is datetime.date or datetime.datetime, parse the string and return the datetime object.
+        * If response_type is list, recursively deserialize the list contents.
+        * If response_type is dict, recursively deserialize the dictionary keys and values.
+        * If response_type is an OpenAPI model, return the model object.
 
         Parameters
         ----------
@@ -327,19 +339,19 @@ class ApiClient:
         response_type : Union[str, Type]
             Either the string name of the class represented, or the type
 
-        Returns
-        -------
-        The deserialized form of the response object.
-
         Examples
         --------
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... api_response = requests.Response()
         ... api_response._content = b"{'key': 'value'}"
         ... client.deserialize(api_response, 'Dict[str, str]]')
         {'key': 'value'}
 
-        >>> client = ApiClient(requests.Session(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
         ... api_response = requests.Response()
         ... api_response._content = b"'2015-10-21T10:05:10'"
         ... client.deserialize(api_response, 'datetime.datetime')
@@ -375,10 +387,6 @@ class ApiClient:
             * String class name.
             * String Type definition for list or dictionary.
             * Type.
-
-        Returns
-        -------
-        Deserialized form of response data.
         """
 
         if data is None:
@@ -463,10 +471,6 @@ class ApiClient:
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for this request. If one number provided, it will be total request timeout. It can also be a
             pair (tuple) of (connection, read) timeouts. Overrides the session level timeout setting.
-
-        Returns
-        -------
-        The deserialized response object.
         """
         return self.__call_api(
             resource_path,
@@ -516,10 +520,6 @@ class ApiClient:
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for this request. If one number provided, it will be total request timeout. It can also be a
             pair (tuple) of (connection, read) timeouts. Overrides the session level timeout setting.
-
-        Returns
-        -------
-        The response object received from the API endpoint.
         """
 
         if method == "GET":
@@ -620,10 +620,6 @@ class ApiClient:
             values.
         collection_formats : Dict[str, str]
             Dictionary with parameter name and collection type specifier.
-
-        Returns
-        -------
-        Parameters as list of tuples, where collections are formatted as specified.
         """
 
         new_params = []  # type: List[Tuple]
@@ -662,10 +658,6 @@ class ApiClient:
             Plain form parameters.
         files : Dict[str, Union[str, List[str]]]
             File parameters.
-
-        Returns
-        -------
-        Form parameters with file name, contents and mime-type.
         """
         params = []
 
@@ -698,10 +690,6 @@ class ApiClient:
         accepts : Optional[List[str]]
             List of accepted content types.
 
-        Returns
-        -------
-        Joined list of accepted content types, if any, separated by commas.
-
         Examples
         --------
         >>> ApiClient.select_header_accept(['Application/JSON', 'text/xml'])
@@ -722,10 +710,6 @@ class ApiClient:
         ----------
         content_types : Optional[List[str]]
             List of content types.
-
-        Returns
-        -------
-        Content type to use, default 'application/json'.
 
         Examples
         --------
@@ -762,10 +746,6 @@ class ApiClient:
         ----------
         response : requests.Response
             The API response object to be deserialized.
-
-        Returns
-        -------
-        File path to temporary file location.
         """
         fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
         os.close(fd)
@@ -797,10 +777,6 @@ class ApiClient:
             Data to be deserialized into primitive type.
         klass : Type
             Type of target object for deserialization.
-
-        Returns
-        -------
-        Primitive type of response.
         """
         try:
             return klass(data)
@@ -817,10 +793,6 @@ class ApiClient:
         ----------
         value : object
             A general object that does not match any specific deserialization strategy.
-
-        Returns
-        -------
-        The original object.
         """
         return value
 
@@ -832,10 +804,6 @@ class ApiClient:
         ----------
         value : str
             String representation of a date object in ISO 8601 format or otherwise.
-
-        Returns
-        -------
-        Datetime object representing the specified date.
         """
         try:
             from dateutil.parser import parse
@@ -855,10 +823,6 @@ class ApiClient:
         ----------
         value : str
             String representation of the datetime object in ISO 8601 format.
-
-        Returns
-        -------
-        Datetime object representing the specified date and time.
         """
         try:
             from dateutil.parser import parse
@@ -887,10 +851,6 @@ class ApiClient:
             Serialized representation of the model object.
         klass : ModelType
             Type of the model to be deserialized.
-
-        Returns
-        -------
-        Instance of the model class if it's a valid Model, otherwise return data as-is.
         """
 
         if not klass.swagger_types and not self.__hasattr(
