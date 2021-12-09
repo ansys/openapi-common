@@ -29,7 +29,7 @@ Alternatively, clone and install in development mode with:
 Usage
 -----
 The API client class is intended to be wrapped by code that implements a client library,
-it is suggested to override the ``__init__()`` or ``build()`` methods to add any
+it is suggested to override the ``__init__()`` or ``connect()`` methods to add any
 additional behaviour that may be required.
 
 Authentication is configured through the ``ApiClientFactory`` object and its ``with_xxx()``
@@ -39,6 +39,8 @@ Additional configuration can be provided with the ``SessionConfiguration`` objec
 .. code:: python
 
    >>> from ansys.openapi.common import ApiClientFactory
+      >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().connect()
+      <ApiClient url:
    >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().build()
    <ApiClient url: https://my-api.com/v1.svc>
 

@@ -33,6 +33,10 @@ Here's a brief example of how the client works:
 .. code:: python
 
     >>> from ansys.openapi.common import ApiClientFactory
+        >>> client = ApiClientFactory("https://my-api.com").with_autologon().connect()
+        >>> print(client)
+
+        <ApiClient url:
     >>> client = ApiClientFactory("https://my-api.com").with_autologon().build()
     >>> print(client)
 

@@ -53,11 +53,11 @@ class TestAnonymous:
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_anonymous().build()
+        _ = client_factory.with_anonymous().connect()
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_anonymous().build()
+        client = client_factory.with_anonymous().connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
@@ -66,7 +66,7 @@ class TestAnonymous:
     def test_basic_credentials_raises_warning(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.warns(AuthenticationWarning, match="anonymous"):
-            client = client_factory.with_credentials("TEST_USER", "TEST_PASS").build()
+            client = client_factory.with_credentials("TEST_USER", "TEST_PASS").connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
@@ -93,7 +93,7 @@ class TestAnonymous:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_anonymous().build()
+        client = client_factory.with_anonymous().connect()
 
         response = client.call_api(
             resource_path,
