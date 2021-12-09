@@ -44,6 +44,7 @@ else:
     try:
         # noinspection PyUnresolvedReferences
         from requests_kerberos import HTTPKerberosAuth as NegotiateAuth  # type: ignore
+
         _linux_kerberos_enabled = True
     except ImportError:
         _linux_kerberos_enabled = False
@@ -183,11 +184,13 @@ class ApiClientFactory:
         if "Negotiate" in headers or "NTLM" in headers:
             if not _platform_windows or not _linux_kerberos_enabled:
                 logger.debug(
-                    '[TECHDOCS]Detected that the server supports NTLM, but we were not installed with the `kerberos` '
-                    'extension. Skipping...'
+                    "[TECHDOCS]Detected that the server supports NTLM, but we were not installed with the `kerberos` "
+                    "extension. Skipping..."
                 )
             else:
-                logger.debug("[TECHDOCS]Attempting to connect with NTLM authentication...")
+                logger.debug(
+                    "[TECHDOCS]Attempting to connect with NTLM authentication..."
+                )
                 self._session.auth = HttpNtlmAuth(username, password)
                 if self.__test_connection():
                     logger.info("[TECHDOCS]Connection success")
@@ -215,7 +218,7 @@ class ApiClientFactory:
         must be configured manually. See `here <https://github.com/requests/requests-kerberos>`_ for more
         information on how to configure your Kerberos installation.
         """
-        if not _platform_windows or not _linux_kerberos_enabled:
+        if not (_platform_windows or _linux_kerberos_enabled):
             raise ImportError(
                 "[TECHDOCS]Kerberos is not enabled, to use it run `pip install openapi-client-common[linux-kerberos]`"
             )
