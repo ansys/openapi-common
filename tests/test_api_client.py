@@ -375,9 +375,7 @@ class TestResponseParsing:
             <heading>Reminder</heading>
             <body>Don't forget me this weekend!</body>
         </note>"""
-        response = self.create_response(
-            text=data, content_type="application/xml"
-        )
+        response = self.create_response(text=data, content_type="application/xml")
         deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "str")

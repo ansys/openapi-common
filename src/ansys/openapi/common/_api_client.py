@@ -364,7 +364,9 @@ class ApiClient:
         try:
             data = response.json()
         except ValueError:
-            content_type = response.headers.get("Content-Type", "application/octet-stream")
+            content_type = response.headers.get(
+                "Content-Type", "application/octet-stream"
+            )
             if content_type not in ["application/octet-stream"]:
                 data = response.text
             else:
