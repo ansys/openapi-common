@@ -353,16 +353,36 @@ class TestResponseParsing:
         deserialize_mock.assert_called()
         deserialize_mock.assert_called_once_with(data, "str")
 
-    def test_application_data_is_not_parsed(self, mocker):
+    @pytest.mark.parametrize("provide_content_type", (True, False))
+    def test_application_data_is_not_parsed(self, mocker, provide_content_type):
+        # The false case tests the default handling of non-json data
         data = b"This is some data this is definitely not json, it should be rendered as application/octet-stream"
         response = self.create_response(
             content=data, content_type="application/octet-stream"
         )
+        if not provide_content_type:
+            response.headers.pop("Content-Type")
         deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "bytes")
         deserialize_mock.assert_called()
         deserialize_mock.assert_called_once_with(data, "bytes")
+
+    def test_xml_is_returned_as_text(self, mocker):
+        data = """<note>
+            <to>Tove</to>
+            <from>Jani</from>
+            <heading>Reminder</heading>
+            <body>Don't forget me this weekend!</body>
+        </note>"""
+        response = self.create_response(
+            text=data, content_type="application/xml"
+        )
+        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock.return_value = True
+        _ = self._client.deserialize(response, "str")
+        deserialize_mock.assert_called()
+        deserialize_mock.assert_called_once_with(data, "str")
 
     def test_file_with_no_name_is_saved(self):
         data = b"Here is some file data to save"
@@ -856,8 +876,8 @@ class TestStaticMethods:
         self, file_context, text_parameters, file_parameter_count
     ):
         """This test needs a little explanation. The prepare_post_parameters method is odd, it returns the result
-        in a return statement but also mutates the input argument. I suspect this is not intentional, but for the moment the
-        test works around this by copying the initial state of the parameter list."""
+        in a return statement but also mutates the input argument. I suspect this is not intentional, but for the moment
+        the test works around this by copying the initial state of the parameter list."""
         # TODO - Can we remove this weirdness?
         if text_parameters is None:
             initial_text_parameters = []
