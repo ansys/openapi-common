@@ -71,18 +71,18 @@ class TestBasic:
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_credentials(TEST_USER, TEST_PASS).build()
+        _ = client_factory.with_credentials(TEST_USER, TEST_PASS).connect()
 
     def test_invalid_user_return_401(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as exception_info:
-            _ = client_factory.with_credentials("eve", "password").build()
+            _ = client_factory.with_credentials("eve", "password").connect()
         assert exception_info.value.status_code == 401
         assert "Unauthorized" in exception_info.value.reason_phrase
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(TEST_USER, TEST_PASS).build()
+        client = client_factory.with_credentials(TEST_USER, TEST_PASS).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
@@ -109,7 +109,7 @@ class TestBasic:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(TEST_USER, TEST_PASS).build()
+        client = client_factory.with_credentials(TEST_USER, TEST_PASS).connect()
 
         response = client.call_api(
             resource_path,

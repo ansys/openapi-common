@@ -112,7 +112,7 @@ class ApiClientFactory:
         if not self._configured:
             raise ValueError("No authentication yet configured")
 
-    def build(self) -> ApiClient:
+    def connect(self) -> ApiClient:
         """Finalizes the API client and returns it for use.
 
         Authentication must be configured for this method to succeed.
