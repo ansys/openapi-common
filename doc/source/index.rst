@@ -33,13 +33,8 @@ Here's a brief example of how the client works:
 .. code:: python
 
     >>> from ansys.openapi.common import ApiClientFactory
-        >>> client = ApiClientFactory("https://my-api.com").with_autologon().connect()
-        >>> print(client)
-
-        <ApiClient url:
-    >>> client = ApiClientFactory("https://my-api.com").with_autologon().build()
+    >>> client = ApiClientFactory("https://my-api.com").with_autologon().connect()
     >>> print(client)
-
     <ApiClient url: http://my-api.com>
 
 The client is now ready and available for use with an OpenAPI client.
@@ -63,9 +58,9 @@ For example to send a client certificate with every request
 
 .. code:: python
 
-   >>> from ansys.openapi.common import SessionConfiguration
-   >>> configuration = SessionConfiguration(client_cert_path='./my-client-cert.pwm', client_cert_key='secret-key')
-   >>> client.configuration = configuration
+    >>> from ansys.openapi.common import SessionConfiguration
+    >>> configuration = SessionConfiguration(client_cert_path='./my-client-cert.pwm', client_cert_key='secret-key')
+    >>> client.configuration = configuration
 
 API Reference
 -------------

@@ -39,9 +39,7 @@ Additional configuration can be provided with the ``SessionConfiguration`` objec
 .. code:: python
 
    >>> from ansys.openapi.common import ApiClientFactory
-      >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().connect()
-      <ApiClient url:
-   >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().build()
+   >>> session = ApiClientFactory('https://my-api.com/v1.svc').with_autologon().connect()
    <ApiClient url: https://my-api.com/v1.svc>
 
 
