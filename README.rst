@@ -49,7 +49,7 @@ Supported Authentication Schemes
 --------------------------------
 The core library supports API servers configured with no authentication, API Key, Client Certificates and Basic
 authentication. Windows users can also use Windows Integrated Authentication to connect to Kerberos enabled APIs with
-their windows credentials, and NTLM where it is supported.
+their Windows credentials, and NTLM where it is supported.
 
 Linux users can make use of Kerberos authentication via the ``[linux-kerberos]`` extra, this will require a working
 installation of either MIT Kerberos or Heimdal, as well as some platform specific build steps. It will also require a
@@ -64,27 +64,45 @@ the Authorization Code authentication flow.
    * - Authentication Method
      - Windows
      - Linux
+     - Builder method
+     - Additional settings
    * - API Key
      - ✔️
      - ✔️
+     - ``.with_anonymous()``
+     - Set the appropriate header in ``api_session_configuration``
    * - Client Certificate
      - ✔️
      - ✔️
+     - Any
+     - Provide ``client_cert_path`` and optionally ``client_cert_key`` in ``api_session_configuration``
    * - Basic
      - ✔️
      - ✔️
+     - ``with_credentials()``
+     -
    * - NTLM
      - ✔️
      - ❌
+     - ``with_credentials()``
+     -
    * - Kerberos
      - ✔️
      - ➕ with ``[linux-kerberos]`` extra
+     - ``with_autologon()``
+     -
    * - OIDC
      - ➕ with ``[oidc]`` extra
      - ➕ with ``[oidc]``` extra
+     - ``with_oidc()``
+     -
 
 Platform-specific Kerberos Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client can be installed. The library
+has been tested on the platforms listed below, if you manage to use it on other platforms then please consider
+contributing installation steps for your platform by making a pull request.
 
 Ubuntu 20.04
 ============
