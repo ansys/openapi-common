@@ -29,7 +29,7 @@ def create_session_from_granta_stk(
     mode = auth_settings["mode"]
     if mode == "autologon":
         return (
-            ApiClientFactory(sl_url, api_session_configuration).with_autologon().build()
+            ApiClientFactory(sl_url, api_session_configuration).with_autologon().connect()
         )
     elif mode == "credential":
         username = auth_settings["user_name"]
@@ -38,7 +38,7 @@ def create_session_from_granta_stk(
         return (
             ApiClientFactory(sl_url, api_session_configuration)
             .with_credentials(username, password, domain)
-            .build()
+            .connect()
         )
     elif mode == "oidc_stored_token":
         cached_token_key = auth_settings["token_key"]
@@ -46,7 +46,7 @@ def create_session_from_granta_stk(
             ApiClientFactory(sl_url, api_session_configuration)
             .with_oidc(idp_session_configuration)
             .with_stored_token(cached_token_key)
-            .build()
+            .connect()
         )
     elif mode == "oidc_token":
         refresh_token = auth_settings["refresh_token"]
@@ -54,7 +54,7 @@ def create_session_from_granta_stk(
             ApiClientFactory(sl_url, api_session_configuration)
             .with_oidc(idp_session_configuration)
             .with_token(refresh_token)
-            .build()
+            .connect()
         )
     else:
         raise KeyError(f"[TECHDOCS]Invalid mode: {mode}")
