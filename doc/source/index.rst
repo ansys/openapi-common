@@ -35,8 +35,9 @@ Here's a brief example of how the client works:
     >>> from ansys.openapi.common import ApiClientFactory
     >>> client = ApiClientFactory("https://my-api.com")
     ...          .with_autologon()
-    ...          .build()
+    ...          .connect()
     >>> print(client)
+
     <ApiClient url: http://my-api.com>
 
 The client is now ready and available for use with an OpenAPI client.
