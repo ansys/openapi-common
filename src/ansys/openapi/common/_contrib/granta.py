@@ -29,7 +29,9 @@ def create_session_from_granta_stk(
     mode = auth_settings["mode"]
     if mode == "autologon":
         return (
-            ApiClientFactory(sl_url, api_session_configuration).with_autologon().connect()
+            ApiClientFactory(sl_url, api_session_configuration)
+            .with_autologon()
+            .connect()
         )
     elif mode == "credential":
         username = auth_settings["user_name"]
