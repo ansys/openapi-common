@@ -154,16 +154,3 @@ def test_setting_tokens_sets_tokens(access_token, refresh_token):
         assert session.token["access_token"] == access_token
     if refresh_token:
         assert session._client.refresh_token == refresh_token
-
-
-def test_setting_timeout_works():
-    mock_factory = Mock()
-    OIDCSessionFactory.login_timeout.__set__(mock_factory, 12)
-    assert mock_factory._login_timeout == 12
-
-
-@pytest.mark.parametrize("invalid_data", ["foo", 2 + 3j, b"bytestring"])
-def test_setting_timeout_with_invalid_data_throws(invalid_data):
-    mock_factory = Mock()
-    with pytest.raises(TypeError):
-        OIDCSessionFactory.login_timeout.__set__(mock_factory, invalid_data)

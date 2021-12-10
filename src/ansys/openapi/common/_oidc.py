@@ -41,7 +41,6 @@ class OIDCSessionFactory:
         self,
         initial_session: requests.Session,
         bearer_information: CaseInsensitiveDict,
-        login_timeout: int = 60,
         api_requests_configuration: SessionConfiguration = None,
         idp_requests_configuration: SessionConfiguration = None,
     ) -> None:
@@ -51,8 +50,6 @@ class OIDCSessionFactory:
         ----------
         initial_session : requests.Session
             Session for use whilst negotiating with the identity provider.
-        login_timeout : int
-            Number of seconds to wait for the user to authenticate, default 60s.
         api_requests_configuration : SessionConfiguration
             Requests configuration settings for connections to the API server.
         idp_requests_configuration : SessionConfiguration
@@ -66,7 +63,6 @@ class OIDCSessionFactory:
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
         self._oauth_session: OAuth2Session
-        self._login_timeout = login_timeout
 
         logger.debug("[TECHDOCS]Creating OIDC session handler")
 
@@ -127,24 +123,6 @@ class OIDCSessionFactory:
             self._oauth_session.token_updater = token_updater
         self._callback_server = OIDCCallbackHTTPServer()
         logger.info("[TECHDOCS]_RequestsSession handler created.")
-
-    @property
-    def login_timeout(self) -> int:
-        """[TECHDOCS]Time in seconds to wait for the user to authenticate via web browser."""
-        return self._login_timeout
-
-    @login_timeout.setter
-    def login_timeout(self, value: int) -> None:
-        """
-        Parameters
-        ----------
-        value : int
-            Number of seconds to wait for the user to authenticate.
-        """
-        if isinstance(value, int):
-            self._login_timeout = value
-        else:
-            raise TypeError("[TECHDOCS]Invalid value for login_timeout, must be int")
 
     @property
     def mi_requests_configuration(self) -> "SessionConfiguration":
@@ -219,9 +197,14 @@ class OIDCSessionFactory:
             self._oauth_session._client.refresh_token = refresh_token
         return self._oauth_session
 
-    def authorize(self) -> OAuth2Session:
+    def authorize(self, login_timeout: int = 60) -> OAuth2Session:
         """[TECHDOCS] Finalizes creation of the underlying :class:`OAuth2Session` object, authorizing the user via their
         system web browser.
+
+        Parameters
+        ----------
+        login_timeout : int
+            Number of seconds to wait for the user to authenticate, default 60s.
         """
 
         async def await_callback():
@@ -236,7 +219,7 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]Authenticating user...")
         logger.debug(f"[TECHDOCS]Opening web browser with url {authorization_url}")
         webbrowser.open(authorization_url)
-        auth_code = asyncio.wait_for(await_callback(), self._login_timeout)
+        auth_code = asyncio.wait_for(await_callback(), login_timeout)
         logger.info("[TECHDOCS]Authentication complete, fetching token...")
         if _log_tokens:
             logger.debug(f"[TECHDOCS]Received authorization code: {auth_code}")
@@ -377,7 +360,9 @@ class OIDCSessionFactory:
         Identity Provider. This is mainly required for Auth0.
         """
         if "apiAudience" in self._authenticate_parameters:
-            mi_headers: CaseInsensitiveDict = self._api_requests_configuration["headers"]
+            mi_headers: CaseInsensitiveDict = self._api_requests_configuration[
+                "headers"
+            ]
             mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
             idp_headers: CaseInsensitiveDict = self._idp_requests_configuration[
                 "headers"

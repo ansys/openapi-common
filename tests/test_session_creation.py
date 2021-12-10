@@ -172,7 +172,8 @@ def test_can_connect_with_oidc_using_token():
         )
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc(access_token=ACCESS_TOKEN)
+            .with_oidc()
+            .with_token(access_token=ACCESS_TOKEN, refresh_token="")
             .build()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
@@ -205,8 +206,10 @@ def test_no_oidc_throws():
             headers={"WWW-Authenticate": 'Basic realm="localhost"'},
         )
         with pytest.raises(ConnectionError) as exception_info:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_oidc(
-                access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN
+            _ = (
+                ApiClientFactory(SERVICELAYER_URL)
+                .with_oidc()
+                .with_token(access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
             )
         assert "Unable to connect with OpenID Connect" in str(exception_info.value)
 
