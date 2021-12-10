@@ -174,7 +174,7 @@ def test_can_connect_with_oidc_using_token():
             ApiClientFactory(SECURE_SERVICELAYER_URL)
             .with_oidc()
             .with_token(access_token=ACCESS_TOKEN, refresh_token="")
-            .build()
+            .connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
         assert resp.status_code == 200
