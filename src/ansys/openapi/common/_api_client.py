@@ -364,10 +364,12 @@ class ApiClient:
         try:
             data = response.json()
         except ValueError:
-            if response.headers["Content-Type"] not in ["application/octet-stream"]:
+            content_type = response.headers.get(
+                "Content-Type", "application/octet-stream"
+            )
+            if content_type not in ["application/octet-stream"]:
                 data = response.text
             else:
-                # todo: This _probably_ ought not to happen, certainly it will fail at the moment...
                 data = response.content
 
         return self.__deserialize(data, response_type)
