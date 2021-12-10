@@ -155,7 +155,7 @@ class ApiClientFactory:
 
         Notes
         -----
-        NTLM authentication on Linux requires the `[linux-kerberos]` extension to be installed.
+        NTLM authentication is not currently supported on Linux.
 
         Parameters
         ----------
@@ -182,12 +182,7 @@ class ApiClientFactory:
             + ", ".join([method for method in headers.keys()])
         )
         if "Negotiate" in headers or "NTLM" in headers:
-            if not _platform_windows or not _linux_kerberos_enabled:
-                logger.debug(
-                    "[TECHDOCS]Detected that the server supports NTLM, but we were not installed with the `kerberos` "
-                    "extension. Skipping..."
-                )
-            else:
+            if _platform_windows:
                 logger.debug(
                     "[TECHDOCS]Attempting to connect with NTLM authentication..."
                 )
