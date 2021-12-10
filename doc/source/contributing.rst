@@ -284,7 +284,7 @@ integration performed on GitHub Actions.
 
 Building the Documentation Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Documentation for openapi-client-common is hosted at the `openapi-common documentation site<https://openapi-common.pyansys.com>`_
+Documentation for openapi-client-common is hosted at the `openapi-common documentation site <https://openapi-common.pyansys.com>`_
 and is automatically built and deployed using the GitHub Actions. You can
 build and verify the html documentation locally by install ``sphinx`` and
 the other documentation build dependencies by running the following from the
