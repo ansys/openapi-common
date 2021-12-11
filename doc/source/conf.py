@@ -119,7 +119,7 @@ texinfo_documents = [
      author, 'ansys.openapi.common', 'Common authentication components for pyAnsys REST clients',
      'Engineering Software'),
 ]
-
+latex_engine = 'xelatex'
 
 # -- Options for Epub output -------------------------------------------------
 

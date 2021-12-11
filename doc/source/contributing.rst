@@ -17,13 +17,13 @@ Cloning the Source Repository
 -----------------------------
 
 You can clone the source repository from `GitHub <https://github.com/pyansys/openapi-common>`_
-and install the latest version in development mode by running:
+and install the latest version by running:
 
 .. code::
 
     git clone https://github.com/pyansys/openapi-common
     cd openapi-common
-    pip install -e .
+    pip install .
 
 
 Questions
@@ -33,7 +33,7 @@ applications, or about software usage, please create an issue at
 `GitHub Issues <https://github.com/pyansys/openapi-common/issues>`_
 where the community or PyAnsys developers can collectively address your
 questions.  The project support team can be reached at
-`alexander.kaszynski@ansys.com <alexander.kaszynski@ansys.com>`_
+`doug.addy@ansys.com <doug.addy@ansys.com>`_
 
 By posting on the issues page, your question can be addressed by
 community members with the needed expertise and the knowledge gained
@@ -53,7 +53,7 @@ screenshots, and sample files to help us address the issue.
 Feature Requests
 ----------------
 We encourage users to submit ideas for improvements to the OpenAPI client!
-Please create an issue on the `PyAnsys Issues <https://github.com/pyansys/openapi-common/issues>`_
+Please create an issue on the `openapi-common Issues <https://github.com/pyansys/openapi-common/issues>`_
 with a **Feature Request** label to suggest an improvement.
 Please use a descriptive title and provide ample background information to help
 the community implement that functionality. For example, if you would like a
@@ -118,9 +118,9 @@ is not available or commercial use is prohibited.
 Finally, please take a look at our `Code of Conduct <https://github.com/pyansys/pymapdl/blob/master/CODE_OF_CONDUCT.md>`_
 
 
-Contributing to PyMAPDL through GitHub
+Contributing to openapi-common through GitHub
 ---------------------------------------------
-To submit new code to PyMAPDL, first fork the `openapi-common GitHub Repo
+To submit new code to openapi-common, first fork the `openapi-common GitHub Repo
 <https://github.com/pyansys/openapi-common>`_ and then clone the forked
 repository to your computer.  Next, create a new branch based on the
 `Branch Naming Conventions Section <#branch-naming-conventions>`__ in
@@ -173,7 +173,7 @@ keep track of what is being done and what needs to be done.
 Discussions
 ~~~~~~~~~~~
 
-General questions about PyMAPDL should be raised in
+General questions about openapi-common should be raised in
 `Discussions <https://github.com/pyansys/openapi-common/discussions>`_ in
 this repository rather than as issues themselves. Issues can be spun out of
 discussions depending on what is decided, but general Q&A content
@@ -284,18 +284,17 @@ integration performed on GitHub Actions.
 
 Building the Documentation Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Documentation for openapi-client-common is hosted at
-openapi-client-common.pyansys.com and is automatically built and
-deployed using the GitHub Actions.  You can build and verify the
-html documentation locally by install ``sphinx`` and the other
-documentation build dependencies by running the following from the
+Documentation for openapi-client-common is hosted at the `openapi-common documentation site <https://openapi-common.pyansys.com>`_
+and is automatically built and deployed using the GitHub Actions. You can
+build and verify the html documentation locally by install ``sphinx`` and
+the other documentation build dependencies by running the following from the
 openapi-client-common source directory:
 
-First, optionally install ``openapi-common`` in development mode with:
+First, install ``openapi-common`` with:
 
 .. code::
 
-   pip install -e .
+   pip install .
 
 Then install the build requirements for documentation with:
 
@@ -424,7 +423,7 @@ cached.
    for a new feature.
 
 9. Place your release notes from step 8 in the description within
-   `PyMAPDL Releases <https://github.com/pyansys/openapi-common/releases/new>`_
+   `openapi-common Releases <https://github.com/pyansys/openapi-common/releases/new>`_
 
 
 Patch Release Steps
