@@ -357,7 +357,7 @@ class OIDCSessionBuilder:
     def __init__(
         self,
         client_factory: ApiClientFactory,
-        session_factory: Optional[OIDCSessionFactory] = None,
+        session_factory: "Optional[OIDCSessionFactory]" = None,
     ) -> None:
         """Class to help create OIDC sessions from different types of input, provides OIDC specific configuration
         options.
