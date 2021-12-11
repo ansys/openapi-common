@@ -17,8 +17,6 @@ from ._util import (
     RequestsConfiguration,
 )
 
-OIDC_HEADER_APPLICATION_NAME = "MI Scripting Toolkit"
-
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from . import SessionConfiguration
@@ -33,7 +31,7 @@ logger = logging.getLogger("ansys.openapi.common")
 
 class OIDCSessionFactory:
     """
-    [TECHDOCS]Creates an OpenID Connect session with configuration fetched from MI server. Either uses provided token
+    [TECHDOCS]Creates an OpenID Connect session with configuration fetched from API server. Either uses provided token
     credentials, or can authorize a user with a browser-based interactive prompt.
     If your Identity provider does not provide the exact scopes requested by MI you will be unable to connect, to force
     the client to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
@@ -43,8 +41,7 @@ class OIDCSessionFactory:
         self,
         initial_session: requests.Session,
         bearer_information: CaseInsensitiveDict,
-        login_timeout: int = 60,
-        mi_requests_configuration: SessionConfiguration = None,
+        api_requests_configuration: SessionConfiguration = None,
         idp_requests_configuration: SessionConfiguration = None,
     ) -> None:
         """
@@ -53,9 +50,7 @@ class OIDCSessionFactory:
         ----------
         initial_session : requests.Session
             Session for use whilst negotiating with the identity provider.
-        login_timeout : int
-            Number of seconds to wait for the user to authenticate, default 60s.
-        mi_requests_configuration : SessionConfiguration
+        api_requests_configuration : SessionConfiguration
             Requests configuration settings for connections to the API server.
         idp_requests_configuration : SessionConfiguration
             Requests configuration settings for connections to the OpenID Identity Provider.
@@ -68,7 +63,6 @@ class OIDCSessionFactory:
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
         self._oauth_session: OAuth2Session
-        self._login_timeout = login_timeout
 
         logger.debug("[TECHDOCS]Creating OIDC session handler")
 
@@ -79,19 +73,15 @@ class OIDCSessionFactory:
             )
         self._authenticate_parameters = bearer_information
 
-        if mi_requests_configuration is None:
-            mi_requests_configuration = SessionConfiguration()
+        if api_requests_configuration is None:
+            api_requests_configuration = SessionConfiguration()
 
         if idp_requests_configuration is None:
             idp_requests_configuration = SessionConfiguration()
 
-        self._mi_requests_configuration = (
-            mi_requests_configuration.get_configuration_for_requests()
+        self._api_requests_configuration = (
+            api_requests_configuration.get_configuration_for_requests()
         )
-
-        self._mi_requests_configuration["headers"][
-            "X-Granta-ApplicationName"
-        ] = OIDC_HEADER_APPLICATION_NAME
 
         idp_configuration = idp_requests_configuration.get_configuration_for_requests()
 
@@ -121,7 +111,7 @@ class OIDCSessionFactory:
             redirect_uri=self._authenticate_parameters["redirecturi"],
             scope=scopes,
         )
-        set_session_kwargs(self._oauth_session, self._mi_requests_configuration)
+        set_session_kwargs(self._oauth_session, self._api_requests_configuration)
         if "offline_access" in scopes:
             logger.info("[TECHDOCS]Refresh tokens supported, configuring...")
             self._oauth_session.auto_refresh_url = self._well_known_parameters[
@@ -135,29 +125,11 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]_RequestsSession handler created.")
 
     @property
-    def login_timeout(self) -> int:
-        """[TECHDOCS]Time in seconds to wait for the user to authenticate via web browser."""
-        return self._login_timeout
-
-    @login_timeout.setter
-    def login_timeout(self, value: int) -> None:
-        """
-        Parameters
-        ----------
-        value : int
-            Number of seconds to wait for the user to authenticate.
-        """
-        if isinstance(value, int):
-            self._login_timeout = value
-        else:
-            raise TypeError("[TECHDOCS]Invalid value for login_timeout, must be int")
-
-    @property
     def mi_requests_configuration(self) -> "SessionConfiguration":
         """[TECHDOCS]Configuration options for the requests session when communicating with the API server. See
         :class:`SessionConfiguration` for options to set.
         """
-        return SessionConfiguration.from_dict(self._mi_requests_configuration)
+        return SessionConfiguration.from_dict(self._api_requests_configuration)
 
     @mi_requests_configuration.setter
     def mi_requests_configuration(self, value: "SessionConfiguration"):
@@ -167,7 +139,7 @@ class OIDCSessionFactory:
         value : SessionConfiguration
             Requests session configuration for connections to the API server.
         """
-        self._mi_requests_configuration = value.get_configuration_for_requests()
+        self._api_requests_configuration = value.get_configuration_for_requests()
         self._add_api_audience_if_set()
 
     @property
@@ -225,9 +197,14 @@ class OIDCSessionFactory:
             self._oauth_session._client.refresh_token = refresh_token
         return self._oauth_session
 
-    def authorize(self) -> OAuth2Session:
+    def authorize(self, login_timeout: int = 60) -> OAuth2Session:
         """[TECHDOCS] Finalizes creation of the underlying :class:`OAuth2Session` object, authorizing the user via their
         system web browser.
+
+        Parameters
+        ----------
+        login_timeout : int
+            Number of seconds to wait for the user to authenticate, default 60s.
         """
 
         async def await_callback():
@@ -242,7 +219,7 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]Authenticating user...")
         logger.debug(f"[TECHDOCS]Opening web browser with url {authorization_url}")
         webbrowser.open(authorization_url)
-        auth_code = asyncio.wait_for(await_callback(), self._login_timeout)
+        auth_code = asyncio.wait_for(await_callback(), login_timeout)
         logger.info("[TECHDOCS]Authentication complete, fetching token...")
         if _log_tokens:
             logger.debug(f"[TECHDOCS]Received authorization code: {auth_code}")
@@ -258,6 +235,7 @@ class OIDCSessionFactory:
         if _log_tokens:
             logger.debug(f"[TECHDOCS]Access token: {self._oauth_session.token}")
             if self._oauth_session.auto_refresh_url is not None:
+                # noinspection PyProtectedMember
                 logger.debug(
                     f"[TECHDOCS]Refresh token: {self._oauth_session._client.refresh_token}"
                 )
@@ -328,7 +306,7 @@ class OIDCSessionFactory:
         authority_response = self._initial_session.get(
             f"{url}.well-known/openid-configuration",
         )
-        set_session_kwargs(self._initial_session, self._mi_requests_configuration)
+        set_session_kwargs(self._initial_session, self._api_requests_configuration)
 
         logger.debug("[TECHDOCS]Received configuration:")
         oidc_configuration = CaseInsensitiveDict(
@@ -382,7 +360,9 @@ class OIDCSessionFactory:
         Identity Provider. This is mainly required for Auth0.
         """
         if "apiAudience" in self._authenticate_parameters:
-            mi_headers: CaseInsensitiveDict = self._mi_requests_configuration["headers"]
+            mi_headers: CaseInsensitiveDict = self._api_requests_configuration[
+                "headers"
+            ]
             mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
             idp_headers: CaseInsensitiveDict = self._idp_requests_configuration[
                 "headers"

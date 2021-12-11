@@ -1,7 +1,7 @@
 import logging
 import os
 import warnings
-from typing import Dict, Any, Tuple, Union, Container, Optional, Mapping
+from typing import Tuple, Union, Container, Optional, Mapping
 
 import requests
 from urllib3.util.retry import Retry  # type: ignore
@@ -241,26 +241,12 @@ class ApiClientFactory:
 
     def with_oidc(
         self,
-        access_token: str = None,
-        refresh_token: str = None,
-        use_cached_tokens: bool = False,
-        login_timeout: int = 60,
         idp_session_configuration: SessionConfiguration = None,
-    ) -> "ApiClientFactory":
+    ) -> "OIDCSessionBuilder":
         """Set up the client authentication for use with OpenID Connect.
 
         Parameters
         ----------
-        access_token : Optional[str]
-            Access token for authentication, if provided it will be used rather than interactive login.
-        refresh_token : Optional[str]
-            Refresh token for authentication, if provided it will be used rather than interactive login.
-        use_cached_tokens : bool, default False
-            Fetch access and refresh tokens from the key vault if available. This may require additional setup on linux,
-            see `keyring <https://github.com/jaraco/keyring>`_ for more information on configuring the keyvault
-            on different platforms.
-        login_timeout : int, default 60
-            Length of time in seconds to wait for user to login interactively.
         idp_session_configuration : Optional[SessionConfiguration]
             Additional configuration settings for the requests Session when connected to the OpenID Identity Provider.
 
@@ -274,73 +260,17 @@ class ApiClientFactory:
             )
         initial_response = self._session.get(self._sl_url)
         if self.__handle_initial_response(initial_response):
-            return self
+            return OIDCSessionBuilder(self)
         bearer_info = OIDCSessionFactory.parse_unauthorized_header(initial_response)
-        if use_cached_tokens:
-            refresh_token = keyring.get_password(
-                "MIScriptingToolkit_RefreshToken", self._sl_url
-            )
-            if refresh_token is None:
-                raise ValueError(
-                    "No stored credentials found, use the python STK to persist token credentials"
-                )
+
         session_factory = OIDCSessionFactory(
             self._session,
             bearer_info,
-            login_timeout,
             self._session_configuration,
             idp_session_configuration,
         )
-        if access_token is not None or refresh_token is not None:
-            self._session = session_factory.with_token(access_token, refresh_token)
-        else:
-            self._session = session_factory.authorize()
-        self._configured = True
-        return self
 
-    def from_stk(
-        self,
-        stk_configuration: Dict[str, Any],
-        oidc_authorize_timeout: int = 60,
-        oidc_idp_session_configuration: SessionConfiguration = None,
-    ) -> "ApiClientFactory":
-        """Set up the client authentication using the configured authentication from a Granta MI STK session.
-
-        Parameters
-        ----------
-        stk_configuration : Dict
-            Configuration dictionary provided by the Granta MI STK session.
-        oidc_authorize_timeout : int, default 60
-            Length of time in seconds to wait for user to login interactively.
-        oidc_idp_session_configuration : Optional[SessionConfiguration]
-            Additional configuration settings for the requests Session when connected to the OpenID Identity Provider.
-
-        Notes
-        -----
-        Requires the user to have the Granta MI Scripting Toolkit installed with at least version {INSERT_VERSION},
-        otherwise use the appropriate class method to configure the requests session.
-        """
-        mode = stk_configuration["mode"]
-        if mode == "autologon":
-            return self.with_autologon()
-        elif mode == "credential":
-            username = stk_configuration["parameters"]["username"]
-            password = stk_configuration["parameters"]["username"]
-            domain = stk_configuration["parameters"]["username"]
-            return self.with_credentials(username, password, domain)
-        elif mode == "oidc":
-            access_token = stk_configuration["parameters"]["access_token"]
-            refresh_token = stk_configuration["parameters"]["refresh_token"]
-            use_cached_tokens = stk_configuration["parameters"]["use_cached_tokens"]
-            return self.with_oidc(
-                access_token,
-                refresh_token,
-                use_cached_tokens,
-                login_timeout=oidc_authorize_timeout,
-                idp_session_configuration=oidc_idp_session_configuration,
-            )
-        else:
-            raise KeyError(f"[TECHDOCS]Invalid mode: {mode}")
+        return OIDCSessionBuilder(self, session_factory)
 
     def __test_connection(self) -> bool:
         """[TECHDOCS]Method attempts to connect to API server, if this returns a 2XX status code the method returns
@@ -421,6 +351,88 @@ class ApiClientFactory:
                 "[TECHDOCS]No www-authenticate header was provided, cannot continue..."
             )
         return parse_authenticate(response.headers["www-authenticate"])
+
+
+class OIDCSessionBuilder:
+    def __init__(
+        self,
+        client_factory: ApiClientFactory,
+        session_factory: Optional[OIDCSessionFactory] = None,
+    ) -> None:
+        """Class to help create OIDC sessions from different types of input, provides OIDC specific configuration
+        options.
+
+        Parameters
+        ----------
+        client_factory : ApiClientFactory
+            Parent API client factory object that will be returned once configuration is complete
+        session_factory : Optional[OIDCSessionFactory]
+            OIDC session factory object that will be configured and used to return an OAuth supporting Session
+        """
+        self._client_factory = client_factory
+        self._session_factory = session_factory
+
+    def with_stored_token(
+        self, token_name: str = "ansys-openapi-common-oidc"
+    ) -> ApiClientFactory:
+        """Use a token stored in the system keyring to authenticate the session. This method requires a correctly
+        configured system keyring backend.
+
+        Parameters
+        ----------
+        token_name : str
+            Name of the token key in the system keyring
+
+        Raises
+        ------
+        ValueError
+            If no token is found in the system keyring with the provided token_name
+        """
+        if self._session_factory is None:
+            return self._client_factory
+        refresh_token = keyring.get_password(token_name, self._client_factory._sl_url)
+        if refresh_token is None:
+            raise ValueError("No stored credentials found.")
+
+        return self.with_token(refresh_token=refresh_token)
+
+    def with_token(
+        self, refresh_token: str, access_token: Optional[str] = None
+    ) -> ApiClientFactory:
+        """Use a provided access token or refresh token to authenticate the session.
+
+        If access token is provided then it will be used immediately, when it expires the token will
+        be refreshed. If no access token is provided then the refresh token will be used immediately to fetch an
+        access token.
+
+        Parameters
+        ----------
+        refresh_token : str
+            Refresh token
+        access_token : str
+            Access token
+        """
+        if self._session_factory is None:
+            return self._client_factory
+        self._client_factory._session = self._session_factory.with_token(
+            access_token=access_token, refresh_token=refresh_token
+        )
+        self._client_factory._configured = True
+        return self._client_factory
+
+    def authorize(self, login_timeout: int = 60) -> ApiClientFactory:
+        """Authenticate the user interactively, open a web browser and wait for the user to log in.
+
+        Parameters
+        ----------
+        login_timeout : int
+            Time in seconds to wait for the user to authenticate in their web browser
+        """
+        if self._session_factory is None:
+            return self._client_factory
+        self._client_factory._session = self._session_factory.authorize(login_timeout)
+        self._client_factory._configured = True
+        return self._client_factory
 
 
 class _RequestsTimeoutAdapter(HTTPAdapter):

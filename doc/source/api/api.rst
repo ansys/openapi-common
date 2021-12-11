@@ -14,10 +14,19 @@ Common objects for pyAnsys REST API clients
 
    .. automethod:: __init__
 
+.. autoclass:: ansys.openapi.common._session.OIDCSessionBuilder
+   :members:
+
 .. autoclass:: ansys.openapi.common.SessionConfiguration
    :members:
 
    .. automethod:: __init__
+
+Integration extensions for other Ansys tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. automodule:: ansys.openapi.common._contrib.granta
+   :members:
 
 Exceptions
 ~~~~~~~~~~
