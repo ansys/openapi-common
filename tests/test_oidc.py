@@ -193,8 +193,10 @@ def test_endpoint_with_refresh_configures_correctly():
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
-    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", ' \
-                          f'clientid="{client_id}", scope="offline_access"'
+    authenticate_header = (
+        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", '
+        f'clientid="{client_id}", scope="offline_access"'
+    )
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",
@@ -217,4 +219,4 @@ def test_endpoint_with_refresh_configures_correctly():
         session = ApiClientFactory(secure_servicelayer_url).with_oidc()
         oidc_factory = session._session_factory._oauth_session
         assert oidc_factory.auto_refresh_url == f"{authority_url}token"
-        assert oidc_factory.auto_refresh_kwargs['client_id'] == client_id
+        assert oidc_factory.auto_refresh_kwargs["client_id"] == client_id

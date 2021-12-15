@@ -278,7 +278,10 @@ class OIDCSessionFactory:
             logger.debug(
                 "[TECHDOCS]Detected bearer configuration headers: "
                 + ", ".join(
-                    [parameter for parameter in authenticate_parameters["bearer"].keys()]
+                    [
+                        parameter
+                        for parameter in authenticate_parameters["bearer"].keys()
+                    ]
                 )
             )
 
