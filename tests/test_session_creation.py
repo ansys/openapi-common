@@ -1,8 +1,10 @@
 import json
+import os
 from functools import wraps
 
 import pytest
 import requests_mock
+import requests_ntlm
 
 from ansys.openapi.common import (
     SessionConfiguration,
@@ -28,6 +30,34 @@ def test_anonymous():
         _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
 
 
+@pytest.mark.parametrize(
+    ("status_code", "reason_phrase"),
+    [(403, "Forbidden"), (404, "Not Found"), (500, "Internal Server Error")],
+)
+def test_other_status_codes_throw(status_code, reason_phrase):
+    with requests_mock.Mocker() as m:
+        m.get(SERVICELAYER_URL, status_code=status_code, reason=reason_phrase)
+        with pytest.raises(ApiConnectionException) as excinfo:
+            _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
+        assert excinfo.value.status_code == status_code
+        assert excinfo.value.reason_phrase == reason_phrase
+
+
+def test_missing_www_authenticate_throws():
+    with requests_mock.Mocker() as m:
+        m.get(SERVICELAYER_URL, status_code=401, reason="Unauthorized")
+        with pytest.raises(ValueError) as excinfo:
+            _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+        assert "www-authenticate" in str(excinfo.value)
+
+
+def test_unconfigured_builder_throws():
+    with pytest.raises(ValueError) as excinfo:
+        _ = ApiClientFactory(SERVICELAYER_URL).connect()
+
+    assert "authentication" in str(excinfo.value)
+
+
 def test_can_connect_with_basic():
     with requests_mock.Mocker() as m:
         m.get(
@@ -43,6 +73,35 @@ def test_can_connect_with_basic():
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="TEST_USER", password="PASSWORD"
         )
+
+
+def test_can_connect_with_basic_and_domain():
+    with requests_mock.Mocker() as m:
+        m.get(
+            SERVICELAYER_URL,
+            status_code=401,
+            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
+        )
+        m.get(
+            SERVICELAYER_URL,
+            status_code=200,
+            request_headers={
+                "Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="
+            },
+        )
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="TEST_USER", password="PASSWORD", domain="DOMAIN"
+        )
+
+
+def test_only_called_once_with_basic_when_anonymous_is_ok():
+    with requests_mock.Mocker() as m:
+        m.get(SERVICELAYER_URL, status_code=200)
+
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="TEST_USER", password="PASSWORD"
+        )
+        assert m.called_once
 
 
 def test_throws_with_invalid_credentials():
@@ -86,44 +145,50 @@ def wrap_with_workstation(func):
     return wrapper
 
 
-@pytest.mark.skip(msg="Need to work out how to patch os.urandom correctly. Also need to disable cbt usage.")  # type: ignore[misc]
+class MockNTLMAuth(requests_ntlm.HttpNtlmAuth):
+    def __init__(self, username, password, session=None):
+        super().__init__(username, password, session, send_cbt=False)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="NTLM is not currently supported on linux")
 def test_can_connect_with_ntlm(mocker):
-    expect1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAN4II4AAAAAAgAAAAAAAAACAAAAA="}
+    expect1 = {
+        "Authorization": "NTLM TlRMTVNTUAABAAAAMZCI4gAAAAAoAAAAAAAAACgAAAAGAbEdAAAADw=="
+    }
     response1 = {
-        "WWW-Authenticate": "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAACgBhSgAAAA9UAEUAUwBUA"
-        "FcATwBSAEsAUwBUAEEAVABJAE8ATgACAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4AAQAeAFQARQBTAFQ"
-        "AVwBPAFIASwBTAFQAQQBUAEkATwBOAAQAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgADAB4AVABFAFMAV"
-        "ABXAE8AUgBLAFMAVABBAFQASQBPAE4ABwAIADbWHPMoRNcBAAAAAA=="
+        "WWW-Authenticate": "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAAC"
+        "gBhSgAAAA9UAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgACAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQB"
+        "PAE4AAQAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAQAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJA"
+        "E8ATgADAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4ABwAIADbWHPMoRNcBAAAAAA=="
     }
     expect2 = {
-        "Authorization": "NTLM TlRMTVNTUAADAAAAGAAYAFgAAADwAPAAcAAAAAAAAABgAQAAEAAQAGABAAAeAB4AcAEAAAgACACOAQAANYKK4gAB"
-        "BgAAAAAPw38elkNrZcKFdMx/yneDWQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACSQFWteoy7KhaGzllQe8OIBAQAAAAAAA"
-        "DbWHPMoRNcB3q2+796tvu8AAAAAAgAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAEAHgBUAEUAUwBUAFcATw"
-        "BSAEsAUwBUAEEAVABJAE8ATgAEAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4AAwAeAFQARQBTAFQAVwBPAFI"
-        "ASwBTAFQAQQBUAEkATwBOAAcACAA21hzzKETXAQkAHABIAE8AUwBUAC8AbABvAGMAYQBsAGgAbwBzAHQABgAEAAIAAAAA"
-        "AAAAAAAAAEkASQBTAF8AVABlAHMAdABUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgCbo4V5ivHWOA=="
+        "Authorization": "NTLM TlRMTVNTUAADAAAAGAAYAGgAAADQANAAgAAAAAAAAABYAAAAEAAQAFgAAAAAAAAAaAAAAAg"
+        "ACABQAQAANYKK4gYBsR0AAAAPgNpphHi8APlNXyGtGcP/LUkASQBTAF8AVABlAHMAdAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        "AAAAAADBY98WhVO4ccHK2mJ3PQ+GAQEAAAAAAAA21hzzKETXAd6tvu/erb7vAAAAAAIAHgBUAEUAUwBUAFcATwBSAEsAU"
+        "wBUAEEAVABJAE8ATgABAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4ABAAeAFQARQBTAFQAVwBPAFIASwBTAF"
+        "QAQQBUAEkATwBOAAMAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgAHAAgANtYc8yhE1wEGAAQAAgAAAAAAAAA"
+        "AAAAAcTfJ2nPXFQA="
     }
 
-    # TODO: Mock os.urandom correctly and disable cbt/enable ssl in requests_mock
-    # Mock os.urandom since the client challenge is generated for the AUTHENTICATE message with 8 bytes of random
-    # date
     mocker.patch(
         "os.urandom",
         return_value=b"\xDE\xAD\xBE\xEF\xDE\xAD\xBE\xEF",
     )
+
     with requests_mock.Mocker() as m:
+        mocker.patch("ansys.openapi.common._session.HttpNtlmAuth", MockNTLMAuth)
         m.get(
-            url="http://localhost/test",
+            url=SERVICELAYER_URL,
             status_code=401,
             headers={"WWW-Authenticate": "NTLM"},
         )
         m.get(
-            url="http://localhost/test",
+            url=SERVICELAYER_URL,
             status_code=401,
             headers=response1,
             request_headers=expect1,
         )
-        m.get(url="http://localhost/test", status_code=200, request_headers=expect2)
+        m.get(url=SERVICELAYER_URL, status_code=200, request_headers=expect2)
 
         configuration = SessionConfiguration()
         configuration.verify_ssl = False
@@ -139,8 +204,24 @@ def test_can_connect_with_negotiate():
     pass
 
 
+def test_only_called_once_with_autologon_when_anonymous_is_ok():
+    with requests_mock.Mocker() as m:
+        m.get(SERVICELAYER_URL, status_code=200)
+
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+        assert m.called_once
+
+
 def test_can_connect_with_oidc():
     pass
+
+
+def test_only_called_once_with_oidc_when_anonymous_is_ok():
+    with requests_mock.Mocker() as m:
+        m.get(SERVICELAYER_URL, status_code=200)
+
+        _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
+        assert m.called_once
 
 
 def test_can_connect_with_oidc_using_token():

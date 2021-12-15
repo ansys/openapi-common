@@ -3,9 +3,11 @@ import json
 import pytest
 import requests
 import requests_mock
+import sys
 from unittest.mock import Mock
 from covertable import make
 
+import ansys.openapi.common
 from ansys.openapi.common._oidc import OIDCSessionFactory
 
 REQUIRED_HEADERS = {
