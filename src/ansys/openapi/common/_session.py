@@ -429,7 +429,11 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = self._session_factory.get_session_with_interactive_authorization(login_timeout)
+        self._client_factory._session = (
+            self._session_factory.get_session_with_interactive_authorization(
+                login_timeout
+            )
+        )
         self._client_factory._configured = True
         return self._client_factory
 

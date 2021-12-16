@@ -169,23 +169,17 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     assert response == configuration
 
 
-@pytest.mark.parametrize(
-    "access_token, refresh_token",
-    make(
-        [
-            [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"],
-            [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"],
-        ]
-    ),
-)
-def test_setting_tokens_sets_tokens(access_token, refresh_token):
+@pytest.mark.parametrize("access_token", [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"])
+def test_setting_tokens_sets_tokens(access_token):
     mock_factory = Mock()
-    session = OIDCSessionFactory.get_session_with_token(mock_factory, access_token, refresh_token)
+    refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
+    session = OIDCSessionFactory.get_session_with_token(
+        mock_factory, refresh_token, access_token
+    )
     if access_token:
         assert "access_token" in session.token
         assert session.token["access_token"] == access_token
-    if refresh_token:
-        assert session._client.refresh_token == refresh_token
+    assert session._client.refresh_token == refresh_token
 
 
 def test_endpoint_with_refresh_configures_correctly():

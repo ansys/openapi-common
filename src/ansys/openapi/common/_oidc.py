@@ -39,11 +39,11 @@ class OIDCSessionFactory:
     """
 
     def __init__(
-            self,
-            initial_session: requests.Session,
-            initial_response: requests.Response,
-            api_requests_configuration: SessionConfiguration = None,
-            idp_requests_configuration: SessionConfiguration = None,
+        self,
+        initial_session: requests.Session,
+        initial_response: requests.Response,
+        api_requests_configuration: SessionConfiguration = None,
+        idp_requests_configuration: SessionConfiguration = None,
     ) -> None:
         """
         [TECHDOCS]
@@ -75,7 +75,9 @@ class OIDCSessionFactory:
                 "Do not use this in production."
             )
 
-        self._authenticate_parameters = self._parse_unauthorized_header(initial_response)
+        self._authenticate_parameters = self._parse_unauthorized_header(
+            initial_response
+        )
 
         if api_requests_configuration is None:
             api_requests_configuration = SessionConfiguration()
@@ -89,7 +91,9 @@ class OIDCSessionFactory:
             idp_requests_configuration.get_configuration_for_requests()
         )
 
-        self._well_known_parameters = self._fetch_and_parse_well_known(self._authenticate_parameters["authority"])
+        self._well_known_parameters = self._fetch_and_parse_well_known(
+            self._authenticate_parameters["authority"]
+        )
 
         self._add_api_audience_if_set()
 
@@ -113,7 +117,7 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]Configuration complete.")
 
     def get_session_with_token(
-            self, refresh_token: str, access_token: str = None
+        self, refresh_token: str, access_token: str = None
     ) -> OAuth2Session:
         """[TECHDOCS] Creates a :class:`OAuth2Session` object with provided tokens
 
@@ -145,7 +149,7 @@ class OIDCSessionFactory:
         return self._oauth_session
 
     def get_session_with_stored_token(
-            self, token_name: str = "ansys-openapi-common-oidc"
+        self, token_name: str = "ansys-openapi-common-oidc"
     ) -> OAuth2Session:
         """[TECHDOCS] Creates a :class:`OAuth2Session` object with a stored token
 
@@ -168,7 +172,9 @@ class OIDCSessionFactory:
 
         return self.get_session_with_token(refresh_token=refresh_token)
 
-    def get_session_with_interactive_authorization(self, login_timeout: int = 60) -> OAuth2Session:
+    def get_session_with_interactive_authorization(
+        self, login_timeout: int = 60
+    ) -> OAuth2Session:
         """[TECHDOCS] Creates a :class:`OAuth2Session` object, authorizing the user via their system web browser.
 
         Parameters
@@ -217,6 +223,7 @@ class OIDCSessionFactory:
 
         Currently, only support authorization code flow, as we do not support client_secrets
         """
+
         def token_updater(token: Dict[str, str]) -> None:
             self.token = token
             self.access_token = token["access_token"]
@@ -232,7 +239,7 @@ class OIDCSessionFactory:
 
     @staticmethod
     def _parse_unauthorized_header(
-            unauthorized_response: "requests.Response",
+        unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
         """[TECHDOCS] Extract required parameters from the response's "WWW-Authenticate" header. Validates that OIDC is
         enabled and the all information required to configure the session is provided.
@@ -331,7 +338,7 @@ class OIDCSessionFactory:
 
     @staticmethod
     def _override_idp_header(
-            requests_configuration: RequestsConfiguration,
+        requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
         """[TECHDOCS]Helper method to override user-provided Accept and Content-Type headers to ensure correct response
         from the OpenID Identity Provider.
