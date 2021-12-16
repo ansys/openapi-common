@@ -1,12 +1,14 @@
 import http.cookiejar
 import secrets
 import tempfile
+import time
 
 import pytest
 import requests
 from requests.utils import CaseInsensitiveDict
 
 from ansys.openapi.common import SessionConfiguration
+from ansys.openapi.common._util import RequestsConfiguration
 
 CLIENT_CERT_PATH = "./client-cert.pem"
 CLIENT_CERT_KEY = "5up3rS3c43t!"
@@ -86,7 +88,6 @@ def test_proxies():
 
 def test_cookies():
     cookie_jar = http.cookiejar.CookieJar()
-    import time
 
     test_cookie = http.cookiejar.Cookie(
         version=0,
@@ -173,6 +174,15 @@ class TestDeserialization:
         assert configuration_obj.client_cert_path == test_file_name
         assert configuration_obj.client_cert_key is None
 
+    def test_client_cert_with_int_throws(self):
+        test_input = self.blank_input
+        test_input.update({"cert": 12})
+
+        with pytest.raises(ValueError) as excinfo:
+            _ = SessionConfiguration.from_dict(test_input)
+
+        assert "int" in str(excinfo.value)
+
     def test_verify_ssl_with_str_sets_path_to_store(self):
         test_input = self.blank_input
         test_cert_path = "/home/testuser/test_cert.pem"
@@ -190,3 +200,67 @@ class TestDeserialization:
         configuration_obj = SessionConfiguration.from_dict(test_input)
 
         assert configuration_obj.verify_ssl is False
+
+    def test_verify_ssl_with_int_throws(self):
+        test_input = self.blank_input
+        test_input.update({"verify": 12})
+
+        with pytest.raises(ValueError) as excinfo:
+            _ = SessionConfiguration.from_dict(test_input)
+
+        assert "int" in str(excinfo.value)
+
+    def test_assign_all_values(self):
+        test_input: RequestsConfiguration = self.blank_input
+        test_input["verify"] = CA_CERT_PATH
+
+        cookie_jar = http.cookiejar.CookieJar()
+        test_cookie = http.cookiejar.Cookie(
+            version=0,
+            name="Test Cookie",
+            value="131071",
+            domain="www.testdomain.com",
+            port="443",
+            comment="No comment",
+            port_specified=True,
+            domain_specified=True,
+            domain_initial_dot=False,
+            path="/test/",
+            path_specified=True,
+            secure=False,
+            discard=False,
+            rest={},
+            comment_url="",
+            expires=int(time.time()) + 3600,
+            rfc2109=True,
+        )
+        cookie_jar.set_cookie(test_cookie)
+        test_input["cookies"] = cookie_jar
+
+        proxy_url = "http://10.10.1.10:3128"
+        test_input["proxies"] = {"http": proxy_url}
+        header_name = "X-TestHeader"
+        header_value = "Foo"
+        test_input["headers"] = CaseInsensitiveDict({header_name: header_value})
+        test_input["max_redirects"] = 30
+
+        config_object = SessionConfiguration.from_dict(test_input)
+
+        assert config_object.verify_ssl
+        assert config_object.cert_store_path == CA_CERT_PATH
+        assert "http" in config_object.proxies
+        assert config_object.proxies["http"] == proxy_url
+        assert header_name in config_object.headers
+        assert config_object.headers[header_name] == header_value
+        assert config_object.max_redirects == 30
+
+        assert config_object.cookies is not None
+
+        request = requests.Request(
+            method="GET",
+            url="http://www.testdomain.com:443/test/",
+            cookies=config_object.cookies,
+        )
+        prepared_request = request.prepare()
+        assert "Cookie" in prepared_request.headers
+        assert "131071" in prepared_request.headers["Cookie"]

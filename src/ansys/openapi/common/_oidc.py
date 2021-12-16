@@ -265,17 +265,21 @@ class OIDCSessionFactory:
             raise ConnectionError(
                 "[TECHDOCS]Unable to connect with OpenID Connect, not supported on this server."
             )
+
         mandatory_headers = ["redirecturi", "authority", "clientid"]
         missing_headers = []
+        bearer_parameters = authenticate_parameters["bearer"]
+        if bearer_parameters is None:
+            bearer_parameters = dict()
+
         for header_name in mandatory_headers:
-            if header_name not in authenticate_parameters["bearer"]:
+            if header_name not in bearer_parameters:
                 missing_headers.append(header_name)
         logger.debug(
             "[TECHDOCS]Detected bearer configuration headers: "
-            + ", ".join(
-                [parameter for parameter in authenticate_parameters["bearer"].keys()]
-            )
+            + ", ".join([parameter for parameter in bearer_parameters.keys()])
         )
+
         if len(missing_headers) > 1:
             missing_header_string = '", "'.join(missing_headers)
             raise ConnectionError(
