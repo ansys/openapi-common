@@ -261,11 +261,10 @@ class ApiClientFactory:
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
             return OIDCSessionBuilder(self)
-        bearer_info = OIDCSessionFactory.parse_unauthorized_header(initial_response)
 
         session_factory = OIDCSessionFactory(
             self._session,
-            bearer_info,
+            initial_response,
             self._session_configuration,
             idp_session_configuration,
         )
@@ -414,7 +413,7 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = self._session_factory.with_token(
+        self._client_factory._session = self._session_factory.get_session_with_token(
             access_token=access_token, refresh_token=refresh_token
         )
         self._client_factory._configured = True
@@ -430,7 +429,7 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = self._session_factory.authorize(login_timeout)
+        self._client_factory._session = self._session_factory.get_session_with_interactive_authorization(login_timeout)
         self._client_factory._configured = True
         return self._client_factory
 

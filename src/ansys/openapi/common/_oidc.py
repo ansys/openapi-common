@@ -5,6 +5,7 @@ import threading
 import webbrowser
 from typing import Dict
 
+import keyring
 import requests
 from requests.models import CaseInsensitiveDict
 from requests_oauthlib import OAuth2Session  # type: ignore
@@ -32,17 +33,17 @@ logger = logging.getLogger("ansys.openapi.common")
 class OIDCSessionFactory:
     """
     [TECHDOCS]Creates an OpenID Connect session with configuration fetched from API server. Either uses provided token
-    credentials, or can authorize a user with a browser-based interactive prompt.
+    credentials, or can get_session_with_interactive_authorization a user with a browser-based interactive prompt.
     If your Identity provider does not provide the exact scopes requested by MI you will be unable to connect, to force
     the client to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
     """
 
     def __init__(
-        self,
-        initial_session: requests.Session,
-        bearer_information: CaseInsensitiveDict,
-        api_requests_configuration: SessionConfiguration = None,
-        idp_requests_configuration: SessionConfiguration = None,
+            self,
+            initial_session: requests.Session,
+            initial_response: requests.Response,
+            api_requests_configuration: SessionConfiguration = None,
+            idp_requests_configuration: SessionConfiguration = None,
     ) -> None:
         """
         [TECHDOCS]
@@ -50,6 +51,8 @@ class OIDCSessionFactory:
         ----------
         initial_session : requests.Session
             Session for use whilst negotiating with the identity provider.
+        initial_response : requests.Response
+            Initial 401 response from the API server when no Authorization header is provided.
         api_requests_configuration : SessionConfiguration
             Requests configuration settings for connections to the API server.
         idp_requests_configuration : SessionConfiguration
@@ -63,44 +66,34 @@ class OIDCSessionFactory:
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
         self._oauth_session: OAuth2Session
+        self._api_url = initial_response.url
 
         logger.debug("[TECHDOCS]Creating OIDC session handler")
-
         if _log_tokens:
             logger.warning(
                 "[TECHDOCS]Verbose token debugging is enabled, this will write sensitive information to the log. "
                 "Do not use this in production."
             )
-        self._authenticate_parameters = bearer_information
+
+        self._authenticate_parameters = self._parse_unauthorized_header(initial_response)
 
         if api_requests_configuration is None:
             api_requests_configuration = SessionConfiguration()
-
         if idp_requests_configuration is None:
             idp_requests_configuration = SessionConfiguration()
 
         self._api_requests_configuration = (
             api_requests_configuration.get_configuration_for_requests()
         )
-
-        idp_configuration = idp_requests_configuration.get_configuration_for_requests()
-
         self._idp_requests_configuration = OIDCSessionFactory._override_idp_header(
-            idp_configuration
+            idp_requests_configuration.get_configuration_for_requests()
         )
 
-        self._well_known_parameters = self._fetch_and_parse_well_known(
-            self._authenticate_parameters["authority"]
-        )
+        self._well_known_parameters = self._fetch_and_parse_well_known(self._authenticate_parameters["authority"])
 
         self._add_api_audience_if_set()
 
         logger.info("[TECHDOCS]Configuring session...")
-
-        def token_updater(token: Dict[str, str]) -> None:
-            self.token = token
-            self.access_token = token["access_token"]
-
         scopes = (
             self._authenticate_parameters["scope"]
             if "scope" in self._authenticate_parameters
@@ -112,75 +105,29 @@ class OIDCSessionFactory:
             scope=scopes,
         )
         set_session_kwargs(self._oauth_session, self._api_requests_configuration)
+
         if "offline_access" in scopes:
-            logger.info("[TECHDOCS]Refresh tokens supported, configuring...")
-            self._oauth_session.auto_refresh_url = self._well_known_parameters[
-                "token_endpoint"
-            ]
-            self._oauth_session.auto_refresh_kwargs = {
-                "client_id": self._authenticate_parameters["clientid"]
-            }
-            self._oauth_session.token_updater = token_updater
+            self._configure_token_refresh()
+
         self._callback_server = OIDCCallbackHTTPServer()
-        logger.info("[TECHDOCS]_RequestsSession handler created.")
+        logger.info("[TECHDOCS]Configuration complete.")
 
-    @property
-    def mi_requests_configuration(self) -> "SessionConfiguration":
-        """[TECHDOCS]Configuration options for the requests session when communicating with the API server. See
-        :class:`SessionConfiguration` for options to set.
-        """
-        return SessionConfiguration.from_dict(self._api_requests_configuration)
-
-    @mi_requests_configuration.setter
-    def mi_requests_configuration(self, value: "SessionConfiguration"):
-        """
-        Parameters
-        ----------
-        value : SessionConfiguration
-            Requests session configuration for connections to the API server.
-        """
-        self._api_requests_configuration = value.get_configuration_for_requests()
-        self._add_api_audience_if_set()
-
-    @property
-    def idp_requests_configuration(self) -> "SessionConfiguration":
-        """[TECHDOCS]Configuration options for the requests session when communicating with the OpenID Connect Identity
-        Provider. See :class:`SessionConfiguration` for available options.
-
-        Notes
-        -----
-        The `accept` and `content-type` headers will not be respected.
-        """
-        return SessionConfiguration.from_dict(self._idp_requests_configuration)
-
-    @idp_requests_configuration.setter
-    def idp_requests_configuration(self, value: "SessionConfiguration") -> None:
-        """
-        Parameters
-        ----------
-        value : SessionConfiguration
-            Requests session configuration for connections to the OpenID Identity Provider.
-        """
-        self._idp_requests_configuration = OIDCSessionFactory._override_idp_header(
-            value.get_configuration_for_requests()
-        )
-        self._add_api_audience_if_set()
-
-    def with_token(
-        self, access_token: str = None, refresh_token: str = None
+    def get_session_with_token(
+            self, refresh_token: str, access_token: str = None
     ) -> OAuth2Session:
-        """[TECHDOCS] Finalizes and returns the underlying :class:`OAuth2Session` object with provided tokens
+        """[TECHDOCS] Creates a :class:`OAuth2Session` object with provided tokens
 
-        If an access token is provided it will be used as-is, optionally provide a refresh token to allow automatic
-        token renewal where supported. If neither are provided then the session will remain unconfigured and must be
-        manually set up before use.
+        Configures a session to request an Access Token with the provided Refresh Token.
+        This will happen automatically when the first request is sent to the server. Alternatively
+        an Access Token can be provided, and it will be used until it expires, whereupon
+        the Refresh Token will be used to request a new Access Token.
 
         Parameters
         ----------
+        refresh_token : str
+            Refresh token for the API server, normally Base64 encoded JSON Web Token.
         access_token : Optional[str]
             Access token for the API server, normally Base64 encoded JSON Web Token.
-        refresh_token : Optional[str]
-            Refresh token for the API server.
         """
         logger.info("[TECHDOCS]Setting tokens...")
         if access_token is not None:
@@ -197,9 +144,32 @@ class OIDCSessionFactory:
             self._oauth_session._client.refresh_token = refresh_token
         return self._oauth_session
 
-    def authorize(self, login_timeout: int = 60) -> OAuth2Session:
-        """[TECHDOCS] Finalizes creation of the underlying :class:`OAuth2Session` object, authorizing the user via their
-        system web browser.
+    def get_session_with_stored_token(
+            self, token_name: str = "ansys-openapi-common-oidc"
+    ) -> OAuth2Session:
+        """[TECHDOCS] Creates a :class:`OAuth2Session` object with a stored token
+
+        Use a token stored in the system keyring to authenticate the session. This method requires a correctly
+        configured system keyring backend.
+
+        Parameters
+        ----------
+        token_name : str
+            Name of the token key in the system keyring, used to identify tokens belonging to this package.
+
+        Raises
+        ------
+        ValueError
+            If no token is found in the system keyring with the provided token_name
+        """
+        refresh_token = keyring.get_password(token_name, self._api_url)
+        if refresh_token is None:
+            raise ValueError("No stored credentials found.")
+
+        return self.get_session_with_token(refresh_token=refresh_token)
+
+    def get_session_with_interactive_authorization(self, login_timeout: int = 60) -> OAuth2Session:
+        """[TECHDOCS] Creates a :class:`OAuth2Session` object, authorizing the user via their system web browser.
 
         Parameters
         ----------
@@ -242,9 +212,27 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]Tokens retrieved successfully, authentication complete.")
         return self._oauth_session
 
+    def _configure_token_refresh(self) -> None:
+        """[TECHDOCS]Configures automatic token refreshment if available.
+
+        Currently, only support authorization code flow, as we do not support client_secrets
+        """
+        def token_updater(token: Dict[str, str]) -> None:
+            self.token = token
+            self.access_token = token["access_token"]
+
+        logger.info("[TECHDOCS]Refresh tokens supported, configuring...")
+        self._oauth_session.auto_refresh_url = self._well_known_parameters[
+            "token_endpoint"
+        ]
+        self._oauth_session.auto_refresh_kwargs = {
+            "client_id": self._authenticate_parameters["clientid"]
+        }
+        self._oauth_session.token_updater = token_updater
+
     @staticmethod
-    def parse_unauthorized_header(
-        unauthorized_response: "requests.Response",
+    def _parse_unauthorized_header(
+            unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
         """[TECHDOCS] Extract required parameters from the response's "WWW-Authenticate" header. Validates that OIDC is
         enabled and the all information required to configure the session is provided.
@@ -343,7 +331,7 @@ class OIDCSessionFactory:
 
     @staticmethod
     def _override_idp_header(
-        requests_configuration: RequestsConfiguration,
+            requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
         """[TECHDOCS]Helper method to override user-provided Accept and Content-Type headers to ensure correct response
         from the OpenID Identity Provider.
@@ -363,12 +351,9 @@ class OIDCSessionFactory:
         """[TECHDOCS]Helper method to set the ApiAudience header on connections to the API if provided by the OpenID
         Identity Provider. This is mainly required for Auth0.
         """
-        if "apiAudience" in self._authenticate_parameters:
-            mi_headers: CaseInsensitiveDict = self._api_requests_configuration[
-                "headers"
-            ]
-            mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
-            idp_headers: CaseInsensitiveDict = self._idp_requests_configuration[
-                "headers"
-            ]
-            idp_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
+        if "apiAudience" not in self._authenticate_parameters:
+            return
+        mi_headers: CaseInsensitiveDict = self._api_requests_configuration["headers"]
+        mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
+        idp_headers: CaseInsensitiveDict = self._idp_requests_configuration["headers"]
+        idp_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
