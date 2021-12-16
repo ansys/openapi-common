@@ -277,12 +277,7 @@ class OIDCSessionFactory:
                 missing_headers.append(header_name)
         logger.debug(
             "[TECHDOCS]Detected bearer configuration headers: "
-            + ", ".join(
-                [
-                    parameter
-                    for parameter in bearer_parameters.keys()
-                ]
-            )
+            + ", ".join([parameter for parameter in bearer_parameters.keys()])
         )
 
         if len(missing_headers) > 1:
