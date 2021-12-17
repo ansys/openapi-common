@@ -413,7 +413,7 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = self._session_factory.get_session_with_token(
+        self._client_factory._session = self._session_factory.get_session_with_provided_token(
             access_token=access_token, refresh_token=refresh_token
         )
         self._client_factory._configured = True

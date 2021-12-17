@@ -173,7 +173,7 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
 def test_setting_tokens_sets_tokens(access_token):
     mock_factory = Mock()
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    session = OIDCSessionFactory.get_session_with_token(
+    session = OIDCSessionFactory.get_session_with_provided_token(
         mock_factory, refresh_token, access_token
     )
     if access_token:

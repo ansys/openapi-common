@@ -33,7 +33,7 @@ logger = logging.getLogger("ansys.openapi.common")
 class OIDCSessionFactory:
     """
     [TECHDOCS]Creates an OpenID Connect session with configuration fetched from API server. Either uses provided token
-    credentials, or can get_session_with_interactive_authorization a user with a browser-based interactive prompt.
+    credentials, or can authorize a user with a browser-based interactive prompt.
     If your Identity provider does not provide the exact scopes requested by MI you will be unable to connect, to force
     the client to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
     """
@@ -116,7 +116,7 @@ class OIDCSessionFactory:
         self._callback_server = OIDCCallbackHTTPServer()
         logger.info("[TECHDOCS]Configuration complete.")
 
-    def get_session_with_token(
+    def get_session_with_provided_token(
         self, refresh_token: str, access_token: str = None
     ) -> OAuth2Session:
         """[TECHDOCS] Creates a :class:`OAuth2Session` object with provided tokens
@@ -170,7 +170,7 @@ class OIDCSessionFactory:
         if refresh_token is None:
             raise ValueError("No stored credentials found.")
 
-        return self.get_session_with_token(refresh_token=refresh_token)
+        return self.get_session_with_provided_token(refresh_token=refresh_token)
 
     def get_session_with_interactive_authorization(
         self, login_timeout: int = 60
