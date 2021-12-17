@@ -204,7 +204,7 @@ class OIDCSessionFactory:
         Parameters
         ----------
         login_timeout : int
-            Number of seconds to wait for the user to authenticate, default 60s.
+            Number of seconds to wait for the user to authenticate (default 60s).
         """
 
         async def await_callback():

@@ -440,8 +440,8 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
 
     Attributes
     ----------
-    timeout : int, default 31
-        Time in seconds to wait for a response from the API server.
+    timeout : int
+        Time in seconds to wait for a response from the API server (default 31s).
     """
 
     timeout: int = 31

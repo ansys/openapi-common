@@ -464,12 +464,12 @@ class ApiClient:
             Expected response data type.
         files : Dict[str, str]
             Dictionary of filename and path for `multipart/form-data`.
-        _return_http_data_only : bool, default False
-            Return response data without head status code and headers.
+        _return_http_data_only : bool
+            Return response data without head status code and headers (default False).
         collection_formats : Dict[str, str]
             Collection format name for path, query, header, and post parameters. Maps parameter name to collection type.
-        _preload_content : bool, default True
-            if False, the underlying response object will be returned without reading/decoding response data.
+        _preload_content : bool
+            if False, the underlying response object will be returned without reading/decoding response data (default True).
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for this request. If one number provided, it will be total request timeout. It can also be a
             pair (tuple) of (connection, read) timeouts. Overrides the session level timeout setting.
@@ -517,8 +517,8 @@ class ApiClient:
             Request post form parameters, for `application/x-www-form-urlencoded`, `multipart/form-data`.
         body :
             Request body.
-        _preload_content : bool, default True
-            if False, the underlying response object will be returned without reading/decoding response data.
+        _preload_content : bool
+            if False, the underlying response object will be returned without reading/decoding response data (default True).
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for this request. If one number provided, it will be total request timeout. It can also be a
             pair (tuple) of (connection, read) timeouts. Overrides the session level timeout setting.
