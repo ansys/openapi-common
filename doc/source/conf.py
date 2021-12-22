@@ -16,26 +16,47 @@ release = version = common.__version__
 # -- General configuration ---------------------------------------------------
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",
-    "sphinx.ext.doctest",
     "sphinx_autodoc_typehints",
+    "numpydoc",
+    "sphinx.ext.doctest",
     "sphinx.ext.autosummary",
     "notfound.extension",
+    "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx.ext.extlinks",
-    "sphinx.ext.coverage",
+    "sphinx.ext.coverage"
 ]
 
-# return type inline with the description.
-napoleon_use_rtype = False
+add_module_names = False
+typehints_fully_qualified = True
+typehints_document_rtype = False
 
-#
-autodoc_type_aliases = {
-    "DeserializedType": "ansys.openapi.common._api_client.DeserializedType",
-    "SerializedType": "ansys.openapi.common._api_client.SerializedType",
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/dev", None),
+    "requests": ("https://docs.python-requests.org/en/master/", None),
 }
 
-autodoc_typehints = "description"
+# numpydoc configuration
+numpydoc_show_class_members = False
+numpydoc_xref_param_type = True
+
+# Consider enabling numpydoc validation. See:
+# https://numpydoc.readthedocs.io/en/latest/validation.html#
+numpydoc_validate = True
+numpydoc_validation_checks = {
+    "GL06",  # Found unknown section
+    "GL07",  # Sections are in the wrong order.
+    "GL08",  # The object does not have a docstring
+    "GL09",  # Deprecation warning should precede extended summary
+    "GL10",  # reST directives {directives} must be followed by two colons
+    "SS01",  # No summary found
+    "SS02",  # Summary does not start with a capital letter
+    # "SS03", # Summary does not end with a period
+    "SS04",  # Summary contains heading whitespaces
+    # "SS05", # Summary must start with infinitive verb, not third person
+    "RT02",  # The first line of the Returns section should contain only the
+    # type, unless multiple values are being returned"
+}
 
 # static path
 html_static_path = ["_static"]
