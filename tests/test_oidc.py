@@ -33,7 +33,7 @@ def authenticate_parsing_fixture():
 
 def try_parse_and_assert_failed(response):
     with pytest.raises(ConnectionError) as exception_info:
-        _ = OIDCSessionFactory.parse_unauthorized_header(response)
+        _ = OIDCSessionFactory._parse_unauthorized_header(response)
     assert "Unable to connect with OpenID Connect" in str(exception_info.value)
     return exception_info
 
@@ -70,7 +70,7 @@ def test_valid_header_returns_correct_values(authenticate_parsing_fixture):
     response = authenticate_parsing_fixture
     pairs = ["=".join([k, '"{}"'.format(v)]) for k, v in REQUIRED_HEADERS.items()]
     response.headers["WWW-Authenticate"] = "Bearer {0}".format(", ".join(pairs))
-    parsed_header = OIDCSessionFactory.parse_unauthorized_header(response)
+    parsed_header = OIDCSessionFactory._parse_unauthorized_header(response)
     assert all(parsed_header[k] == v for k, v in REQUIRED_HEADERS.items())
 
 
@@ -169,23 +169,17 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     assert response == configuration
 
 
-@pytest.mark.parametrize(
-    "access_token, refresh_token",
-    make(
-        [
-            [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"],
-            [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"],
-        ]
-    ),
-)
-def test_setting_tokens_sets_tokens(access_token, refresh_token):
+@pytest.mark.parametrize("access_token", [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"])
+def test_setting_tokens_sets_tokens(access_token):
     mock_factory = Mock()
-    session = OIDCSessionFactory.with_token(mock_factory, access_token, refresh_token)
+    refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
+    session = OIDCSessionFactory.get_session_with_provided_token(
+        mock_factory, refresh_token, access_token
+    )
     if access_token:
         assert "access_token" in session.token
         assert session.token["access_token"] == access_token
-    if refresh_token:
-        assert session._client.refresh_token == refresh_token
+    assert session._client.refresh_token == refresh_token
 
 
 def test_endpoint_with_refresh_configures_correctly():
