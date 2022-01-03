@@ -31,6 +31,7 @@ deps =
     uvicorn
     fastapi
     pydantic
+    backoff
 commands = pytest ./tests
 
 [testenv:coverage]
