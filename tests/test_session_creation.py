@@ -227,7 +227,9 @@ def test_only_called_once_with_oidc_when_anonymous_is_ok():
         assert m.called_once
 
 
-@pytest.mark.skipif((3, 8) <= sys.version_info <= (3, 9), reason="Test fails in Python 3.8")
+@pytest.mark.skipif(
+    (3, 8) <= sys.version_info <= (3, 9), reason="Test fails in Python 3.8"
+)
 def test_can_connect_with_oidc_using_token():
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
