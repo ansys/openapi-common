@@ -45,6 +45,7 @@ jobs:
     name: Unit test on supported platforms
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
     steps:
