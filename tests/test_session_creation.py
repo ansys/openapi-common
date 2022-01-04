@@ -228,7 +228,8 @@ def test_only_called_once_with_oidc_when_anonymous_is_ok():
 
 
 @pytest.mark.skipif(
-    (3, 8) <= sys.version_info <= (3, 9), reason="Test fails in Python 3.8"
+    (3, 8) <= sys.version_info <= (3, 9),
+    reason="Test fails with OSError 'Address already in use' in Python 3.8. Other Python versions unaffected.",
 )
 def test_can_connect_with_oidc_using_token():
     redirect_uri = "https://www.example.com/login/"
