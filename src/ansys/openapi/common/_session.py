@@ -1,7 +1,7 @@
 import logging
 import os
 import warnings
-from typing import Tuple, Union, Container, Optional, Mapping
+from typing import Tuple, Union, Container, Optional, Mapping, TypeVar
 
 import requests
 from urllib3.util.retry import Retry  # type: ignore
@@ -50,6 +50,10 @@ else:
         _linux_kerberos_enabled = False
 
     _platform_windows = False
+
+# Required to allow the ApiClientFactory to be subclassed. This ensures that Pylance
+# understands that the sub-class is returned by the builder methods instead of the base class
+Api_Client_Factory = TypeVar("Api_Client_Factory", bound="ApiClientFactory")
 
 
 class ApiClientFactory:
@@ -131,7 +135,7 @@ class ApiClientFactory:
         self._validate_builder()
         return ApiClient(self._session, self._api_url, self._session_configuration)
 
-    def with_anonymous(self) -> "ApiClientFactory":
+    def with_anonymous(self: Api_Client_Factory) -> Api_Client_Factory:
         """Set up the client authentication for anonymous use. This does not configure any authentication or
         authorization headers, users must provide any authentication information required themselves.
 
@@ -145,8 +149,8 @@ class ApiClientFactory:
         assert False, "[TECHDOCS]Connection failures will throw above"
 
     def with_credentials(
-        self, username: str, password: str, domain: str = None
-    ) -> "ApiClientFactory":
+        self: Api_Client_Factory, username: str, password: str, domain: str = None
+    ) -> Api_Client_Factory:
         """Set up the client authentication for use with provided credentials.
 
         This method will attempt to connect to the API and use the provided WWW-Authenticate header to determine whether
@@ -200,7 +204,7 @@ class ApiClientFactory:
                 return self
         raise ConnectionError("[TECHDOCS]Unable to connect with credentials.")
 
-    def with_autologon(self) -> "ApiClientFactory":
+    def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
         """Set up the client authentication for use with Kerberos (also known as integrated windows authentication).
 
         Notes
