@@ -31,6 +31,7 @@ deps =
     uvicorn
     fastapi
     pydantic
+    asgi_gssapi
 commands = pytest ./tests
 
 [testenv:coverage]
