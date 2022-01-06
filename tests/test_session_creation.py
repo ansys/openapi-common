@@ -5,7 +5,6 @@ from functools import wraps
 import pytest
 import requests_mock
 import requests_ntlm
-import sys
 
 from ansys.openapi.common import (
     SessionConfiguration,
