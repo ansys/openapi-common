@@ -4,14 +4,26 @@ import pytest
 import uvicorn
 from fastapi import FastAPI, Depends
 from asgi_gssapi import SPNEGOAuthMiddleware
-from ansys.openapi.common import ApiClientFactory, SessionConfiguration, ApiConnectionException
-from .integration.common import ExampleModelPyd, validate_user_basic, TEST_MODEL_ID, TEST_PORT, TEST_PASS, TEST_USER
+from ansys.openapi.common import (
+    ApiClientFactory,
+    SessionConfiguration,
+    ApiConnectionException,
+)
+from .integration.common import (
+    ExampleModelPyd,
+    validate_user_basic,
+    TEST_MODEL_ID,
+    TEST_PORT,
+    TEST_PASS,
+    TEST_USER,
+)
 
 
 TEST_URL = f"http://test-server:{TEST_PORT}"
 
 app = FastAPI()
-authenticated_app = SPNEGOAuthMiddleware(app, hostname='test-server')
+authenticated_app = SPNEGOAuthMiddleware(app, hostname="test-server")
+
 
 @app.patch("/models/{model_id}")
 async def read_main(model_id: str, example_model: ExampleModelPyd):
@@ -55,9 +67,9 @@ class TestBasic:
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_autologon().connect()
 
-        resp = client.request('GET', TEST_URL + "/test_api")
+        resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
-        assert 'OK' in resp.text
+        assert "OK" in resp.text
 
     def test_patch_model(self):
         from .models import ExampleModel
