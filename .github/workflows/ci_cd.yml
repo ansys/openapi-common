@@ -55,16 +55,13 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-        
-    - name: Install kerberos headers
-      run: sudo apt install libkrb5-dev
 
     - name: Start kerberos container
       run: docker compose up -d
       working-directory: ${{ env.GITHUB_WORKSPACE }}/tests/integration/kerberos
 
     - name: Configure host kerberos
-      run: sudo ./configure_keytab.sh
+      run: ./configure_keytab.sh
       working-directory: ${{ env.GITHUB_WORKSPACE }}/tests/integration/kerberos
 
     - name: Install dependencies
