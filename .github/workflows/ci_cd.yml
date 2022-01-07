@@ -76,6 +76,7 @@ jobs:
     - name: Configure host kerberos
       run: |
         cp ./tests/integration/krb5.conf /etc/krb5.conf
+        apt update
         apt install -y krb5-user
         ./tests/integration/configure_keytab.sh
 
