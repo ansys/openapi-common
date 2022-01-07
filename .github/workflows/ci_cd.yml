@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       # Label used to access the service container
-      kdc-server:
+      test-server:
         # Github container registry address
         image: ghcr.io/pyansys/kdc-container:v0.2
         credentials:
