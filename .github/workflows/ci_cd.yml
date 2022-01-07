@@ -1,5 +1,5 @@
 # check spelling, codestyle
-name: GitHub CI
+name: Build and Test Package
 
 # run only on main branch.  This avoids duplicated actions on PRs
 on:
@@ -44,10 +44,23 @@ jobs:
   test:
     name: Unit test on supported platforms
     runs-on: ubuntu-latest
+    services:
+      # Label used to access the service container
+      kdc-server:
+        # Github container registry address
+        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        volumes:
+          # This is needed otherwise there won't be enough entropy to generate a new kerberos realm
+          - /dev/urandom:/dev/random
+          - /tmp/keytabs:/tmp/keytabs
+
     container: python:${{ matrix.python-version }}
+      volumes:
+        - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
+
     steps:
     - uses: actions/checkout@v1
 
@@ -55,10 +68,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Start kerberos container
-      run: docker compose up -d
-      working-directory: ${{ env.GITHUB_WORKSPACE }}/tests/integration/kerberos
 
     - name: Configure host kerberos
       run: ./configure_keytab.sh

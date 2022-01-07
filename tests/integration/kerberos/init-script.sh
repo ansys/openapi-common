@@ -96,6 +96,18 @@ kadmin.local -q "ktadd -k ./service.keytab HTTP/test-server@$REALM"
 echo ""
 
 echo "=================================================================================="
+echo "==== Move keytabs somewhere useful ==============================================="
+echo "=================================================================================="
+echo "Creating keytab directory"
+mkdir -p "/tmp/keytabs"
+echo ""
+echo "Moving keytabs"
+mv ./user.keytab /tmp/keytabs
+echo ""
+mv ./service.keytab /tmp/keytabs
+echo ""
+
+echo "=================================================================================="
 echo "==== Start krb5 services ========================================================="
 echo "=================================================================================="
 
