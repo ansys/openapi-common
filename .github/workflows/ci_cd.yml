@@ -77,8 +77,8 @@ jobs:
       run: |
         cp ./tests/integration/krb5.conf /etc/krb5.conf
         apt update
-        DEBIAN_FRONTEND=noninteractive
-        apt install -y krb5-user
+        export DEBIAN_FRONTEND=noninteractive
+        apt install -yq krb5-user
         ./tests/integration/configure_keytab.sh
 
     - name: Install dependencies
