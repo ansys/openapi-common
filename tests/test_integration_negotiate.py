@@ -22,7 +22,7 @@ from .integration.common import (
 TEST_URL = f"http://test-server:{TEST_PORT}"
 
 app = FastAPI()
-authenticated_app = SPNEGOAuthMiddleware(app, hostname="kdc-server")
+authenticated_app = SPNEGOAuthMiddleware(app, hostname="r")
 
 
 @app.patch("/models/{model_id}")
