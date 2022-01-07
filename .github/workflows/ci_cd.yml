@@ -81,6 +81,7 @@ jobs:
         ls -la /tmp
         echo ""
         ls -la /tmp/keytabs
+        chmod 644 /tmp/keytabs/
         ./tests/integration/configure_keytab.sh
 
     - name: Install dependencies
