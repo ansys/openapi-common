@@ -2,7 +2,7 @@
 echo "------------------------------------------------"
 echo "---- Configuring /etc/hosts --------------------"
 echo "------------------------------------------------"
-sed '1s/^/127.0.0.1    python-server\n/' /etc/hosts > ./hosts
+sed '1s/^/127.0.0.1    test-server\n/' /etc/hosts > ./hosts
 cp ./hosts /etc/hosts
 
 echo "------------------------------------------------"
