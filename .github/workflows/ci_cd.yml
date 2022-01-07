@@ -3,8 +3,6 @@ name: Build and Test Package
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: kdc-container
-  IMAGE_VERSION: v0.2
 
 # run only on main branch.  This avoids duplicated actions on PRs
 on:
@@ -53,7 +51,7 @@ jobs:
       # Label used to access the service container
       kdc-server:
         # Github container registry address
-        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.IMAGE_VERSION }}
+        image: ghcr.io/pyansns/kdc-container:v0.2
         credentials:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
