@@ -48,7 +48,7 @@ jobs:
       # Label used to access the service container
       kdc-server:
         # Github container registry address
-        image: ghcr.io/pyansns/kdc-container:v0.2
+        image: ghcr.io/pyansys/kdc-container:v0.2
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
