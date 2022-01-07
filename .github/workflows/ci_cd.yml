@@ -75,10 +75,10 @@ jobs:
         
     - name: Configure host kerberos
       run: |
-        cp ./tests/integration/krb5.conf /etc/krb5.conf
         apt update
         export DEBIAN_FRONTEND=noninteractive
         apt install -yq krb5-user
+        cp ./tests/integration/krb5.conf /etc/krb5.conf
         ./tests/integration/configure_keytab.sh
 
     - name: Install dependencies
