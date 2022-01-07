@@ -75,7 +75,7 @@ jobs:
 
     - name: Configure host kerberos
       run: |
-        cwd
+        pwd
         ls
         ./tests/integration/configure_keytab.sh
 
