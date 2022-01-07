@@ -54,7 +54,8 @@ jobs:
           - /dev/urandom:/dev/random
           - /tmp/keytabs:/tmp/keytabs
 
-    container: python:${{ matrix.python-version }}
+    container:
+      image: python:${{ matrix.python-version }}
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
