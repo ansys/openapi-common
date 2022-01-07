@@ -1,6 +1,10 @@
 # check spelling, codestyle
 name: Build and Test Package
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}-kdc
+
 # run only on main branch.  This avoids duplicated actions on PRs
 on:
   pull_request:
@@ -48,7 +52,7 @@ jobs:
       # Label used to access the service container
       kdc-server:
         # Github container registry address
-        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        image: ghcr.io/${{ github.repository }}-kdc
         volumes:
           # This is needed otherwise there won't be enough entropy to generate a new kerberos realm
           - /dev/urandom:/dev/random
