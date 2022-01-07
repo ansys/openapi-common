@@ -74,15 +74,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Configure host kerberos
-      run: |
-        pwd
-        ls
-        echo ""
-        ls -la /tmp
-        echo ""
-        ls -la /tmp/keytabs
-        chown -R root:root /tmp/keytabs/
-        ./tests/integration/configure_keytab.sh
+      run: ./tests/integration/configure_keytab.sh
 
     - name: Install dependencies
       run: |
