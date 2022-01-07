@@ -1,6 +1,11 @@
 # check spelling, codestyle
 name: Build and Test Package
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: kdc-containers
+  IMAGE_VERSION: v0.2
+
 # run only on main branch.  This avoids duplicated actions on PRs
 on:
   pull_request:
@@ -48,7 +53,11 @@ jobs:
       # Label used to access the service container
       kdc-server:
         # Github container registry address
-        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        image: ${{ env.REGISTRY }}/{{ env.IMAGE_NAME }}:{{ env.IMAGE_VERSION }}
+        credentials:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         volumes:
           # This is needed otherwise there won't be enough entropy to generate a new kerberos realm
           - /dev/urandom:/dev/random
@@ -71,7 +80,7 @@ jobs:
 
     - name: Configure host kerberos
       run: ./configure_keytab.sh
-      working-directory: ${{ env.GITHUB_WORKSPACE }}/tests/integration/kerberos
+      working-directory: ${{ env.GITHUB_WORKSPACE }}/tests/integration
 
     - name: Install dependencies
       run: |
