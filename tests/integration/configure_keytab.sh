@@ -2,7 +2,8 @@
 echo "------------------------------------------------"
 echo "---- Configuring /etc/hosts --------------------"
 echo "------------------------------------------------"
-sed -i '1s/^/127.0.0.1    test-server\n/' /etc/hosts
+sed '1s/^/127.0.0.1    test-server\n/' /etc/hosts > ./hosts
+cp ./hosts /etc/hosts
 
 echo "------------------------------------------------"
 echo "---- Copying keytabs to writeable location -----"
@@ -22,18 +23,18 @@ echo "------------------------------------------------"
 echo "---- Writing combined keytab file --------------"
 echo "------------------------------------------------"
 ktutil <<'EOF_'
-read_kt /tmp/keytabs/user.keytab
-read_kt /tmp/keytabs/service.keytab
-write_kt /tmp/keytabs/krb5.keytab
+read_kt ./user.keytab
+read_kt ./service.keytab
+write_kt ./krb5.keytab
 EOF_
 
 echo "------------------------------------------------"
 echo "---- Moving keytab and setting permissions -----"
 echo "------------------------------------------------"
-cp /tmp/keytabs/krb5.keytab /etc/krb5.keytab
+cp ./krb5.keytab /etc/krb5.keytab
 chmod 644 /etc/krb5.keytab
 
 echo "------------------------------------------------"
 echo "---- Initialize ticket cache -------------------"
 echo "------------------------------------------------"
-kinit httpuser@EXAMPLE.COM -k -t /tmp/keytabs/user.keytab
+kinit httpuser@EXAMPLE.COM -k -t ./user.keytab
