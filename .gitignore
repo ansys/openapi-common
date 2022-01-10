@@ -38,8 +38,18 @@ _autosummary
 .coverage
 *,cover
 test-output.xml
+/.tox
+/htmlcov
 
 \#*
 .\#*
 /.ipynb_checkpoints
 
+# IDE Specific Files #
+######################
+/.idea
+
+
+# Virtual Environments #
+########################
+/venv

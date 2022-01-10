@@ -24,6 +24,7 @@ and install the latest version by running:
     git clone https://github.com/pyansys/openapi-common
     cd openapi-common
     pip install .
+    git config core.hooksPath .githooks
 
 
 Questions

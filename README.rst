@@ -17,13 +17,13 @@ Install openapi-common with:
 
    pip install ansys-openapi-common
 
-Alternatively, clone and install in development mode with:
+Alternatively, clone and install with:
 
 .. code::
 
    git clone https://github.com/pyansys/openapi-common
    cd openapi-common
-   pip install -e .
+   pip install .
 
 
 Usage
