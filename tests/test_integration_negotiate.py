@@ -2,22 +2,18 @@ from multiprocessing import Process
 
 import pytest
 import uvicorn
-from fastapi import FastAPI, Depends
 from asgi_gssapi import SPNEGOAuthMiddleware
+from fastapi import FastAPI
+
 from ansys.openapi.common import (
     ApiClientFactory,
     SessionConfiguration,
-    ApiConnectionException,
 )
 from .integration.common import (
     ExampleModelPyd,
-    validate_user_basic,
     TEST_MODEL_ID,
     TEST_PORT,
-    TEST_PASS,
-    TEST_USER,
 )
-
 
 TEST_URL = f"http://test-server:{TEST_PORT}"
 
@@ -51,7 +47,7 @@ def run_server():
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
-class TestBasic:
+class TestNegotiate:
     @pytest.fixture(autouse=True)
     def server(self):
         proc = Process(target=run_server, args=(), daemon=True)
