@@ -162,7 +162,7 @@ jobs:
         run: ls -R
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.8
+        uses: JamesIves/github-pages-deploy-action@4.2.1
         with:
           BRANCH: gh-pages
           FOLDER: ~/html
