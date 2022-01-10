@@ -34,7 +34,7 @@ deps =
 commands = pytest ./tests
 
 [testenv:coverage]
-commands = pytest --cov=ansys.openapi.common ./tests
+commands = pytest --cov=ansys.openapi.common --cov-report=xml ./tests
 
 [testenv:lint]
 deps =
