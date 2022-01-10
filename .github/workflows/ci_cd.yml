@@ -92,6 +92,27 @@ jobs:
     - name: Test with tox
       run: tox
 
+  coverage:
+    name: Measure and upload test coverage
+    runs-on: ubuntu-latest
+    container: python:3.10
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install tox
+
+      - name: Test with tox
+        run: tox -e coverage
+
+      - name: "Upload coverage to Codecov"
+        uses: codecov/codecov-action@v2
+        with:
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
+
   main:
     name: Build
     runs-on: ubuntu-latest
@@ -195,7 +216,7 @@ jobs:
         run: ls -R
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.8
+        uses: JamesIves/github-pages-deploy-action@4.2.1
         with:
           BRANCH: gh-pages
           FOLDER: ~/html
