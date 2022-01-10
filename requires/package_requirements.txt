@@ -1,5 +1,5 @@
 requests >= 2.26
-requests-negotiate-sspi >= 0.5.3; sys_platform == "win32"
+requests-negotiate-sspi >= 0.5.2; sys_platform == "win32"
 requests-ntlm >= 1.1.0
 pyparsing >= 3.0
 python-dateutil >= 2.6.1

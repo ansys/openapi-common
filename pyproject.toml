@@ -46,6 +46,6 @@ deps =
     {[testenv]deps}
 
 commands =
-    black --check ./tests ./src
+    black --check ./tests ./src ./requires
     mypy ./src
 """

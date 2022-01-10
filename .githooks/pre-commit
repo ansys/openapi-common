@@ -9,15 +9,26 @@
 # Redirect output to stderr.
 exec 1>&2
 
-if ! command -v python
-then
-    echo "Python was not found, make sure python is available"
-	exit 1
+pythonAliases=("python3" "py" "python")
+hasPython=0
+
+for alias in "${pythonAliases[@]}"; do
+  if command -v "$alias"; then
+    pythonAlias="$alias"
+    hasPython=1
+    break
+  fi
+done
+
+if [ -z "$hasPython"  ]; then
+  echo "No python was detected, ensure it is available on your path as one of:"
+  echo "${pythonAliases[*]}"
+  exit 1
 fi
 
 ROOT_DIR=$(git rev-parse --show-toplevel)
-pushd $ROOT_DIR/requires || exit 1
-python ./generate_requirements.py
+pushd "$ROOT_DIR/requires" || exit 1
+"$pythonAlias" ./generate_requirements.py
 if test -f "./.updated"; then
 	rm ./.updated
 	git add ./*_requirements.txt
