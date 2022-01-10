@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# A pre-commit hook to automatically generate requirements files
+# from the install_requires and extra_requires entries in the
+# setup.cfg file.
+# These are only present to allow github's dependabot tool to actually
+# monitor our packages
+
+# Redirect output to stderr.
+exec 1>&2
+
+if ! command -v python
+then
+    echo "Python was not found, make sure python is available"
+	exit 1
+fi
+
+ROOT_DIR=$(git rev-parse --show-toplevel)
+pushd $ROOT_DIR/requires || exit 1
+python ./generate_requirements.py
+if test -f "./.updated"; then
+	rm ./.updated
+	git add ./*_requirements.txt
+fi
+popd || exit 0
