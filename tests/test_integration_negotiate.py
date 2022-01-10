@@ -48,7 +48,9 @@ def run_server():
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="No portable KDC is available at present"
+)
 class TestNegotiate:
     @pytest.fixture(autouse=True)
     def server(self):
