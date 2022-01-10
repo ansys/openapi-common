@@ -31,6 +31,7 @@ deps =
     uvicorn
     fastapi
     pydantic
+    asgi_gssapi; sys_platform == "linux"
 commands = pytest ./tests
 
 [testenv:coverage]

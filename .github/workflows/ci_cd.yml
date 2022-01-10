@@ -1,5 +1,5 @@
 # check spelling, codestyle
-name: GitHub CI
+name: Build and Test Package
 
 # run only on main branch.  This avoids duplicated actions on PRs
 on:
@@ -44,12 +44,40 @@ jobs:
   test:
     name: Unit test on supported platforms
     runs-on: ubuntu-latest
-    container: python:${{ matrix.python-version }}
+    services:
+      # Label used to access the service container
+      kdc-server:
+        # Github container registry address
+        image: ghcr.io/pyansys/kdc-container:v0.2
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        volumes:
+          # This is needed otherwise there won't be enough entropy to generate a new kerberos realm
+          - /dev/urandom:/dev/random
+          - /tmp/keytabs:/tmp/keytabs
+        ports:
+          - 749:749
+          - 88:88/udp
+
+    container:
+      image: python:${{ matrix.python-version }}
+      volumes:
+        - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
         python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
+
     steps:
     - uses: actions/checkout@v1
+        
+    - name: Configure host kerberos
+      run: |
+        apt update
+        export DEBIAN_FRONTEND=noninteractive
+        apt install -yq krb5-user
+        cp ./tests/integration/krb5.conf /etc/krb5.conf
+        ./tests/integration/configure_keytab.sh
 
     - name: Install dependencies
       run: |
@@ -62,9 +90,36 @@ jobs:
   coverage:
     name: Measure and upload test coverage
     runs-on: ubuntu-latest
-    container: python:3.10
+    services:
+      # Label used to access the service container
+      kdc-server:
+        # Github container registry address
+        image: ghcr.io/pyansys/kdc-container:v0.2
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+        volumes:
+          # This is needed otherwise there won't be enough entropy to generate a new kerberos realm
+          - /dev/urandom:/dev/random
+          - /tmp/keytabs:/tmp/keytabs
+        ports:
+          - 749:749
+          - 88:88/udp
+
+    container:
+      image: python:3.10-buster
+      volumes:
+        - /tmp/keytabs:/tmp/keytabs
     steps:
       - uses: actions/checkout@v1
+
+      - name: Configure host kerberos
+        run: |
+          apt update
+          export DEBIAN_FRONTEND=noninteractive
+          apt install -yq krb5-user
+          cp ./tests/integration/krb5.conf /etc/krb5.conf
+          ./tests/integration/configure_keytab.sh
 
       - name: Install dependencies
         run: |
@@ -80,7 +135,7 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
 
-  main:
+  build:
     name: Build
     runs-on: ubuntu-latest
 
@@ -155,7 +210,7 @@ jobs:
 
   Release:
     if: contains(github.ref, 'refs/tags')
-    needs: [main, style, docs]
+    needs: [build, test, style, docs]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
