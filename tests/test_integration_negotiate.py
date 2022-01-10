@@ -57,7 +57,7 @@ class TestBasic:
         proc = Process(target=run_server, args=(), daemon=True)
         proc.start()
         yield
-        proc.kill()
+        proc.terminate()
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
