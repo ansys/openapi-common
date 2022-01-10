@@ -9,7 +9,7 @@ echo "------------------------------------------------"
 echo "---- Copying keytabs to writeable location -----"
 echo "------------------------------------------------"
 cp /tmp/keytabs/user.keytab ./user.keytab
-cp /tmp/keytabs/user.keytab ./service.keytab
+cp /tmp/keytabs/service.keytab ./service.keytab
 
 echo "------------------------------------------------"
 echo "---- Setting file permissions and owner --------"
