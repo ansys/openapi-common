@@ -3,6 +3,14 @@ import shutil
 import sys
 
 from setuptools.config import read_configuration
+
+
+def item_generator(things):
+    for item in things:
+        yield item
+        yield '\n'
+
+
 setup_info = read_configuration('../setup.cfg')
 
 install_requires = []
@@ -23,13 +31,13 @@ for file in os.listdir("./"):
 try:
     with open('./package_requirements.txt', 'w', encoding='utf8') as fp:
         print('Writing package requirements to package_requirements.txt')
-        fp.writelines(install_requires)
+        fp.writelines(item_generator(install_requires))
 
     for extra, requirements in extras_require.items():
         file_name = f'{extra}_requirements.txt'
         print(f'Writing extra requirements for {extra} to {file_name}')
         with open(file_name, 'w', encoding='utf8') as fp:
-            fp.writelines(requirements)
+            fp.writelines(item_generator(requirements))
 
     with open('./.updated', 'w') as fp:
         fp.write('updated')

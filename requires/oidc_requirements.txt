@@ -1,1 +1,2 @@
-requests_oauthlib >= 1.2keyring >= 22.0
+requests_oauthlib >= 1.2
+keyring >= 22.0
