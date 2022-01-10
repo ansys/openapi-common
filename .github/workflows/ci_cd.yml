@@ -107,7 +107,7 @@ jobs:
           - 88:88/udp
 
     container:
-      image: python:3.10
+      image: python:3.10-buster
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     steps:
