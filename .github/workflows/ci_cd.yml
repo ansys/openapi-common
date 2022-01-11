@@ -20,7 +20,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: '3.10'
 
       - name: Install style requirements
         run: |
@@ -87,54 +87,6 @@ jobs:
     - name: Test with tox
       run: tox
 
-  coverage:
-    name: Measure and upload test coverage
-    runs-on: ubuntu-latest
-    services:
-      # Label used to access the service container
-      kdc-server:
-        # Github container registry address
-        image: ghcr.io/pyansys/kdc-container:v0.2
-        credentials:
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-        volumes:
-          # This is needed otherwise there won't be enough entropy to generate a new kerberos realm
-          - /dev/urandom:/dev/random
-          - /tmp/keytabs:/tmp/keytabs
-        ports:
-          - 749:749
-          - 88:88/udp
-
-    container:
-      image: python:3.10-buster
-      volumes:
-        - /tmp/keytabs:/tmp/keytabs
-    steps:
-      - uses: actions/checkout@v1
-
-      - name: Configure host kerberos
-        run: |
-          apt update
-          export DEBIAN_FRONTEND=noninteractive
-          apt install -yq krb5-user
-          cp ./tests/integration/krb5.conf /etc/krb5.conf
-          ./tests/integration/configure_keytab.sh
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install tox
-
-      - name: Test with tox
-        run: tox -e coverage
-
-      - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -144,7 +96,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: '3.10'
  
       - name: Install kerberos headers
         run: sudo apt install libkrb5-dev
@@ -175,13 +127,13 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: '3.10'
           
       - name: Install kerberos headers
         run: sudo apt install libkrb5-dev
 
       - name: Install library
-        run: pip install .[oidc]
+        run: pip install .[oidc,linux-kerberos]
 
       - name: Build HTML
         run: |
@@ -216,7 +168,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1
         with:
-          python-version: 3.9
+          python-version: '3.10'
 
       - uses: actions/checkout@v2
 
