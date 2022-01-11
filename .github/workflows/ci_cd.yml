@@ -222,7 +222,7 @@ jobs:
 
       - uses: actions/download-artifact@v2
         with:
-          name: ansys-product-library-wheel
+          name: ansys-grantami-common-wheel
 
       - uses: actions/download-artifact@v2
         with:
@@ -232,10 +232,6 @@ jobs:
         with:
           name: Documentation-html
           path: ~/html
-
-      # list current directory
-      - name: List directory structure
-        run: ls -R
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@4.2.1
@@ -251,7 +247,7 @@ jobs:
           # twine upload --skip-existing ./**/*.whl
         env:
           TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_PASSWORD: __token__
 
       - name: Release
         uses: softprops/action-gh-release@v1
