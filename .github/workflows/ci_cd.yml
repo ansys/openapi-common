@@ -87,6 +87,13 @@ jobs:
     - name: Test with tox
       run: tox -- --kerberos
 
+    - name: Upload coverage report
+      if: ${{ matrix.python-version == '3.10' }}
+      uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+
   build:
     name: Build
     runs-on: ubuntu-latest

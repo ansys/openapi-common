@@ -17,7 +17,6 @@ def validate_user_principal(request: Request, valid_principal: str):
     scope = request.scope
     try:
         principal = scope["gssapi"]["principal"]
-        print(principal)
         if principal == valid_principal:
             return
         else:
