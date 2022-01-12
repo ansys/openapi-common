@@ -13,7 +13,6 @@ from ansys.openapi.common import (
     ApiConnectionException,
 )
 from .integration.common import (
-    fastapi_test_app,
     TEST_MODEL_ID,
     TEST_PORT,
     ExampleModelPyd,
@@ -24,25 +23,26 @@ from .integration.common import (
 pytestmark = pytest.mark.kerberos
 
 TEST_URL = f"http://test-server:{TEST_PORT}"
+TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 
 custom_test_app = FastAPI()
 
 
 @custom_test_app.patch("/models/{model_id}")
 async def patch_model(model_id: str, example_model: ExampleModelPyd, request: Request):
-    validate_user_principal(request)
+    validate_user_principal(request, TEST_PRINCIPAL)
     return return_model(model_id, example_model)
 
 
 @custom_test_app.get("/test_api")
 async def get_test_api(request: Request):
-    validate_user_principal(request)
+    validate_user_principal(request, TEST_PRINCIPAL)
     return {"msg": "OK"}
 
 
 @custom_test_app.get("/")
 async def get_none(request: Request):
-    validate_user_principal(request)
+    validate_user_principal(request, TEST_PRINCIPAL)
     return None
 
 
@@ -118,6 +118,14 @@ class TestNegotiate:
 class TestNegotiateFailures:
     @pytest.fixture(autouse=True)
     def server(self):
+        # Remove all the routes (a bit drastic)
+        custom_test_app.router.routes = []
+
+        @custom_test_app.get("/")
+        async def get_forbidden(request: Request):
+            validate_user_principal(request, "otheruser@EXAMPLE.COM")
+            return None
+
         proc = Process(target=run_server, args=(), daemon=True)
         proc.start()
         yield
@@ -125,13 +133,9 @@ class TestNegotiateFailures:
         while proc.is_alive():
             sleep(1)
 
-    def test_bad_principal_returns_403(self, mocker):
-        mocker.patch(
-            "ansys.openapi.common.tests.integration.common.get_valid_principal",
-            return_value="otheruser@EXAMPLE.COM",
-        )
+    def test_bad_principal_returns_403(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
             _ = client_factory.with_autologon().connect()
         assert excinfo.value.status_code == 403
-        assert excinfo.value.reason_phrase == "Unauthorized"
+        assert excinfo.value.reason_phrase == "Forbidden"

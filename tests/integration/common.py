@@ -11,18 +11,14 @@ TEST_PORT = 27768
 TEST_URL = f"http://localhost:{TEST_PORT}"
 TEST_USER = "api_user"
 TEST_PASS = "rosebud"
-TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 
 
-def get_valid_principal():
-    return TEST_PRINCIPAL
-
-
-def validate_user_principal(request: Request):
+def validate_user_principal(request: Request, valid_principal: str):
     scope = request.scope
     try:
         principal = scope["gssapi"]["principal"]
-        if principal == get_valid_principal():
+        print(principal)
+        if principal == valid_principal:
             return
         else:
             raise HTTPException(status_code=403, detail="Forbidden")
