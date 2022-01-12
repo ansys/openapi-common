@@ -85,7 +85,7 @@ jobs:
         pip install tox tox-gh-actions==2.8.1
 
     - name: Test with tox
-      run: tox
+      run: tox -- -m "kerberos"
 
   build:
     name: Build

@@ -32,10 +32,10 @@ deps =
     fastapi
     pydantic
     asgi_gssapi; sys_platform == "linux"
-commands = pytest ./tests
+commands = pytest ./tests {posargs}
 
 [testenv:coverage]
-commands = pytest --cov=ansys.openapi.common --cov-report=xml ./tests
+commands = pytest --cov=ansys.openapi.common --cov-report=xml ./tests {posargs}
 
 [testenv:lint]
 deps =
@@ -49,3 +49,8 @@ commands =
     black --check ./tests ./src ./requires
     mypy ./src
 """
+
+[tool.pytest.ini_options]
+markers = [
+    """kerberos: test requires a correctly configured Kerberos setup (select with '-m \"kerberos\")"""
+]

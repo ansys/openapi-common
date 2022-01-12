@@ -48,6 +48,7 @@ def run_server():
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
+@pytest.mark.kerberos
 @pytest.mark.skipif(
     sys.platform == "win32", reason="No portable KDC is available at present"
 )
