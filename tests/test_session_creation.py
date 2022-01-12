@@ -261,8 +261,8 @@ def test_can_connect_with_oidc_using_token():
                 .with_token(access_token=ACCESS_TOKEN, refresh_token="")
                 .connect()
             )
-        except OSError as excinfo:
-            process = Popen(["lsof", "-i", ":{0}".format({32284})], stdout=PIPE, stderr=PIPE)
+        except OSError:
+            process = Popen(["lsof", "-i", ":32284"], stdout=PIPE, stderr=PIPE)
             stdout, stderr = process.communicate()
             print(stdout)
             print(stderr)
