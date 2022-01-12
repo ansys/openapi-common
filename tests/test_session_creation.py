@@ -1,6 +1,7 @@
 import json
 import os
 from functools import wraps
+from subprocess import Popen, PIPE
 
 import pytest
 import requests_mock
@@ -253,12 +254,19 @@ def test_can_connect_with_oidc_using_token():
             status_code=200,
             request_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
         )
-        session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
-            .with_token(access_token=ACCESS_TOKEN, refresh_token="")
-            .connect()
-        )
+        try:
+            session = (
+                ApiClientFactory(SECURE_SERVICELAYER_URL)
+                .with_oidc()
+                .with_token(access_token=ACCESS_TOKEN, refresh_token="")
+                .connect()
+            )
+        except OSError as excinfo:
+            process = Popen(["lsof", "-i", ":{0}".format({32284})], stdout=PIPE, stderr=PIPE)
+            stdout, stderr = process.communicate()
+            print(stdout)
+            print(stderr)
+            raise
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
         assert resp.status_code == 200
 
