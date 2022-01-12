@@ -49,8 +49,3 @@ commands =
     black --check ./tests ./src ./requires
     mypy ./src
 """
-
-[tool.pytest.ini_options]
-markers = [
-    """kerberos: test requires a correctly configured Kerberos setup (select with '-m \"kerberos\")"""
-]

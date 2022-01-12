@@ -48,7 +48,7 @@ jobs:
           pip install tox
 
       - name: Test with tox
-        run: tox -e coverage -- -m "kerberos"
+        run: tox -e coverage -- --kerberos
 
       - name: "Upload coverage to Codecov"
         uses: codecov/codecov-action@v2
