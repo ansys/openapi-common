@@ -4,12 +4,30 @@ from typing import Optional, List
 from fastapi import HTTPException, status, FastAPI
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
+from starlette.requests import Request
 
 TEST_MODEL_ID = "37630523-deac-44b4-b920-b150ff8a2308"
 TEST_PORT = 27768
 TEST_URL = f"http://localhost:{TEST_PORT}"
 TEST_USER = "api_user"
 TEST_PASS = "rosebud"
+TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
+
+
+def get_valid_principal():
+    return TEST_PRINCIPAL
+
+
+def validate_user_principal(request: Request):
+    scope = request.scope
+    try:
+        principal = scope['gssapi']['principal']
+        if principal == get_valid_principal():
+            return
+        else:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    except KeyError:
+        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 def validate_user_basic(credentials: HTTPBasicCredentials) -> None:

@@ -15,31 +15,17 @@ from ansys.openapi.common import (
 from .integration.common import (
     fastapi_test_app,
     TEST_MODEL_ID,
-    TEST_PORT, ExampleModelPyd, return_model,
+    TEST_PORT,
+    ExampleModelPyd,
+    return_model,
+    validate_user_principal,
 )
 
 pytestmark = pytest.mark.kerberos
 
 TEST_URL = f"http://test-server:{TEST_PORT}"
-TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 
 custom_test_app = FastAPI()
-
-
-def get_valid_principal():
-    return TEST_PRINCIPAL
-
-
-def validate_user_principal(request: Request):
-    scope = request.scope
-    try:
-        principal = scope['gssapi']['principal']
-        if principal == get_valid_principal():
-            return
-        else:
-            raise HTTPException(status_code=403, detail="Forbidden")
-    except KeyError:
-        raise HTTPException(status_code=401, detail="Unauthorized")
 
 
 @custom_test_app.patch("/models/{model_id}")
@@ -143,7 +129,7 @@ class TestNegotiateFailures:
             sleep(1)
 
     def test_bad_principal_returns_403(self, mocker):
-        mocker.patch('get_valid_principal', return_value='otheruser@EXAMPLE.COM')
+        mocker.patch('.integration.common.get_valid_principal', return_value='otheruser@EXAMPLE.COM')
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
             _ = client_factory.with_autologon().connect()
