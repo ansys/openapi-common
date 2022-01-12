@@ -129,7 +129,7 @@ class TestNegotiateFailures:
             sleep(1)
 
     def test_bad_principal_returns_403(self, mocker):
-        mocker.patch('.integration.common.get_valid_principal', return_value='otheruser@EXAMPLE.COM')
+        mocker.patch(__name__ + '.integration.common.get_valid_principal', return_value='otheruser@EXAMPLE.COM')
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
             _ = client_factory.with_autologon().connect()
