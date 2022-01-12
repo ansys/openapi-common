@@ -245,7 +245,7 @@ command.
 .. code::
 
    pip install tox
-   tox -e coverage . -- -m "kerberos"
+   tox -e coverage . -- --kerberos
 
 
 Spelling and Code Style
