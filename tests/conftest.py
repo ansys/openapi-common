@@ -7,31 +7,31 @@ import pytest
 # 2. 'marker-descr': a description of the marker
 # 3. 'skip-reason': displayed reason whenever a test with this marker is skipped.
 optional_markers = {
-    "kerberos": {"help": "Run the optional kerberos integration tests",
-             "marker-descr": "Tests rely on a working kerberos setup on linux",
-             "skip-reason": "Test only runs with the --kerberos option."},
+    "kerberos": {
+        "help": "Run the optional kerberos integration tests",
+        "marker-descr": "Tests rely on a working kerberos setup on linux",
+        "skip-reason": "Test only runs with the --kerberos option.",
+    },
     # add further markers here
 }
 
 
 def pytest_addoption(parser):
     for marker, info in optional_markers.items():
-        parser.addoption(f"--{marker}", action="store_true",
-                         default=False, help=info['help'])
+        parser.addoption(
+            f"--{marker}", action="store_true", default=False, help=info["help"]
+        )
 
 
 def pytest_configure(config):
     for marker, info in optional_markers.items():
-        config.addinivalue_line("markers",
-                                f"{marker}: {info['marker-descr']}")
+        config.addinivalue_line("markers", f"{marker}: {info['marker-descr']}")
 
 
 def pytest_collection_modifyitems(config, items):
     for marker, info in optional_markers.items():
         if not config.getoption(f"--{marker}"):
-            skip_test = pytest.mark.skip(
-                reason=info['skip-reason']
-            )
+            skip_test = pytest.mark.skip(reason=info["skip-reason"])
             for item in items:
                 if marker in item.keywords:
                     item.add_marker(skip_test)
