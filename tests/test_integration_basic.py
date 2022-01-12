@@ -19,7 +19,7 @@ from .integration.common import (
     TEST_PASS,
     TEST_USER,
     TEST_PORT,
-    return_model
+    return_model,
 )
 
 security = HTTPBasic()

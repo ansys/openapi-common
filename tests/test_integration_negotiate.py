@@ -3,14 +3,14 @@ from multiprocessing import Process
 from time import sleep
 
 import pytest
-from pytest_mock import mocker
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from starlette.requests import Request
 
 from ansys.openapi.common import (
     ApiClientFactory,
-    SessionConfiguration, ApiConnectionException,
+    SessionConfiguration,
+    ApiConnectionException,
 )
 from .integration.common import (
     fastapi_test_app,
@@ -29,11 +29,7 @@ custom_test_app = FastAPI()
 
 
 @custom_test_app.patch("/models/{model_id}")
-async def patch_model(
-        model_id: str,
-        example_model: ExampleModelPyd,
-        request: Request
-):
+async def patch_model(model_id: str, example_model: ExampleModelPyd, request: Request):
     validate_user_principal(request)
     return return_model(model_id, example_model)
 
@@ -52,7 +48,8 @@ async def get_none(request: Request):
 
 def run_server():
     from asgi_gssapi import SPNEGOAuthMiddleware
-    authenticated_app = SPNEGOAuthMiddleware(fastapi_test_app, hostname="test-server")
+
+    authenticated_app = SPNEGOAuthMiddleware(custom_test_app, hostname="test-server")
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
@@ -129,7 +126,10 @@ class TestNegotiateFailures:
             sleep(1)
 
     def test_bad_principal_returns_403(self, mocker):
-        mocker.patch(__name__ + '.integration.common.get_valid_principal', return_value='otheruser@EXAMPLE.COM')
+        mocker.patch(
+            "ansys.openapi.common.tests.integration.common.get_valid_principal",
+            return_value="otheruser@EXAMPLE.COM",
+        )
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
             _ = client_factory.with_autologon().connect()

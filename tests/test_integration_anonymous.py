@@ -11,6 +11,7 @@ from ansys.openapi.common import (
 )
 from .integration.common import fastapi_test_app, TEST_MODEL_ID, TEST_URL, TEST_PORT
 
+
 def run_server():
     uvicorn.run(fastapi_test_app, port=TEST_PORT)
 
