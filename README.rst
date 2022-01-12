@@ -25,7 +25,6 @@ Alternatively, clone and install with:
    cd openapi-common
    pip install .
 
-
 Usage
 -----
 The API client class is intended to be wrapped by code that implements a client library,
