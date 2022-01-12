@@ -3,7 +3,7 @@ from time import sleep
 
 import pytest
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from ansys.openapi.common import (
@@ -19,44 +19,37 @@ from .integration.common import (
     TEST_PASS,
     TEST_USER,
     TEST_PORT,
+    return_model
 )
 
-
-app = FastAPI()
 security = HTTPBasic()
+custom_test_app = FastAPI()
 
 
-@app.patch("/models/{model_id}")
-async def read_main(
+@custom_test_app.patch("/models/{model_id}")
+async def patch_model(
     model_id: str,
     example_model: ExampleModelPyd,
     credentials: HTTPBasicCredentials = Depends(security),
 ):
     validate_user_basic(credentials)
-    if model_id == TEST_MODEL_ID:
-        response = {
-            "String": example_model.String or "new_model",
-            "Integer": example_model.Integer or 1,
-            "ListOfStrings": example_model.ListOfStrings or ["red", "yellow", "green"],
-            "Boolean": example_model.Boolean or False,
-        }
-        return response
+    return return_model(model_id, example_model)
 
 
-@app.get("/test_api")
-async def read_main(credentials: HTTPBasicCredentials = Depends(security)):
+@custom_test_app.get("/test_api")
+async def get_test_api(credentials: HTTPBasicCredentials = Depends(security)):
     validate_user_basic(credentials)
     return {"msg": "OK"}
 
 
-@app.get("/")
-async def read_main(credentials: HTTPBasicCredentials = Depends(security)):
+@custom_test_app.get("/")
+async def get_none(credentials: HTTPBasicCredentials = Depends(security)):
     validate_user_basic(credentials)
     return None
 
 
 def run_server():
-    uvicorn.run(app, port=TEST_PORT)
+    uvicorn.run(custom_test_app, port=TEST_PORT)
 
 
 class TestBasic:

@@ -1,7 +1,7 @@
 import secrets
 from typing import Optional, List
 
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, FastAPI
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
 
@@ -28,3 +28,34 @@ class ExampleModelPyd(BaseModel):
     Integer: Optional[int]
     ListOfStrings: Optional[List[str]]
     Boolean: Optional[bool]
+
+
+fastapi_test_app = FastAPI()
+
+
+def return_model(model_id: str, example_model: ExampleModelPyd):
+    if model_id == TEST_MODEL_ID:
+        response = {
+            "String": example_model.String or "new_model",
+            "Integer": example_model.Integer or 1,
+            "ListOfStrings": example_model.ListOfStrings or ["red", "yellow", "green"],
+            "Boolean": example_model.Boolean or False,
+        }
+        return response
+    else:
+        raise HTTPException(status_code=404, detail="Model not found")
+
+
+@fastapi_test_app.patch("/models/{model_id}")
+async def patch_model(model_id: str, example_model: ExampleModelPyd):
+    return return_model(model_id, example_model)
+
+
+@fastapi_test_app.get("/test_api")
+async def get_test_api():
+    return {"msg": "OK"}
+
+
+@fastapi_test_app.get("/")
+async def get_none():
+    return None

@@ -1,54 +1,75 @@
 import sys
 from multiprocessing import Process
+from time import sleep
 
 import pytest
+from pytest_mock import mocker
 import uvicorn
-from asgi_gssapi import SPNEGOAuthMiddleware
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from starlette.requests import Request
 
 from ansys.openapi.common import (
     ApiClientFactory,
-    SessionConfiguration,
+    SessionConfiguration, ApiConnectionException,
 )
 from .integration.common import (
-    ExampleModelPyd,
+    fastapi_test_app,
     TEST_MODEL_ID,
-    TEST_PORT,
+    TEST_PORT, ExampleModelPyd, return_model,
 )
 
+pytestmark = pytest.mark.kerberos
+
 TEST_URL = f"http://test-server:{TEST_PORT}"
+TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 
-app = FastAPI()
-authenticated_app = SPNEGOAuthMiddleware(app, hostname="test-server")
-
-
-@app.patch("/models/{model_id}")
-async def read_main(model_id: str, example_model: ExampleModelPyd):
-    if model_id == TEST_MODEL_ID:
-        response = {
-            "String": example_model.String or "new_model",
-            "Integer": example_model.Integer or 1,
-            "ListOfStrings": example_model.ListOfStrings or ["red", "yellow", "green"],
-            "Boolean": example_model.Boolean or False,
-        }
-        return response
+custom_test_app = FastAPI()
 
 
-@app.get("/test_api")
-async def read_main():
+def get_valid_principal():
+    return TEST_PRINCIPAL
+
+
+def validate_user_principal(request: Request):
+    scope = request.scope
+    try:
+        principal = scope['gssapi']['principal']
+        if principal == get_valid_principal():
+            return
+        else:
+            raise HTTPException(status_code=403, detail="Forbidden")
+    except KeyError:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+
+@custom_test_app.patch("/models/{model_id}")
+async def patch_model(
+        model_id: str,
+        example_model: ExampleModelPyd,
+        request: Request
+):
+    validate_user_principal(request)
+    return return_model(model_id, example_model)
+
+
+@custom_test_app.get("/test_api")
+async def get_test_api(request: Request):
+    validate_user_principal(request)
     return {"msg": "OK"}
 
 
-@app.get("/")
-async def read_main():
+@custom_test_app.get("/")
+async def get_none(request: Request):
+    validate_user_principal(request)
     return None
 
 
 def run_server():
+    from asgi_gssapi import SPNEGOAuthMiddleware
+    authenticated_app = SPNEGOAuthMiddleware(fastapi_test_app, hostname="test-server")
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
-@pytest.mark.kerberos
 @pytest.mark.skipif(
     sys.platform == "win32", reason="No portable KDC is available at present"
 )
@@ -59,6 +80,8 @@ class TestNegotiate:
         proc.start()
         yield
         proc.terminate()
+        while proc.is_alive():
+            sleep(1)
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
@@ -104,3 +127,25 @@ class TestNegotiate:
             _return_http_data_only=True,
         )
         assert response == deserialized_response
+
+
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="No portable KDC is available at present"
+)
+class TestNegotiateFailures:
+    @pytest.fixture(autouse=True)
+    def server(self):
+        proc = Process(target=run_server, args=(), daemon=True)
+        proc.start()
+        yield
+        proc.terminate()
+        while proc.is_alive():
+            sleep(1)
+
+    def test_bad_principal_returns_403(self, mocker):
+        mocker.patch('get_valid_principal', return_value='otheruser@EXAMPLE.COM')
+        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
+        with pytest.raises(ApiConnectionException) as excinfo:
+            _ = client_factory.with_autologon().connect()
+        assert excinfo.value.status_code == 403
+        assert excinfo.value.reason_phrase == "Unauthorized"
