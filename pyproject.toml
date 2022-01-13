@@ -94,15 +94,7 @@ python =
 deps =
     .[oidc]
     .[linux-kerberos]
-    pytest
-    requests-mock
-    pytest-mock
-    covertable
-    pytest-cov
-    uvicorn
-    fastapi
-    pydantic
-    asgi_gssapi; sys_platform == "linux"
+    .[test]
 commands = pytest ./tests {posargs}
 
 [testenv:coverage]
