@@ -33,11 +33,11 @@ jobs:
       - name: Install kerberos headers
         run: sudo apt install libkrb5-dev
 
-      - name: Install linter
+      - name: Install tox
         run: |
-          pip install tox
+          pip install tox --disable-pip-version-check
 
-      - name: lint
+      - name: Lint project
         run: |
           tox -e lint .
           
@@ -66,7 +66,7 @@ jobs:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
     - uses: actions/checkout@v1
@@ -85,7 +85,14 @@ jobs:
         pip install tox tox-gh-actions==2.8.1
 
     - name: Test with tox
-      run: tox
+      run: tox -- --kerberos
+
+    - name: Upload coverage report
+      if: ${{ matrix.python-version == '3.10' }}
+      uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build

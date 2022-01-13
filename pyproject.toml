@@ -8,16 +8,15 @@ build-backend = "setuptools.build_meta"
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py36,py37,py38,py39,py310
+envlist = py37,py38,py39,coverage
 isolated_build = True
 
 [gh-actions]
 python =
-    3.6: py36
     3.7: py37
     3.8: py38
     3.9: py39
-    3.10: py310
+    3.10: coverage
 
 [testenv]
 deps =
@@ -32,20 +31,22 @@ deps =
     fastapi
     pydantic
     asgi_gssapi; sys_platform == "linux"
-commands = pytest ./tests
+commands = pytest ./tests {posargs}
 
 [testenv:coverage]
-commands = pytest --cov=ansys.openapi.common --cov-report=xml ./tests
+commands = pytest --cov=ansys.openapi.common --cov-report=xml ./tests {posargs}
 
 [testenv:lint]
 deps =
     black
-    mypy
+    mypy==0.910
     types-requests
     types-python-dateutil
+    codespell==2.1.0
     {[testenv]deps}
 
 commands =
+    codespell ./src ./tests ./doc/source
     black --check ./tests ./src ./requires
     mypy ./src
 """
