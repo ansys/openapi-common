@@ -10,8 +10,8 @@ authors = [
 maintainers = [
   {name = "PyAnsys Maintainers", email = "pyansys.maintainers@ansys.com"}
 ]
-license = {file = "./LICENSE"}
-readme = {file = "./README.rst", content-type="text/x-rst"}
+license = {file = "LICENSE"}
+readme = {file = "README.rst", content-type="text/x-rst"}
 keywords = ["Ansys", "OpenAPI"]
 classifiers = [
   "License :: OSI Approved :: MIT License",
@@ -73,6 +73,9 @@ linux-kerberos = [
 
 [tool.flit.module]
 name = "ansys.openapi.common"
+
+[tool.flit.sdist]
+include = ["./doc/"]
 
 [tool.tox]
 legacy_tox_ini = """
