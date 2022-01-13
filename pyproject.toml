@@ -1,9 +1,78 @@
 [build-system]
-requires = [
-  "setuptools >= 40.9.0",
-  "wheel",
+requires = ["flit-core >= 3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "ansys_openapi_common"
+authors = [
+  {name = "ANSYS, Inc." }
 ]
-build-backend = "setuptools.build_meta"
+maintainers = [
+  {name = "PyAnsys Maintainers", email = "pyansys.maintainers@ansys.com"}
+]
+license = {file = "./LICENSE"}
+readme = {file = "./README.rst", content-type="text/x-rst"}
+keywords = ["Ansys", "OpenAPI"]
+classifiers = [
+  "License :: OSI Approved :: MIT License",
+  "Development Status :: 2 - Pre-Alpha",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Information Analysis",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Private :: Do Not Upload"
+]
+
+dynamic = ["version", "description"]
+
+dependencies = [
+  "requests >= 2.26",
+  "requests-negotiate-sspi >= 0.5.2; sys_platform == 'win32'",
+  "requests-ntlm >= 1.1.0",
+  "pyparsing >= 3.0",
+  "python-dateutil >= 2.6.1",
+  "typing-extensions >= 3.7; python_version < '3.8'"
+]
+
+[project.urls]
+Documentation = "https://legendary-robot-0db934b6.pages.github.io/"
+Source = "https://github.com/pyansys/openapi-common"
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "uvicorn",
+  "fastapi",
+  "pydantic",
+  "requests-mock",
+  "pytest-mock",
+  "covertable",
+  "asgi_gssapi; sys_platform == 'linux'"
+]
+doc = [
+  "pyansys-sphinx-theme",
+  "numpydoc",
+  "sphinx==4.3.2",
+  "sphinx_autodoc_typehints==1.15.1",
+  "sphinx-notfound-page==0.8",
+  "sphinx-copybutton==0.4.0"
+]
+oidc = [
+  "requests_oauthlib >= 1.2",
+  "keyring >= 22.0"
+]
+linux-kerberos = [
+  "requests-kerberos >= 0.13.0; sys_platform == 'linux'"
+]
+
+[tool.flit.module]
+name = "ansys.openapi.common"
 
 [tool.tox]
 legacy_tox_ini = """
