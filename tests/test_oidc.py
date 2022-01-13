@@ -3,7 +3,7 @@ import json
 import pytest
 import requests
 import requests_mock
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from covertable import make
 
 from ansys.openapi.common import ApiClientFactory
