@@ -46,7 +46,7 @@ Source = "https://github.com/pyansys/openapi-common"
 
 [project.optional-dependencies]
 test = [
-  "coverage",
+  "pytest-cov",
   "pytest",
   "uvicorn",
   "fastapi",
