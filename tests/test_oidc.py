@@ -3,7 +3,7 @@ import json
 import pytest
 import requests
 import requests_mock
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock
 from covertable import make
 
 from ansys.openapi.common import ApiClientFactory
@@ -182,8 +182,7 @@ def test_setting_tokens_sets_tokens(access_token):
     assert session._client.refresh_token == refresh_token
 
 
-@patch('ansys.openapi.common._oidc.OIDCCallbackHTTPServer')
-def test_endpoint_with_refresh_configures_correctly(mock_server):
+def test_endpoint_with_refresh_configures_correctly():
     secure_servicelayer_url = "https://localhost/mi_servicelayer"
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
@@ -215,3 +214,4 @@ def test_endpoint_with_refresh_configures_correctly(mock_server):
         oidc_factory = session._session_factory._oauth_session
         assert oidc_factory.auto_refresh_url == f"{authority_url}token"
         assert oidc_factory.auto_refresh_kwargs["client_id"] == client_id
+        session._session_factory._callback_server.server_close()
