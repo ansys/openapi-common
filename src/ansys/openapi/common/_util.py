@@ -233,6 +233,9 @@ class OIDCCallbackHTTPServer(HTTPServer):
     async def get_auth_code(self):
         return self._auth_code.get(block=True)
 
+    def __del__(self):
+        self.server_close()
+
 
 class RequestsConfiguration(TypedDict):
     cert: Union[None, str, Tuple[str, str]]

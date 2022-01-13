@@ -200,7 +200,6 @@ class OIDCSessionFactory:
         if _log_tokens:
             logger.debug(f"[TECHDOCS]Received authorization code: {auth_code}")
         self._callback_server.shutdown()
-        del self._callback_server
 
         _ = self._oauth_session.fetch_token(
             self._well_known_parameters["token_endpoint"],
