@@ -57,8 +57,8 @@ test = [
   "asgi_gssapi; sys_platform == 'linux'"
 ]
 doc = [
-  "pyansys-sphinx-theme",
-  "numpydoc",
+  "pyansys-sphinx-theme==0.2.0",
+  "numpydoc==1.1.0",
   "sphinx==4.3.2",
   "sphinx_autodoc_typehints==1.15.1",
   "sphinx-notfound-page==0.8",
@@ -74,9 +74,6 @@ linux-kerberos = [
 
 [tool.flit.module]
 name = "ansys.openapi.common"
-
-[tool.flit.sdist]
-include = ["./doc/"]
 
 [tool.tox]
 legacy_tox_ini = """
