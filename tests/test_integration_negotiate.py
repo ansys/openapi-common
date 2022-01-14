@@ -3,7 +3,7 @@ from multiprocessing import Process
 
 import pytest
 import uvicorn
-from asgi_gssapi import SPNEGOAuthMiddleware
+
 from fastapi import FastAPI
 
 from ansys.openapi.common import (
@@ -19,7 +19,6 @@ from .integration.common import (
 TEST_URL = f"http://test-server:{TEST_PORT}"
 
 app = FastAPI()
-authenticated_app = SPNEGOAuthMiddleware(app, hostname="test-server")
 
 
 @app.patch("/models/{model_id}")
@@ -45,6 +44,10 @@ async def read_main():
 
 
 def run_server():
+    # Function is only executed if testing in Linux
+    from asgi_gssapi import SPNEGOAuthMiddleware
+
+    authenticated_app = SPNEGOAuthMiddleware(app, hostname="test-server")
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
