@@ -2,12 +2,15 @@ import http.cookiejar
 import secrets
 import tempfile
 import time
+from unittest.mock import MagicMock
 
 import pytest
 import requests
+import requests_mock
 from requests.utils import CaseInsensitiveDict
 
 from ansys.openapi.common import SessionConfiguration
+from ansys.openapi.common._session import _RequestsTimeoutAdapter
 from ansys.openapi.common._util import RequestsConfiguration
 
 CLIENT_CERT_PATH = "./client-cert.pem"
@@ -264,3 +267,60 @@ class TestDeserialization:
         prepared_request = request.prepare()
         assert "Cookie" in prepared_request.headers
         assert "131071" in prepared_request.headers["Cookie"]
+
+
+class TestTimeoutAdapter:
+    TEST_URL = "https://www.testdomain.com/test"
+    DEFAULT_TIMEOUT = 31
+
+    @pytest.fixture
+    def test_request(self):
+        yield requests.Request("GET", self.TEST_URL)
+
+    @staticmethod
+    def check_timeout(
+        patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int
+    ):
+        patched_urlopen.assert_called_once()
+        assert "timeout" in patched_urlopen.call_args[1]
+        timeout = patched_urlopen.call_args[1]["timeout"]
+        assert timeout.connect_timeout == connect_timeout
+        assert timeout.read_timeout == read_timeout
+
+    def test_get_default_timeout(self):
+        adapter = _RequestsTimeoutAdapter()
+        assert adapter.timeout == self.DEFAULT_TIMEOUT
+
+    def test_default_timeout_is_applied_to_request(self, mocker, test_request):
+        adapter = _RequestsTimeoutAdapter()
+        connection = adapter.get_connection(test_request.url)
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
+        adapter.send(test_request.prepare())
+        self.check_timeout(patched_urlopen, self.DEFAULT_TIMEOUT, self.DEFAULT_TIMEOUT)
+
+    def test_custom_timeout_int_is_applied_to_request(self, mocker, test_request):
+        timeout = 10
+        adapter = _RequestsTimeoutAdapter(timeout=timeout)
+        connection = adapter.get_connection(test_request.url)
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
+        adapter.send(test_request.prepare())
+        self.check_timeout(patched_urlopen, timeout, timeout)
+
+    def test_custom_timeout_tuple_is_applied_to_request(self, mocker, test_request):
+        timeout = (10, 100)
+        adapter = _RequestsTimeoutAdapter(timeout=timeout)
+        connection = adapter.get_connection(test_request.url)
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
+        adapter.send(test_request.prepare())
+        self.check_timeout(patched_urlopen, *timeout)
+
+    def test_custom_max_retries_is_applied_to_request(self, mocker, test_request):
+        max_retries = 99
+        adapter = _RequestsTimeoutAdapter(max_retries=max_retries)
+        connection = adapter.get_connection(test_request.url)
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
+        adapter.send(test_request.prepare())
+        patched_urlopen.assert_called_once()
+        assert "retries" in patched_urlopen.call_args[1]
+        retry_obj = patched_urlopen.call_args[1]["retries"]
+        assert retry_obj.total == max_retries
