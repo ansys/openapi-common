@@ -10,7 +10,7 @@ from starlette.requests import Request
 from ansys.openapi.common import (
     ApiClientFactory,
     SessionConfiguration,
-    ApiConnectionException
+    ApiConnectionException,
 )
 from .integration.common import (
     ExampleModelPyd,
@@ -49,6 +49,7 @@ async def get_none(request: Request):
 
 def run_server():
     from asgi_gssapi import SPNEGOAuthMiddleware
+
     authenticated_app = SPNEGOAuthMiddleware(custom_test_app, hostname="test-server")
     uvicorn.run(authenticated_app, port=TEST_PORT)
 

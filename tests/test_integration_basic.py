@@ -18,7 +18,8 @@ from .integration.common import (
     TEST_URL,
     TEST_PASS,
     TEST_USER,
-    TEST_PORT, return_model,
+    TEST_PORT,
+    return_model,
 )
 
 
