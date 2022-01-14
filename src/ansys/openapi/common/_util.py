@@ -21,7 +21,7 @@ from requests.structures import CaseInsensitiveDict
 
 class CaseInsensitiveOrderedDict(OrderedDict):
     """[TECHDOCS]Dictionary object that preserves order of insertion and is case-insensitive. Intended for use when
-    parsing www-authenticate headers where odd combinations of entries are expected.
+    parsing ``WWW-Authenticate`` headers where odd combinations of entries are expected.
     """
 
     __slots__ = ()
@@ -89,11 +89,11 @@ class Singleton(type):
 
 
 class AuthenticateHeaderParser(metaclass=Singleton):
-    """[TECHDOCS]Parser for WWW-Authenticate headers
+    """[TECHDOCS]Parser for ``WWW-Authenticate`` headers
 
-    This parser implements the RFC-7235 specification for the WWW-Authenticate header, together with
+    This parser implements the RFC-7235 specification for the ``WWW-Authenticate`` header, together with
     the extension by Microsoft to support Negotiate authentication. It's a singleton, since there is
-    a nontrivial amount of work to setup the parser engine.
+    a nontrivial amount of work to set the parser engine up.
     """
 
     def __init__(self):
@@ -122,7 +122,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         Parameters
         ----------
         value : str
-            String contents of a WWW-Authenticate header.
+            String contents of a ``WWW-Authenticate`` header.
         """
         try:
             parsed_value = self.auth_parser.parseString(value, parseAll=True)
@@ -148,13 +148,13 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
 
 def parse_authenticate(value) -> CaseInsensitiveOrderedDict:
-    """[TECHDOCS]Parses a string containing a `WWW-AUTHENTICATE` header and returns a dictionary with the supported
+    """[TECHDOCS]Parses a string containing a ``WWW-Authenticate`` header and returns a dictionary with the supported
     authentication types and the provided parameters (if any exist)
 
     Parameters
     ----------
     value : str
-        A WWW-AUTHENTICATE header
+        A **www-authenticate** header
     """
     parser = AuthenticateHeaderParser()
     return parser.parse_header(value)
@@ -408,7 +408,7 @@ def handle_response(response: requests.Response) -> requests.Response:
     Parameters
     ----------
     response : requests.Response
-        Response from the API server..
+        Response from the API server.
     """
     logger = logging.getLogger(__name__)
 

@@ -99,8 +99,8 @@ class ApiClient:
         return f"<ApiClient url: {self.api_url}>"
 
     def setup_client(self, models: ModuleType) -> None:
-        """Setup the client for use, registers models for serialization and deserialization. This step must be completed
-        prior to using the ApiClient.
+        """Set up the client for use, registers models for serialization and deserialization. This step must be
+        completed prior to using the ApiClient.
 
         Parameters
         ----------
@@ -119,7 +119,7 @@ class ApiClient:
 
     @property
     def user_agent(self):
-        """The user agent reported to the API server in the "User-Agent" header.
+        """The user agent reported to the API server in the ``User-Agent`` header.
 
         Some APIs will behave differently for different client applications, change this if your API requires different
         behaviour.
@@ -156,7 +156,7 @@ class ApiClient:
         """Set a default value for a header on all requests
 
         Certain headers will be overwritten by the API when sending requests, but default values for others can be set
-        and will be respected, for example if your API server is configured to require non OIDC tokens for
+        and will be respected, for example if your API server is configured to require non-OIDC tokens for
         authentication
 
         >>> client = ApiClient(requests.Session(),
@@ -169,10 +169,10 @@ class ApiClient:
         Some headers will always be overwritten, and some may be depending on the API endpoint requested. As a guide the
         following headers will always be ignored and overwritten:
 
-        - Accept
-        - Content-Type
+        - ``Accept``
+        - ``Content-Type``
 
-        The `Authorization` header may be overwritten depending on what, if any, authentication scheme is provided for
+        The **authorization** header may be overwritten depending on what, if any, authentication scheme is provided for
         the requests Session.
         """
         self.default_headers[header_name] = header_value
@@ -460,17 +460,18 @@ class ApiClient:
         body :
             Request body.
         post_params : dict
-            Request post form parameters, for `application/x-www-form-urlencoded`, `multipart/form-data`.
+            Request post form parameters, for ``application/x-www-form-urlencoded``, ``multipart/form-data``.
         response_type :
             Expected response data type.
         files : Dict[str, str]
-            Dictionary of filename and path for `multipart/form-data`.
+            Dictionary of filename and path for ``multipart/form-data``.
         _return_http_data_only : bool
             Return response data without head status code and headers (default False).
         collection_formats : Dict[str, str]
             Collection format name for path, query, header, and post parameters. Maps parameter name to collection type.
         _preload_content : bool
-            if False, the underlying response object will be returned without reading/decoding response data (default True).
+            if False, the underlying response object will be returned without reading/decoding response data
+            (default True).
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for this request. If one number provided, it will be total request timeout. It can also be a
             pair (tuple) of (connection, read) timeouts. Overrides the session level timeout setting.
@@ -515,11 +516,12 @@ class ApiClient:
         headers :
             Headers to be attached to the request.
         post_params : dict
-            Request post form parameters, for `application/x-www-form-urlencoded`, `multipart/form-data`.
+            Request post form parameters, for ``application/x-www-form-urlencoded``, ``multipart/form-data``.
         body :
             Request body.
         _preload_content : bool
-            if False, the underlying response object will be returned without reading/decoding response data (default True).
+            if False, the underlying response object will be returned without reading/decoding response data
+            (default True).
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for this request. If one number provided, it will be total request timeout. It can also be a
             pair (tuple) of (connection, read) timeouts. Overrides the session level timeout setting.
@@ -688,7 +690,7 @@ class ApiClient:
 
     @staticmethod
     def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
-        """Returns `Accept` based on an array of accepts provided.
+        """Returns a correctly formatted ``Accept`` header value from an array of accepted content types provided.
 
         Parameters
         ----------
@@ -709,7 +711,7 @@ class ApiClient:
 
     @staticmethod
     def select_header_content_type(content_types: Optional[List[str]]) -> str:
-        """Returns `Content-Type` based on an array of content_types provided.
+        """Returns the preferred ``Content-Type`` header value from an array of valid content types provided.
 
         Parameters
         ----------
@@ -729,7 +731,7 @@ class ApiClient:
 
         Notes
         -----
-        If more than one valid Content-Type is provided then the first one will be used.
+        If more than one valid ``Content-Type`` is provided then the first one will be used.
         """
         if not content_types:
             return "application/json"
