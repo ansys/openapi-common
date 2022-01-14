@@ -5,7 +5,7 @@ import pyparsing as pp  # type: ignore
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from itertools import chain
-from typing import Dict, Union, Tuple, List, Optional, Set
+from typing import Dict, Union, List, Optional, Tuple, Any, Collection, cast
 from ._exceptions import ApiException
 
 try:
@@ -27,48 +27,50 @@ class CaseInsensitiveOrderedDict(OrderedDict):
     __slots__ = ()
 
     @staticmethod
-    def _process_args(mapping=(), **kwargs):
+    def _process_args(mapping: Any = (), **kwargs: Any) -> Any:
         if hasattr(mapping, "items"):
             mapping = getattr(mapping, "items")()
         return ((k.lower(), v) for k, v in chain(mapping, getattr(kwargs, "items")()))
 
-    def __init__(self, mapping=(), **kwargs):
+    def __init__(self, mapping: Any = (), **kwargs: Any) -> None:
         super().__init__(self._process_args(mapping, **kwargs))
 
-    def __getitem__(self, k):
+    def __getitem__(self, k: str) -> Any:
         return super().__getitem__(k.lower())
 
-    def __setitem__(self, k, v):
+    def __setitem__(self, k: str, v: Any) -> None:
         return super().__setitem__(k.lower(), v)
 
-    def __delitem__(self, k):
+    def __delitem__(self, k: str) -> None:
         return super().__delitem__(k.lower())
 
-    def get(self, k, default=None):
+    def get(self, k: str, default: Optional[Any] = None) -> Any:
         return super().get(k.lower(), default)
 
-    def setdefault(self, k, default=None):
+    def setdefault(self, k: str, default: Optional[Any] = None) -> Any:
         return super().setdefault(k.lower(), default)
 
-    def pop(self, k, v=object()):
+    def pop(self, k: str, v: Any = object()) -> Any:
         if v is object():
             return super().pop(k.lower())
         return super().pop(k.lower(), v)
 
-    def update(self, mapping=(), **kwargs):
+    def update(self, mapping: Any = (), **kwargs: Any) -> None:  # type: ignore[override]
         super().update(self._process_args(mapping, **kwargs))
 
-    def __contains__(self, k):
+    def __contains__(self, k: str) -> bool:  # type: ignore[override]
         return super().__contains__(k.lower())
 
-    def copy(self):
+    def copy(self) -> "CaseInsensitiveOrderedDict":
         return type(self)(self)
 
     @classmethod
-    def fromkeys(cls, keys, v=None):
-        return super().fromkeys((k.lower() for k in keys), v)
+    def fromkeys(cls, keys: Collection[str], v: Optional[Any] = None) -> "CaseInsensitiveOrderedDict":  # type: ignore[override]
+        return cast(
+            "CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v)
+        )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "{0}({1})".format(type(self).__name__, super().__repr__())
 
 
@@ -82,7 +84,7 @@ class Singleton(type):
 
     _instances: Dict[type, object] = {}
 
-    def __call__(cls, *args, **kwargs):
+    def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
@@ -96,7 +98,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
     a nontrivial amount of work to setup the parser engine.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         token_char = "!#$%&'*+-.^_`|~" + pp.nums + pp.alphas
         token68_char = "-._~+/" + pp.nums + pp.alphas
 
@@ -136,7 +138,9 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         return output
 
     @staticmethod
-    def _render_options(scheme: List[Union[str, List[str]]]):
+    def _render_options(
+        scheme: List[Union[str, List[str]]]
+    ) -> Optional[Union[str, CaseInsensitiveOrderedDict]]:
         if len(scheme) == 1:
             return None
         if isinstance(scheme[1], str):
@@ -147,7 +151,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         )
 
 
-def parse_authenticate(value) -> CaseInsensitiveOrderedDict:
+def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     """[TECHDOCS]Parses a string containing a `WWW-AUTHENTICATE` header and returns a dictionary with the supported
     authentication types and the provided parameters (if any exist)
 
@@ -185,7 +189,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
         HTML to be rendered to the user when redirected after successful authentication with the Identity Provider.
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         self._response_html = (
             r"<!DOCTYPE html>"
             r'    <html lang="en">'
@@ -224,13 +228,13 @@ class OIDCCallbackHTTPServer(HTTPServer):
         Store for provided authentication code received from the user's browser when authentication completes.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         from queue import Queue
 
         super().__init__(("", 32284), ResponseHandler)
-        self._auth_code = Queue()
+        self._auth_code: Queue = Queue()
 
-    async def get_auth_code(self):
+    async def get_auth_code(self) -> Any:
         return self._auth_code.get(block=True)
 
 
@@ -248,20 +252,20 @@ class SessionConfiguration:
 
     def __init__(
         self,
-        client_cert_path: str = None,
-        client_cert_key: str = None,
-        cookies: http.cookiejar.CookieJar = None,
-        headers: CaseInsensitiveDict = None,
+        client_cert_path: Optional[str] = None,
+        client_cert_key: Optional[str] = None,
+        cookies: Optional[http.cookiejar.CookieJar] = None,
+        headers: Optional[CaseInsensitiveDict] = None,
         max_redirects: int = 10,
-        proxies: Dict[str, str] = None,
+        proxies: Optional[Dict[str, str]] = None,
         verify_ssl: bool = True,
-        cert_store_path: str = None,
-        temp_folder_path: str = None,
+        cert_store_path: Optional[str] = None,
+        temp_folder_path: Optional[str] = None,
         debug: bool = False,
         safe_chars_for_path_param: str = "",
         retry_count: int = 3,
         request_timeout: int = 31,
-    ):
+    ) -> None:
         """
         Parameters
         ----------

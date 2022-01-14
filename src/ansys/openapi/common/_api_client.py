@@ -4,7 +4,7 @@ import json
 import os
 import re
 import tempfile
-from typing import Dict, Union, List, Tuple, Type, Optional, cast
+from typing import Dict, Union, List, Tuple, Type, Optional, cast, Any, Callable
 
 from urllib.parse import quote
 
@@ -15,14 +15,10 @@ from ._util import SessionConfiguration, ModelType, handle_response
 from ._exceptions import ApiException
 from types import ModuleType
 
-
+PrimitiveType = Union[float, bool, bytes, str, int]
 DeserializedType = Union[
     None,
-    str,
-    int,
-    float,
-    bool,
-    bytes,
+    PrimitiveType,
     datetime.datetime,
     datetime.date,
     List,
@@ -30,7 +26,7 @@ DeserializedType = Union[
     Dict,
     ModelType,
 ]
-SerializedType = Union[None, str, int, float, bool, bytes, List, Tuple, Dict]
+SerializedType = Union[None, PrimitiveType, List, Tuple, Dict]
 
 
 # noinspection DuplicatedCode
@@ -90,7 +86,7 @@ class ApiClient:
         self.models: Dict[str, ModelType] = {}
         self.api_url = api_url
         self.rest_client = session
-        self.default_headers: CaseInsensitiveDict = CaseInsensitiveDict()
+        self.default_headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
         self.default_headers["User-Agent"] = "Swagger-Codegen/1.0.0/python"
         self.configuration = configuration
 
@@ -117,7 +113,7 @@ class ApiClient:
         self.models = models.__dict__
 
     @property
-    def user_agent(self):
+    def user_agent(self) -> str:
         """The user agent reported to the API server in the "User-Agent" header.
 
         Some APIs will behave differently for different client applications, change this if your API requires different
@@ -148,10 +144,10 @@ class ApiClient:
         return self.default_headers["User-Agent"]
 
     @user_agent.setter
-    def user_agent(self, value):
+    def user_agent(self, value: str) -> None:
         self.default_headers["User-Agent"] = value
 
-    def set_default_header(self, header_name, header_value):
+    def set_default_header(self, header_name: str, header_value: str) -> None:
         """Set a default value for a header on all requests
 
         Certain headers will be overwritten by the API when sending requests, but default values for others can be set
@@ -178,35 +174,37 @@ class ApiClient:
 
     def __call_api(
         self,
-        resource_path,
-        method,
-        path_params=None,
-        query_params=None,
-        header_params=None,
-        body=None,
-        post_params=None,
-        files=None,
-        response_type=None,
-        _return_http_data_only=None,
-        collection_formats=None,
-        _preload_content=True,
-        _request_timeout=None,
-    ):
+        resource_path: str,
+        method: str,
+        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
+        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
+        header_params: Union[Dict[str, Union[str, int]], None] = None,
+        body: Optional[Any] = None,
+        post_params: Optional[Any] = None,
+        files: Optional[Any] = None,
+        response_type: Optional[Union[str, Type]] = None,
+        _return_http_data_only: Optional[bool] = None,
+        collection_formats: Optional[Dict[str, str]] = None,
+        _preload_content: bool = True,
+        _request_timeout: Optional[Union[float, Tuple[float]]] = None,
+    ) -> Union[requests.Response, DeserializedType, None]:
 
         # header parameters
         header_params = header_params or {}
         header_params.update(self.default_headers)
         if header_params:
-            header_params = self.sanitize_for_serialization(header_params)
+            header_params_sanitized = self.sanitize_for_serialization(header_params)
             header_params = dict(
-                self.parameters_to_tuples(header_params, collection_formats)
+                self.parameters_to_tuples(header_params_sanitized, collection_formats)
             )
 
         # path parameters
         if path_params:
-            path_params = self.sanitize_for_serialization(path_params)
-            path_params = self.parameters_to_tuples(path_params, collection_formats)
-            for k, v in path_params:
+            path_params_sanitized = self.sanitize_for_serialization(path_params)
+            path_params_tuples = self.parameters_to_tuples(
+                path_params_sanitized, collection_formats
+            )
+            for k, v in path_params_tuples:
                 # specified safe chars, encode everything
                 resource_path = resource_path.replace(
                     f"{k}",
@@ -214,10 +212,15 @@ class ApiClient:
                 )
 
         # query parameters
+        query_params_str = ""
         if query_params:
-            query_params = self.sanitize_for_serialization(query_params)
-            query_params = self.parameters_to_tuples(query_params, collection_formats)
-            query_params = "&".join(["=".join(param) for param in query_params])
+            query_params_sanitized = self.sanitize_for_serialization(query_params)
+            query_params_tuples = self.parameters_to_tuples(
+                query_params_sanitized, collection_formats
+            )
+            query_params_str = "&".join(
+                ["=".join(param) for param in query_params_tuples]
+            )
 
         # post parameters
         if post_params or files:
@@ -238,7 +241,7 @@ class ApiClient:
         response_data = self.request(
             method,
             url,
-            query_params=query_params,
+            query_params=query_params_str,
             headers=header_params,
             post_params=post_params,
             body=body,
@@ -248,7 +251,7 @@ class ApiClient:
 
         self.last_response = response_data
 
-        return_data = response_data
+        return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
             # deserialize response data
             if response_type:
@@ -261,7 +264,7 @@ class ApiClient:
         else:
             return return_data, response_data.status_code, response_data.headers
 
-    def sanitize_for_serialization(self, obj: DeserializedType) -> SerializedType:
+    def sanitize_for_serialization(self, obj: Any) -> Any:
         """Builds a JSON POST object.
 
         Based on the object type, return the sanitized JSON representation to be sent to the server:
@@ -430,18 +433,18 @@ class ApiClient:
         self,
         resource_path: str,
         method: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple]] = None,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple]] = None,
-        header_params: Union[Dict[str, Union[str, int]], List[Tuple]] = None,
-        body: DeserializedType = None,
-        post_params: List[Tuple] = None,
-        files: Dict[str, str] = None,
-        response_type: Union[str, Type] = None,
-        _return_http_data_only: bool = None,
-        collection_formats: Dict[str, str] = None,
+        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
+        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
+        header_params: Union[Dict[str, Union[str, int]], None] = None,
+        body: Optional[DeserializedType] = None,
+        post_params: Optional[List[Tuple]] = None,
+        files: Optional[Dict[str, str]] = None,
+        response_type: Union[str, Type, None] = None,
+        _return_http_data_only: Optional[bool] = None,
+        collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float]] = None,
-    ) -> DeserializedType:
+        _request_timeout: Union[float, Tuple[float], None] = None,
+    ) -> Union[requests.Response, DeserializedType, None]:
         """Makes the HTTP request (synchronous) and returns deserialized data.
 
         Parameters
@@ -494,13 +497,13 @@ class ApiClient:
         self,
         method: str,
         url: str,
-        query_params=None,
-        headers: Dict = None,
-        post_params: List[Tuple] = None,
-        body=None,
+        query_params: Optional[str] = None,
+        headers: Optional[Dict] = None,
+        post_params: Optional[List[Tuple]] = None,
+        body: Optional[Any] = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float]] = None,
-    ):
+        _request_timeout: Union[float, Tuple[float], None] = None,
+    ) -> requests.Response:
         """Makes the HTTP request and returns it directly.
 
         Parameters
@@ -509,7 +512,7 @@ class ApiClient:
             HTTP method verb to call.
         url : str
             Absolute URL of target endpoint, including any path and query parameters.
-        query_params : Union[Dict[str, Union[str, int]], List[Tuple]]
+        query_params : str
             Query parameters to pass in the url.
         headers : Dict
             Headers to be attached to the request.
@@ -612,7 +615,7 @@ class ApiClient:
     @staticmethod
     def parameters_to_tuples(
         params: Union[Dict, List[Tuple]], collection_formats: Optional[Dict[str, str]]
-    ) -> List[Tuple]:
+    ) -> List[Tuple[Any, Any]]:
         """Get parameters as list of tuples, formatting collections.
 
         Parameters
@@ -624,7 +627,7 @@ class ApiClient:
             Dictionary with parameter name and collection type specifier.
         """
 
-        new_params = []  # type: List[Tuple]
+        new_params: List[Tuple[Any, Any]] = []
         if collection_formats is None:
             collection_formats = {}
         for k, v in params.items() if isinstance(params, dict) else params:
@@ -648,7 +651,8 @@ class ApiClient:
 
     @staticmethod
     def prepare_post_parameters(
-        post_params: List[Tuple] = None, files: Dict[str, Union[str, List[str]]] = None
+        post_params: Optional[List[Tuple]] = None,
+        files: Optional[Dict[str, Union[str, List[str]]]] = None,
     ) -> List[Tuple]:
         """Builds form parameters.
 
@@ -769,8 +773,8 @@ class ApiClient:
 
     @staticmethod
     def __deserialize_primitive(
-        data: Union[str, int, float, bool, bytes], klass: Type
-    ) -> Union[int, float, str, bool, bytes]:
+        data: PrimitiveType, klass: Callable[[PrimitiveType], PrimitiveType]
+    ) -> PrimitiveType:
         """Deserializes to primitive type.
 
         Parameters
@@ -799,7 +803,7 @@ class ApiClient:
         return value
 
     @staticmethod
-    def __deserialize_date(value):
+    def __deserialize_date(value: str) -> datetime.date:
         """Deserializes string to date.
 
         Parameters
@@ -837,7 +841,7 @@ class ApiClient:
             )
 
     @staticmethod
-    def __hasattr(object_, name):
+    def __hasattr(object_: Any, name: Any) -> bool:
         return name in object_.__class__.__dict__
 
     def __deserialize_model(
@@ -885,4 +889,4 @@ class ApiClient:
             klass_name = instance.get_real_child_model(data)
             if klass_name:
                 instance = self.__deserialize(data, klass_name)
-        return instance
+        return instance  # type: ignore[no-any-return]

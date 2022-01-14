@@ -1,12 +1,12 @@
 from .._util import SessionConfiguration
 from .._session import ApiClient, ApiClientFactory
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 def create_session_from_granta_stk(
     stk_configuration: Dict[str, Any],
-    api_session_configuration: SessionConfiguration = None,
-    idp_session_configuration: SessionConfiguration = None,
+    api_session_configuration: Optional[SessionConfiguration] = None,
+    idp_session_configuration: Optional[SessionConfiguration] = None,
 ) -> "ApiClient":
     """Set up the client authentication using the configured authentication from a Granta MI STK session.
 
