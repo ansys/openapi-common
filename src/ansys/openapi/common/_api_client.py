@@ -4,6 +4,7 @@ import json
 import os
 import re
 import tempfile
+from dateutil.parser import parse
 from typing import Dict, Union, List, Tuple, Type, Optional, cast
 
 from urllib.parse import quote
@@ -667,19 +668,19 @@ class ApiClient:
             params = post_params
 
         if files:
-            for k, v in files.items():
-                if not v:
+            for parameter, file_entry in files.items():
+                if not file_entry:
                     continue
-                file_names = v if isinstance(v, list) else [v]
-                for n in file_names:
-                    with open(n, "rb") as f:
+                file_names = file_entry if isinstance(file_entry, list) else [file_entry]
+                for file_name in file_names:
+                    with open(file_name, "rb") as f:
                         filename = os.path.basename(f.name)
                         file_data = f.read()
                         mimetype = (
                             mimetypes.guess_type(filename)[0]
                             or "application/octet-stream"
                         )
-                        params.append((k, (filename, file_data, mimetype)))
+                        params.append((parameter, (filename, file_data, mimetype)))
 
         return params
 
@@ -700,7 +701,7 @@ class ApiClient:
         if not accepts:
             return None
 
-        accepts = [x.lower() for x in accepts]
+        accepts = [accept.lower() for accept in accepts]
 
         return ", ".join(accepts)
 
@@ -731,7 +732,7 @@ class ApiClient:
         if not content_types:
             return "application/json"
 
-        content_types = [x.lower() for x in content_types]
+        content_types = [content_type.lower() for content_type in content_types]
 
         if "application/json" in content_types or "*/*" in content_types:
             return "application/json"
@@ -789,7 +790,7 @@ class ApiClient:
 
     @staticmethod
     def __deserialize_object(value: object) -> object:
-        """Return a original value.
+        """Return an original value.
 
         Parameters
         ----------
@@ -808,8 +809,6 @@ class ApiClient:
             String representation of a date object in ISO 8601 format or otherwise.
         """
         try:
-            from dateutil.parser import parse
-
             return parse(value).date()
         except ValueError:
             raise ApiException(
@@ -827,8 +826,6 @@ class ApiClient:
             String representation of the datetime object in ISO 8601 format.
         """
         try:
-            from dateutil.parser import parse
-
             return parse(value)
         except ValueError:
             raise ApiException(
