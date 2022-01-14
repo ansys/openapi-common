@@ -3,42 +3,17 @@ from time import sleep
 
 import pytest
 import uvicorn
-from fastapi import FastAPI
 
 from ansys.openapi.common import (
     ApiClientFactory,
     SessionConfiguration,
     AuthenticationWarning,
 )
-from .integration.common import ExampleModelPyd, TEST_MODEL_ID, TEST_URL, TEST_PORT
-
-app = FastAPI()
-
-
-@app.patch("/models/{model_id}")
-async def read_main(model_id: str, example_model: ExampleModelPyd):
-    if model_id == TEST_MODEL_ID:
-        response = {
-            "String": example_model.String or "new_model",
-            "Integer": example_model.Integer or 1,
-            "ListOfStrings": example_model.ListOfStrings or ["red", "yellow", "green"],
-            "Boolean": example_model.Boolean or False,
-        }
-        return response
-
-
-@app.get("/test_api")
-async def read_main():
-    return {"msg": "OK"}
-
-
-@app.get("/")
-async def read_main():
-    return None
+from .integration.common import fastapi_test_app, TEST_MODEL_ID, TEST_URL, TEST_PORT
 
 
 def run_server():
-    uvicorn.run(app, port=TEST_PORT)
+    uvicorn.run(fastapi_test_app, port=TEST_PORT)
 
 
 class TestAnonymous:

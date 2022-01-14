@@ -38,4 +38,3 @@ echo "------------------------------------------------"
 echo "---- Initialize ticket cache -------------------"
 echo "------------------------------------------------"
 kinit httpuser@EXAMPLE.COM -k -t ./user.keytab
-kinit HTTP/test-server@EXAMPLE.COM -k -t ./service.keytab
