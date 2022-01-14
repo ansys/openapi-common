@@ -109,6 +109,6 @@ deps =
 
 commands =
     codespell ./src ./tests ./doc/source
-    black --check ./tests ./src ./requires
+    black --check ./tests ./src
     mypy ./src
 """
