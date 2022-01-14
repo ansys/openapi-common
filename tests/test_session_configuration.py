@@ -280,8 +280,8 @@ class TestTimeoutAdapter:
     @staticmethod
     def check_timeout(patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int):
         patched_urlopen.assert_called_once()
-        assert "timeout" in patched_urlopen.call_args.kwargs
-        timeout = patched_urlopen.call_args.kwargs["timeout"]
+        assert "timeout" in patched_urlopen.call_args[1]
+        timeout = patched_urlopen.call_args[1]["timeout"]
         assert timeout.connect_timeout == connect_timeout
         assert timeout.read_timeout == read_timeout
 
@@ -319,6 +319,6 @@ class TestTimeoutAdapter:
         patched_urlopen = mocker.patch.object(connection, 'urlopen')
         adapter.send(test_request.prepare())
         patched_urlopen.assert_called_once()
-        assert "retries" in patched_urlopen.call_args.kwargs
-        retry_obj = patched_urlopen.call_args.kwargs["retries"]
+        assert "retries" in patched_urlopen.call_args[1]
+        retry_obj = patched_urlopen.call_args[1]["retries"]
         assert retry_obj.total == max_retries
