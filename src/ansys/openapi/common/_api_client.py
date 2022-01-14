@@ -430,11 +430,11 @@ class ApiClient:
         self,
         resource_path: str,
         method: str,
-        path_params=None,
-        query_params=None,
-        header_params=None,
-        body=None,
-        post_params=None,
+        path_params: Union[Dict[str, Union[str, int]], List[Tuple]] = None,
+        query_params: Union[Dict[str, Union[str, int]], List[Tuple]] = None,
+        header_params: Union[Dict[str, Union[str, int]], List[Tuple]] = None,
+        body: DeserializedType = None,
+        post_params: List[Tuple] = None,
         files: Dict[str, str] = None,
         response_type: Union[str, Type] = None,
         _return_http_data_only: bool = None,
@@ -450,17 +450,17 @@ class ApiClient:
             Path to method endpoint, relative to base url.
         method : str
             HTTP method verb to call.
-        path_params : Dict[str, Union[str, int, float]]
+        path_params : Union[Dict[str, Union[str, int]], List[Tuple]]
             Path parameters to pass in the url.
-        query_params :
+        query_params : Union[Dict[str, Union[str, int]], List[Tuple]]
             Query parameters to pass in the url.
-        header_params :
+        header_params : Union[Dict[str, Union[str, int]], List[Tuple]]
             Header parameters to be placed in the request header.
-        body :
+        body : DeserializedType
             Request body.
-        post_params : dict
+        post_params : List[Tuple]
             Request post form parameters, for `application/x-www-form-urlencoded`, `multipart/form-data`.
-        response_type :
+        response_type : Union[str, Type]
             Expected response data type.
         files : Dict[str, str]
             Dictionary of filename and path for `multipart/form-data`.
@@ -492,14 +492,14 @@ class ApiClient:
 
     def request(
         self,
-        method,
-        url,
+        method: str,
+        url: str,
         query_params=None,
-        headers=None,
-        post_params=None,
+        headers: Dict = None,
+        post_params: List[Tuple] = None,
         body=None,
-        _preload_content=True,
-        _request_timeout=None,
+        _preload_content: bool = True,
+        _request_timeout: Union[float, Tuple[float]] = None,
     ):
         """Makes the HTTP request and returns it directly.
 
@@ -509,13 +509,13 @@ class ApiClient:
             HTTP method verb to call.
         url : str
             Absolute URL of target endpoint, including any path and query parameters.
-        query_params :
+        query_params : Union[Dict[str, Union[str, int]], List[Tuple]]
             Query parameters to pass in the url.
-        headers :
+        headers : Dict
             Headers to be attached to the request.
-        post_params : dict
+        post_params : List[Tuple]
             Request post form parameters, for `application/x-www-form-urlencoded`, `multipart/form-data`.
-        body :
+        body : SerializedType
             Request body.
         _preload_content : bool
             if False, the underlying response object will be returned without reading/decoding response data (default True).
