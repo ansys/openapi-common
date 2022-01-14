@@ -491,4 +491,6 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         proxies : Optional[Mapping[str, str]]
             The proxies dictionary to apply to the request.
         """
-        return super().send(request, stream, timeout or self.timeout, verify, cert, proxies)
+        return super().send(
+            request, stream, timeout or self.timeout, verify, cert, proxies
+        )

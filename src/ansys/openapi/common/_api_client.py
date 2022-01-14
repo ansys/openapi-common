@@ -671,7 +671,9 @@ class ApiClient:
             for parameter, file_entry in files.items():
                 if not file_entry:
                     continue
-                file_names = file_entry if isinstance(file_entry, list) else [file_entry]
+                file_names = (
+                    file_entry if isinstance(file_entry, list) else [file_entry]
+                )
                 for file_name in file_names:
                     with open(file_name, "rb") as f:
                         filename = os.path.basename(f.name)

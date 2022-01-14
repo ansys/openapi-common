@@ -270,7 +270,7 @@ class TestDeserialization:
 
 
 class TestTimeoutAdapter:
-    TEST_URL = 'https://www.testdomain.com/test'
+    TEST_URL = "https://www.testdomain.com/test"
     DEFAULT_TIMEOUT = 31
 
     @pytest.fixture
@@ -278,7 +278,9 @@ class TestTimeoutAdapter:
         yield requests.Request("GET", self.TEST_URL)
 
     @staticmethod
-    def check_timeout(patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int):
+    def check_timeout(
+        patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int
+    ):
         patched_urlopen.assert_called_once()
         assert "timeout" in patched_urlopen.call_args[1]
         timeout = patched_urlopen.call_args[1]["timeout"]
@@ -292,7 +294,7 @@ class TestTimeoutAdapter:
     def test_default_timeout_is_applied_to_request(self, mocker, test_request):
         adapter = _RequestsTimeoutAdapter()
         connection = adapter.get_connection(test_request.url)
-        patched_urlopen = mocker.patch.object(connection, 'urlopen')
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         self.check_timeout(patched_urlopen, self.DEFAULT_TIMEOUT, self.DEFAULT_TIMEOUT)
 
@@ -300,7 +302,7 @@ class TestTimeoutAdapter:
         timeout = 10
         adapter = _RequestsTimeoutAdapter(timeout=timeout)
         connection = adapter.get_connection(test_request.url)
-        patched_urlopen = mocker.patch.object(connection, 'urlopen')
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         self.check_timeout(patched_urlopen, timeout, timeout)
 
@@ -308,7 +310,7 @@ class TestTimeoutAdapter:
         timeout = (10, 100)
         adapter = _RequestsTimeoutAdapter(timeout=timeout)
         connection = adapter.get_connection(test_request.url)
-        patched_urlopen = mocker.patch.object(connection, 'urlopen')
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         self.check_timeout(patched_urlopen, *timeout)
 
@@ -316,7 +318,7 @@ class TestTimeoutAdapter:
         max_retries = 99
         adapter = _RequestsTimeoutAdapter(max_retries=max_retries)
         connection = adapter.get_connection(test_request.url)
-        patched_urlopen = mocker.patch.object(connection, 'urlopen')
+        patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         patched_urlopen.assert_called_once()
         assert "retries" in patched_urlopen.call_args[1]
