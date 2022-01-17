@@ -21,23 +21,15 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.10'
-
-      - name: Install style requirements
-        run: |
-          pip install -r requirements_style.txt --disable-pip-version-check
-
-      - name: Codespell
-        run: |
-          make codespell
           
       - name: Install kerberos headers
         run: sudo apt install libkrb5-dev
 
-      - name: Install linter
+      - name: Install tox
         run: |
-          pip install tox
+          pip install tox --disable-pip-version-check
 
-      - name: lint
+      - name: Lint project
         run: |
           tox -e lint .
           
@@ -140,12 +132,10 @@ jobs:
         run: sudo apt install libkrb5-dev
 
       - name: Install library
-        run: pip install .[oidc,linux-kerberos]
+        run: pip install .[oidc,linux-kerberos,doc]
 
       - name: Build HTML
-        run: |
-          pip install -r requirements_docs.txt
-          make -C doc html SPHINXOPTS="-W"
+        run: make -C doc html SPHINXOPTS="-W"
 
       - name: Build PDF Documentation
         run: |

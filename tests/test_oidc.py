@@ -214,3 +214,4 @@ def test_endpoint_with_refresh_configures_correctly():
         oidc_factory = session._session_factory._oauth_session
         assert oidc_factory.auto_refresh_url == f"{authority_url}token"
         assert oidc_factory.auto_refresh_kwargs["client_id"] == client_id
+        session._session_factory._callback_server.server_close()
