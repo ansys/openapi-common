@@ -48,6 +48,7 @@ async def get_none(request: Request):
 
 
 def run_server():
+    # Function is only executed if testing in Linux
     from asgi_gssapi import SPNEGOAuthMiddleware
 
     authenticated_app = SPNEGOAuthMiddleware(custom_test_app, hostname="test-server")

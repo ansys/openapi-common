@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import webbrowser
-from typing import Dict
+from typing import Dict, Optional, Any
 
 import keyring
 import requests
@@ -43,8 +43,8 @@ class OIDCSessionFactory:
         self,
         initial_session: requests.Session,
         initial_response: requests.Response,
-        api_requests_configuration: SessionConfiguration = None,
-        idp_requests_configuration: SessionConfiguration = None,
+        api_requests_configuration: Optional[SessionConfiguration] = None,
+        idp_requests_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
         """
         [TECHDOCS]
@@ -54,9 +54,9 @@ class OIDCSessionFactory:
             Session for use whilst negotiating with the identity provider.
         initial_response : requests.Response
             Initial 401 response from the API server when no ``Authorization`` header is provided.
-        api_requests_configuration : SessionConfiguration
+        api_requests_configuration : Optional[SessionConfiguration]
             Requests configuration settings for connections to the API server.
-        idp_requests_configuration : SessionConfiguration
+        idp_requests_configuration : Optional[SessionConfiguration]
             Requests configuration settings for connections to the OpenID Identity Provider.
 
         Notes
@@ -118,7 +118,7 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]Configuration complete.")
 
     def get_session_with_provided_token(
-        self, refresh_token: str, access_token: str = None
+        self, refresh_token: str, access_token: Optional[str] = None
     ) -> OAuth2Session:
         """[TECHDOCS] Creates a :class:`OAuth2Session` object with provided tokens
 
@@ -184,7 +184,7 @@ class OIDCSessionFactory:
             Number of seconds to wait for the user to authenticate (default 60s).
         """
 
-        async def await_callback():
+        async def await_callback() -> Any:
             thread = threading.Thread(target=self._callback_server.serve_forever)
             thread.daemon = True
             thread.start()
@@ -264,9 +264,11 @@ class OIDCSessionFactory:
 
         mandatory_headers = ["redirecturi", "authority", "clientid"]
         missing_headers = []
-        bearer_parameters = authenticate_parameters["bearer"]
+        bearer_parameters: Optional["CaseInsensitiveDict"] = authenticate_parameters[
+            "bearer"
+        ]
         if bearer_parameters is None:
-            bearer_parameters = dict()
+            bearer_parameters = CaseInsensitiveDict()
 
         for header_name in mandatory_headers:
             if header_name not in bearer_parameters:
@@ -288,7 +290,7 @@ class OIDCSessionFactory:
                 f"was not provided, cannot continue..."
             )
         else:
-            return authenticate_parameters["bearer"]
+            return bearer_parameters
 
     def _fetch_and_parse_well_known(self, url: str) -> CaseInsensitiveDict:
         """[TECHDOCS]Performs a GET request to the OpenID Identity Provider's well-known endpoint and verifies that the
