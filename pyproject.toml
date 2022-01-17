@@ -1,18 +1,21 @@
 [build-system]
-requires = ["flit-core >= 3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
-[project]
+[tool.poetry]
 name = "ansys-openapi-common"
-authors = [
-  {name = "ANSYS, Inc." }
+description = "Provides a helper to create sessions for use with Ansys OpenAPI clients."
+version = "0.1.0.dev0"
+license = "MIT"
+authors = ["ANSYS, Inc."]
+maintainers = ["PyAnsys Maintainers <pyansys.maintainers@ansys.com>"]
+repository = "https://github.com/pyansys/openapi-common"
+documentation = "https://legendary-robot-0db934b6.pages.github.io/"
+readme = "README.rst"
+keywords = [
+  "Ansys",
+  "OpenAPI"
 ]
-maintainers = [
-  {name = "PyAnsys Maintainers", email = "pyansys.maintainers@ansys.com"}
-]
-license = {file = "LICENSE"}
-readme = {file = "README.rst", content-type="text/x-rst"}
-keywords = ["Ansys", "OpenAPI"]
 classifiers = [
   "License :: OSI Approved :: MIT License",
   "Development Status :: 2 - Pre-Alpha",
@@ -28,52 +31,77 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Private :: Do Not Upload"
 ]
-
-dynamic = ["version", "description"]
-
-dependencies = [
-  "requests >= 2.26",
-  "requests-negotiate-sspi >= 0.5.2; sys_platform == 'win32'",
-  "requests-ntlm >= 1.1.0",
-  "pyparsing >= 3.0",
-  "python-dateutil >= 2.6.1",
-  "typing-extensions >= 3.7; python_version < '3.8'"
+packages = [
+  { include = "**/*.py", from = "src" }
 ]
 
-[project.urls]
-Documentation = "https://legendary-robot-0db934b6.pages.github.io/"
-Source = "https://github.com/pyansys/openapi-common"
+[tool.poetry.dependencies]
+python = "^3.7"
 
-[project.optional-dependencies]
+# Packages for core library
+requests = "^2.26"
+requests-negotiate-sspi = { version = "^0.5.2", markers = "sys_platform == 'win32'"}
+requests-ntlm = "^1.1.0"
+pyparsing = "^3.0"
+python-dateutil ="^2.6.1"
+typing-extensions = { version = "^3.7", python = "<3.8" }
+
+# Packages for oidc extra
+requests_oauthlib = { version = "^1.2", optional = true }
+keyring = { version = "^22.0", optional = true }
+
+# Packages for linux-kerberos extra
+requests-kerberos = {version = "^0.13", markers = "sys_platform == 'linux'", optional = true }
+
+# Test packages
+pytest = { version = "*", optional = true }
+pytest-cov = { version = "*", optional = true }
+uvicorn = { version = "*", optional = true }
+fastapi = { version = "*", optional = true }
+pydantic = { version = "*", optional = true }
+requests-mock = { version = "*", optional = true }
+pytest-mock = { version = "*", optional = true }
+covertable = { version = "*", optional = true }
+asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'", optional = true }
+
+# Doc packages
+pyansys-sphinx-theme = { version = "0.2.0", optional = true }
+numpydoc = { version = "1.1.0", optional = true }
+sphinx = { version = "4.3.2", optional = true }
+sphinx_autodoc_typehints = { version = "1.15.1", optional = true }
+sphinx-notfound-page = { version = "0.8", optional = true }
+sphinx-copybutton = { version = "0.4.0", optional = true }
+
+[tool.poetry.extras]
+oidc = [
+  "requests_oauthlib",
+  "keyring"
+]
+
+linux-kerberos = [
+  "requests-kerberos"
+]
+
 test = [
-  "pytest-cov",
   "pytest",
+  "pytest-cov",
   "uvicorn",
   "fastapi",
   "pydantic",
   "requests-mock",
   "pytest-mock",
   "covertable",
-  "asgi_gssapi; sys_platform == 'linux'"
-]
-doc = [
-  "pyansys-sphinx-theme==0.2.0",
-  "numpydoc==1.1.0",
-  "sphinx==4.3.2",
-  "sphinx_autodoc_typehints==1.15.1",
-  "sphinx-notfound-page==0.8",
-  "sphinx-copybutton==0.4.0"
-]
-oidc = [
-  "requests_oauthlib >= 1.2",
-  "keyring >= 22.0"
-]
-linux-kerberos = [
-  "requests-kerberos >= 0.13.0; sys_platform == 'linux'"
+  "asgi_gssapi"
 ]
 
-[tool.flit.module]
-name = "ansys.openapi.common"
+doc = [
+  "pyansys-sphinx-theme",
+  "numpydoc",
+  "sphinx",
+  "sphinx_autodoc_typehints",
+  "sphinx-notfound-page",
+  "sphinx-copybutton"
+]
 
 [tool.tox]
 legacy_tox_ini = """

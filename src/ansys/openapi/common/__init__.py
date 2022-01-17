@@ -1,5 +1,7 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
 
+import importlib.metadata
+
 from ._session import ApiClientFactory
 from ._util import SessionConfiguration
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
@@ -17,4 +19,4 @@ __all__ = [
 ]
 
 
-__version__ = "0.1.0dev"
+__version__ = importlib.metadata.version("ansys-openapi-common")
