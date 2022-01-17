@@ -17,10 +17,10 @@ __all__ = [
 ]
 
 try:
-    from importlib_metadata import metadata
-
-    __version__ = metadata("ansys-openapi-common")["version"]
-except ImportError:
-    from importlib import metadata
+    from importlib import metadata as metadata
 
     __version__ = metadata.version("ansys-openapi-common")
+except ImportError:
+    from importlib_metadata import metadata as metadata_backport
+
+    __version__ = metadata_backport("ansys-openapi-common")["version"]
