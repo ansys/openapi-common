@@ -172,7 +172,7 @@ class ApiClient:
         - ``Accept``
         - ``Content-Type``
 
-        The **authorization** header may be overwritten depending on what, if any, authentication scheme is provided for
+        The ``Authorization`` header may be overwritten depending on what, if any, authentication scheme is provided for
         the requests Session.
         """
         self.default_headers[header_name] = header_value
