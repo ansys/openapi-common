@@ -153,7 +153,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
 def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     """[TECHDOCS]Parses a string containing a ``WWW-Authenticate`` header and returns a dictionary with the supported
-    
+
     authentication types and the provided parameters (if any exist)
 
     Parameters
