@@ -1,7 +1,5 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
 
-import importlib.metadata
-
 from ._session import ApiClientFactory
 from ._util import SessionConfiguration
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
@@ -18,5 +16,9 @@ __all__ = [
     "create_session_from_granta_stk",
 ]
 
-
-__version__ = importlib.metadata.version("ansys-openapi-common")
+try:
+    from importlib_metadata import metadata
+    __version = metadata("ansys-openapi-common")["version"]
+except ImportError:
+    from importlib import metadata
+    __version__ = metadata.version("ansys-openapi-common")
