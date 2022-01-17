@@ -16,5 +16,11 @@ __all__ = [
     "create_session_from_granta_stk",
 ]
 
+try:
+    from importlib import metadata as metadata
 
-__version__ = "0.1.0dev"
+    __version__ = metadata.version("ansys-openapi-common")
+except ImportError:
+    from importlib_metadata import metadata as metadata_backport
+
+    __version__ = metadata_backport("ansys-openapi-common")["version"]

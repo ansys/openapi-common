@@ -80,7 +80,6 @@ jobs:
       run: tox -- --with-kerberos
 
     - name: Upload coverage report
-      if: ${{ matrix.python-version == '3.10' }}
       uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
@@ -102,8 +101,8 @@ jobs:
 
       - name: Create wheel
         run: |
-          pip install build
-          python -m build --wheel
+          pip install poetry
+          poetry build
 
       - name: Validate wheel
         run: |
