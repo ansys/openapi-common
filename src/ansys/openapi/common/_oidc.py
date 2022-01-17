@@ -34,8 +34,9 @@ class OIDCSessionFactory:
     """
     [TECHDOCS]Creates an OpenID Connect session with configuration fetched from API server. Either uses provided token
     credentials, or can authorize a user with a browser-based interactive prompt.
-    If your Identity provider does not provide the exact scopes requested by MI you will be unable to connect, to force
-    the client to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
+    If your Identity provider does not provide the exact scopes requested by your API server you will be unable to
+    connect for security reasons, to force the client to proceed with non-matching scopes set the environment variable
+    ``OAUTHLIB_RELAX_TOKEN_SCOPE`` to ``TRUE``.
     """
 
     def __init__(
@@ -52,7 +53,7 @@ class OIDCSessionFactory:
         initial_session : requests.Session
             Session for use whilst negotiating with the identity provider.
         initial_response : requests.Response
-            Initial 401 response from the API server when no Authorization header is provided.
+            Initial 401 response from the API server when no ``Authorization`` header is provided.
         api_requests_configuration : Optional[SessionConfiguration]
             Requests configuration settings for connections to the API server.
         idp_requests_configuration : Optional[SessionConfiguration]
@@ -60,8 +61,8 @@ class OIDCSessionFactory:
 
         Notes
         -----
-        The `headers` field in `idp_requests_configuration` is not fully respected, the `accept` and
-        `content-type` headers will be overridden. Other settings are respected.
+        The ``headers`` field in ``idp_requests_configuration`` is not fully respected, the ``Accept`` and
+        ``Content-Type`` headers will be overridden. Other settings are respected.
         """
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
@@ -241,13 +242,13 @@ class OIDCSessionFactory:
     def _parse_unauthorized_header(
         unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
-        """[TECHDOCS] Extract required parameters from the response's "WWW-Authenticate" header. Validates that OIDC is
-        enabled and the all information required to configure the session is provided.
+        """[TECHDOCS] Extract required parameters from the response's ``WWW-Authenticate`` header. Validates that OIDC
+        is enabled and the all information required to configure the session is provided.
 
         Parameters
         ----------
         unauthorized_response : requests.Response
-            Response obtained by fetching the target URI with no Authorization header.
+            Response obtained by fetching the target URI with no ``Authorization`` header.
         """
         logger.debug("[TECHDOCS]Parsing bearer authentication parameters...")
         auth_header = unauthorized_response.headers["WWW-Authenticate"]
@@ -342,8 +343,8 @@ class OIDCSessionFactory:
     def _override_idp_header(
         requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
-        """[TECHDOCS]Helper method to override user-provided Accept and Content-Type headers to ensure correct response
-        from the OpenID Identity Provider.
+        """[TECHDOCS]Helper method to override user-provided ``Accept`` and `Content-Type`` headers to ensure correct
+        response from the OpenID Identity Provider.
 
         Parameters
         ----------
@@ -357,7 +358,7 @@ class OIDCSessionFactory:
         return requests_configuration
 
     def _add_api_audience_if_set(self) -> None:
-        """[TECHDOCS]Helper method to set the ApiAudience header on connections to the API if provided by the OpenID
+        """[TECHDOCS]Helper method to set the ``ApiAudience`` header on connections to the API if provided by the OpenID
         Identity Provider. This is mainly required for Auth0.
         """
         if "apiAudience" not in self._authenticate_parameters:

@@ -156,8 +156,8 @@ class ApiClientFactory:
     ) -> Api_Client_Factory:
         """Set up the client authentication for use with provided credentials.
 
-        This method will attempt to connect to the API and use the provided WWW-Authenticate header to determine whether
-        Negotiate, NTLM, or Basic Authentication should be used. The selected authentication method will then be
+        This method will attempt to connect to the API and use the provided ``WWW-Authenticate`` header to determine
+        whether Negotiate, NTLM, or Basic Authentication should be used. The selected authentication method will then be
         configured for use.
 
         Notes
@@ -299,7 +299,7 @@ class ApiClientFactory:
         self, initial_response: requests.Response
     ) -> "Optional[ApiClientFactory]":
         """[TECHDOCS]Verifies that an initial 401 is returned if we expect to require authentication. If a 2XX response
-        is returned then all is well, but we will not use any authentication in future. Otherwise something else has
+        is returned then all is well, but we will not use any authentication in future, otherwise something else has
         gone awry: return an :obj:`ApiConnectionException` with information about the response.
 
         Parameters
@@ -340,7 +340,7 @@ class ApiClientFactory:
     def __get_authenticate_header(
         response: requests.Response,
     ) -> "CaseInsensitiveOrderedDict":
-        """Helper method to extract the www-authenticate header from a requests response.
+        """Helper method to extract the ``WWW-Authenticate`` header from a requests response.
 
         Parameters
         ----------
@@ -350,7 +350,7 @@ class ApiClientFactory:
         Raises
         ------
         ValueError
-            If the response contains no www-authenticate header to be parsed.
+            If the response contains no ``WWW-Authenticate`` header to be parsed.
         """
         if "www-authenticate" not in response.headers:
             raise ValueError(
