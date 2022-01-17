@@ -1,5 +1,4 @@
 import asyncio
-import logging
 import os
 import threading
 import webbrowser
@@ -17,6 +16,7 @@ from ._util import (
     set_session_kwargs,
     RequestsConfiguration,
 )
+from ._logger import logger
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -26,8 +26,6 @@ if os.getenv("VERBOSE_TOKEN_DEBUGGING"):
     _log_tokens = True
 else:
     _log_tokens = False
-
-logger = logging.getLogger("ansys.openapi.common")
 
 
 class OIDCSessionFactory:
