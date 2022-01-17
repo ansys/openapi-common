@@ -18,7 +18,9 @@ __all__ = [
 
 try:
     from importlib_metadata import metadata
-    __version = metadata("ansys-openapi-common")["version"]
+
+    __version__ = metadata("ansys-openapi-common")["version"]
 except ImportError:
     from importlib import metadata
+
     __version__ = metadata.version("ansys-openapi-common")
