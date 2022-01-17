@@ -7,7 +7,6 @@ log_format = "%(levelname)s %(asctime)s - %(message)s"
 logging.basicConfig(stream=sys.stdout, format=log_format, level=logging.DEBUG)
 
 
-
 # Create a dict of markers.
 # The key is used as option, so --with-{key} will run all tests marked with key.
 # The value must be a dict that specifies:
