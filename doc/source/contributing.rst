@@ -235,6 +235,16 @@ sequence locally to track down any new issues from your changes.
     pip install tox
     tox -e coverage .
 
+Some of the tests require specific platforms, or specific setup, for
+example there are integration tests that are run on linux platform that
+rely on configuring a Kerberos Domain Controller using a docker image.
+These tests are disabled by default and may be enabled by using the following
+command.
+
+.. code::
+
+   pip install tox
+   tox -e coverage . -- --kerberos
 
 Spelling and Code Style
 ~~~~~~~~~~~~~~~~~~~~~~~

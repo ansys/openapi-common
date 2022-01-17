@@ -3,7 +3,7 @@ import logging
 import os
 import threading
 import webbrowser
-from typing import Dict
+from typing import Dict, Optional, Any
 
 import keyring
 import requests
@@ -34,16 +34,17 @@ class OIDCSessionFactory:
     """
     [TECHDOCS]Creates an OpenID Connect session with configuration fetched from API server. Either uses provided token
     credentials, or can authorize a user with a browser-based interactive prompt.
-    If your Identity provider does not provide the exact scopes requested by MI you will be unable to connect, to force
-    the client to proceed with non-matching scopes set the environment variable `OAUTHLIB_RELAX_TOKEN_SCOPE` to `TRUE`.
+    If your Identity provider does not provide the exact scopes requested by your API server you will be unable to
+    connect for security reasons, to force the client to proceed with non-matching scopes set the environment variable
+    ``OAUTHLIB_RELAX_TOKEN_SCOPE`` to ``TRUE``.
     """
 
     def __init__(
         self,
         initial_session: requests.Session,
         initial_response: requests.Response,
-        api_requests_configuration: SessionConfiguration = None,
-        idp_requests_configuration: SessionConfiguration = None,
+        api_requests_configuration: Optional[SessionConfiguration] = None,
+        idp_requests_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
         """
         [TECHDOCS]
@@ -52,16 +53,16 @@ class OIDCSessionFactory:
         initial_session : requests.Session
             Session for use whilst negotiating with the identity provider.
         initial_response : requests.Response
-            Initial 401 response from the API server when no Authorization header is provided.
-        api_requests_configuration : SessionConfiguration
+            Initial 401 response from the API server when no ``Authorization`` header is provided.
+        api_requests_configuration : Optional[SessionConfiguration]
             Requests configuration settings for connections to the API server.
-        idp_requests_configuration : SessionConfiguration
+        idp_requests_configuration : Optional[SessionConfiguration]
             Requests configuration settings for connections to the OpenID Identity Provider.
 
         Notes
         -----
-        The `headers` field in `idp_requests_configuration` is not fully respected, the `accept` and
-        `content-type` headers will be overridden. Other settings are respected.
+        The ``headers`` field in ``idp_requests_configuration`` is not fully respected, the ``Accept`` and
+        ``Content-Type`` headers will be overridden. Other settings are respected.
         """
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
@@ -117,7 +118,7 @@ class OIDCSessionFactory:
         logger.info("[TECHDOCS]Configuration complete.")
 
     def get_session_with_provided_token(
-        self, refresh_token: str, access_token: str = None
+        self, refresh_token: str, access_token: Optional[str] = None
     ) -> OAuth2Session:
         """[TECHDOCS] Creates a :class:`OAuth2Session` object with provided tokens
 
@@ -183,7 +184,7 @@ class OIDCSessionFactory:
             Number of seconds to wait for the user to authenticate (default 60s).
         """
 
-        async def await_callback():
+        async def await_callback() -> Any:
             thread = threading.Thread(target=self._callback_server.serve_forever)
             thread.daemon = True
             thread.start()
@@ -240,13 +241,13 @@ class OIDCSessionFactory:
     def _parse_unauthorized_header(
         unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
-        """[TECHDOCS] Extract required parameters from the response's "WWW-Authenticate" header. Validates that OIDC is
-        enabled and the all information required to configure the session is provided.
+        """[TECHDOCS] Extract required parameters from the response's ``WWW-Authenticate`` header. Validates that OIDC
+        is enabled and the all information required to configure the session is provided.
 
         Parameters
         ----------
         unauthorized_response : requests.Response
-            Response obtained by fetching the target URI with no Authorization header.
+            Response obtained by fetching the target URI with no ``Authorization`` header.
         """
         logger.debug("[TECHDOCS]Parsing bearer authentication parameters...")
         auth_header = unauthorized_response.headers["WWW-Authenticate"]
@@ -262,9 +263,11 @@ class OIDCSessionFactory:
 
         mandatory_headers = ["redirecturi", "authority", "clientid"]
         missing_headers = []
-        bearer_parameters = authenticate_parameters["bearer"]
+        bearer_parameters: Optional["CaseInsensitiveDict"] = authenticate_parameters[
+            "bearer"
+        ]
         if bearer_parameters is None:
-            bearer_parameters = dict()
+            bearer_parameters = CaseInsensitiveDict()
 
         for header_name in mandatory_headers:
             if header_name not in bearer_parameters:
@@ -286,7 +289,7 @@ class OIDCSessionFactory:
                 f"was not provided, cannot continue..."
             )
         else:
-            return authenticate_parameters["bearer"]
+            return bearer_parameters
 
     def _fetch_and_parse_well_known(self, url: str) -> CaseInsensitiveDict:
         """[TECHDOCS]Performs a GET request to the OpenID Identity Provider's well-known endpoint and verifies that the
@@ -339,8 +342,8 @@ class OIDCSessionFactory:
     def _override_idp_header(
         requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
-        """[TECHDOCS]Helper method to override user-provided Accept and Content-Type headers to ensure correct response
-        from the OpenID Identity Provider.
+        """[TECHDOCS]Helper method to override user-provided ``Accept`` and `Content-Type`` headers to ensure correct
+        response from the OpenID Identity Provider.
 
         Parameters
         ----------
@@ -354,7 +357,7 @@ class OIDCSessionFactory:
         return requests_configuration
 
     def _add_api_audience_if_set(self) -> None:
-        """[TECHDOCS]Helper method to set the ApiAudience header on connections to the API if provided by the OpenID
+        """[TECHDOCS]Helper method to set the ``ApiAudience`` header on connections to the API if provided by the OpenID
         Identity Provider. This is mainly required for Auth0.
         """
         if "apiAudience" not in self._authenticate_parameters:
