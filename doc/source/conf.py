@@ -24,7 +24,7 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx_copybutton",
     "sphinx.ext.extlinks",
-    "sphinx.ext.coverage"
+    "sphinx.ext.coverage",
 ]
 
 add_module_names = False
@@ -156,7 +156,7 @@ texinfo_documents = [
         "Engineering Software",
     ),
 ]
-latex_engine = 'xelatex'
+latex_engine = "xelatex"
 
 # -- Options for Epub output -------------------------------------------------
 

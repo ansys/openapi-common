@@ -1,5 +1,4 @@
 import http.cookiejar
-import logging
 
 import pyparsing as pp  # type: ignore
 from collections import OrderedDict
@@ -7,6 +6,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from itertools import chain
 from typing import Dict, Union, List, Optional, Tuple, Any, Collection, cast
 from ._exceptions import ApiException
+from ._logger import logger
 
 try:
     from typing import TypedDict
@@ -418,8 +418,6 @@ def handle_response(response: requests.Response) -> requests.Response:
     response : requests.Response
         Response from the API server.
     """
-    logger = logging.getLogger(__name__)
-
     logger.debug(f"response body: {response.text}")
     if not 200 <= response.status_code <= 299:
         raise ApiException.from_response(response)

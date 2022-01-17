@@ -1,4 +1,3 @@
-import logging
 import os
 import warnings
 from typing import Tuple, Union, Container, Optional, Mapping, TypeVar, Any
@@ -16,8 +15,7 @@ from ._util import (
     set_session_kwargs,
 )
 from ._exceptions import ApiConnectionException, AuthenticationWarning
-
-logger = logging.getLogger("ansys.openapi.common")
+from ._logger import logger
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
