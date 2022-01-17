@@ -238,7 +238,7 @@ class OIDCCallbackHTTPServer(HTTPServer):
     async def get_auth_code(self) -> Any:
         return self._auth_code.get(block=True)
 
-    def __del__(self):
+    def __del__(self) -> None:
         self.server_close()
 
 
