@@ -14,9 +14,9 @@ Introduction and Purpose
 This project is part of the larger PyAnsys effort to facilitate the use
 of Ansys technologies directly from within Python.
 
-Some Ansys products expose HTTP APIs rather than the more common gRPC,
-this package is designed to provide a common client to consume these
-APIs, minimizing overhead and reducing code duplication.
+Some Ansys products expose HTTP APIs rather than the more common gRPC
+APIs. This package is designed to provide a common client to consume
+HTTP APIs, minimizing overhead and reducing code duplication.
 
 
 Background
@@ -26,9 +26,9 @@ formerly known as Swagger. This client is designed to be used alongside
 code generation tools to produce client libraries for these APIs.
 
 
-Quick Code
-----------
-Here's a brief example of how the client works:
+Brief Example
+-------------
+This brief example demonstrates how the client works:
 
 .. code:: python
 
@@ -44,16 +44,19 @@ The client is now ready and available for use with an OpenAPI client.
 
 Supported Authentication Schemes
 --------------------------------
-The core library supports API servers configured with no authentication, API Key, and Basic authentication. Windows
-users can also use Windows Integrated Authentication to connect to Kerberos enabled APIs with their windows credentials,
-and NTLM where it is supported.
+The core library supports API servers configured with no authentication, API keys, client
+certificates, and basic authentication. 
 
-Linux users can make use of Kerberos authentication via the ``[linux-kerberos]`` extra, this will require a working
-installation of either MIT Kerberos or Heimdal, as well as some platform specific build steps. It will also require a
-correctly configured ``krb5.keytab`` file on your system.
+Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
+APIs with their Windows credentials and to NTLM where it is supported.
 
-Windows and Linux users can authenticate with OIDC enabled APIs by using the ``[oidc]`` extra, currently we support only
-the Authorization Code authentication flow.
+Linux users can make use of Kerberos authentication via the ``[linux-kerberos]`` extra. This
+will require a working installation of either MIT Kerberos or Heimdal, as well as some
+platform-specific build steps. An additional requirement is a correctly configured ``krb5.keytab``
+file on your system.
+
+Windows and Linux users can authenticate with OIDC-enabled APIs by using the ``[oidc]`` extra.
+Currently we support only the Authorization Code authentication flow.
 
 .. list-table:: Authentication Methods by Platform
    :header-rows: 1
@@ -108,15 +111,17 @@ For example to send a client certificate with every request
 Platform-specific Kerberos Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client can be installed. The library
-has been tested on the platforms listed below, if you use it on other platforms then please consider contributing
-installation steps for your platform by making a pull request.
+Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client
+can be installed. The library has been tested on the platforms listed below. If you manage
+to use it on another platform, consider contributing installation steps for your platform
+by making a pull request.
 
 Ubuntu 20.04
 ^^^^^^^^^^^^
 
-Ubuntu requires the python module ``gssapi`` to be built from source, this requires the Kerberos headers, Python headers
-for the version of Python you are using, and a supported compiler (GCC works well).
+Ubuntu requires the Python module ``gssapi`` to be built from source. This requires the
+Kerberos headers, Python headers for the version of Python that you are using and a
+supported compiler. (GCC works well.)
 
 You should then be able to install this module with the ``[linux-kerberos]`` extra.
 
@@ -125,17 +130,18 @@ You should then be able to install this module with the ``[linux-kerberos]`` ext
    sudo apt install build-essentials python3.8-dev libkrb5-dev
    pip install ansys-openapi-common[linux-kerberos]
 
-Once the installation completes, ensure your ``krb5.conf`` file is set up correctly for your Kerberos configuration, and
-that you have a valid keytab file (normally at ``/etc/krb5.keytab``).
+Once the installation completes, ensure your ``krb5.conf`` file is set up correctly for
+your Kerberos configuration and that you have a valid ``keytab file`, which is normally
+at ``/etc/krb5.keytab``.
 
 API Reference
 -------------
-For full details of the API available see the :doc:`API reference <api/api>`.
+For comprehensive API information, see :doc:`API reference <api/api>`.
 
 Contributing
 ------------
-Contributions to this repository are welcomed, please see the :doc:`Contributor Guide<contributing>`
-for more information.
+Contributions to this repository are welcomed. For more information, see the
+:doc:`Contributor Guide<contributing>`.
 
 Project Index
 -------------
