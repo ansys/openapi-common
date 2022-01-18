@@ -21,6 +21,8 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from ._util import CaseInsensitiveOrderedDict
 
+USER_AGENT = "Ansys OpenAPI Client"
+
 _oidc_enabled = True
 _linux_kerberos_enabled = True
 _platform_windows = False
@@ -106,6 +108,8 @@ class ApiClientFactory:
         )
         self._session.mount("https://", transport_adapter)
         self._session.mount("http://", transport_adapter)
+
+        self._session_configuration.headers["User-Agent"] = USER_AGENT
 
         config_dict = self._session_configuration.get_configuration_for_requests()
         for k, v in config_dict.items():
