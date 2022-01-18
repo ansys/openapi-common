@@ -1,4 +1,4 @@
-.. _contributing:
+.. _contributing_openapi:
 
 ============
 Contributing
@@ -10,7 +10,7 @@ with it and all `Guidelines and Best Practices <https://dev.docs.pyansys.com/gui
 before attempting to contribute to the ``openapi-common`` repository.
  
 The following contribution information is specific to the ``openapi-common``
-repository, which provides the OpenAPI Client. This PyAnsys tool name
+repository, which is for the OpenAPI Client. This PyAnsys tool name
 is often used in place of the repository name to provide clarity and improve
 readability.
 
