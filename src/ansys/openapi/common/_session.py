@@ -13,6 +13,7 @@ from ._util import (
     parse_authenticate,
     SessionConfiguration,
     set_session_kwargs,
+    generate_user_agent,
 )
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
