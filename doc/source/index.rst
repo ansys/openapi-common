@@ -11,19 +11,20 @@ Common Authentication Components Documentation
 
 Introduction and Purpose
 ------------------------
-This project is part of the larger PyAnsys effort to facilitate the use
-of Ansys technologies directly from within Python.
+The OpenAPI Common library is part of the larger PyAnsys effort to
+facilitate the use of Ansys technologies directly from within Python.
 
-Some Ansys products expose HTTP APIs rather than the more common gRPC
-APIs. This package is designed to provide a common client to consume
+Because some Ansys products expose HTTP APIs rather than gRPC
+APIs, this library provides a common client to consume
 HTTP APIs, minimizing overhead and reducing code duplication.
 
 
 Background
 ----------
 A widely used standard for HTTP REST-style APIs is the OpenAPI standard,
-formerly known as Swagger. This client is designed to be used alongside
-code generation tools to produce client libraries for these APIs.
+formerly known as Swagger. The Open API Common library is designed to be
+used alongside code generation tools to produce client libraries for HTTP
+APIs.
 
 
 Brief Example
@@ -44,8 +45,8 @@ The client is now ready and available for use with an OpenAPI client.
 
 Supported Authentication Schemes
 --------------------------------
-The core library supports API servers configured with no authentication, API keys, client
-certificates, and basic authentication. 
+The OpenAPI Common library supports API servers configured with no authentication, API keys,
+client certificates, and basic authentication. 
 
 Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
 APIs with their Windows credentials and to NTLM where it is supported.
@@ -93,11 +94,11 @@ Currently we support only the Authorization Code authentication flow.
 
 Advanced Features
 -----------------
-All options that are available in the python library *requests* can be set through
-the client, this enables you to configure custom SSL certificate validation, send
-client certificates if your API server requires them, and many other options.
+You can set all options that are available in Python library *requests* through
+the client. This enables you to configure custom SSL certificate validation, send
+client certificates if your API server requires them, and configure many other options.
 
-For example to send a client certificate with every request
+For example to send a client certificate with every request:
 
 .. code:: python
 
@@ -112,15 +113,15 @@ Platform-specific Kerberos Configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client
-can be installed. The library has been tested on the platforms listed below. If you manage
-to use it on another platform, consider contributing installation steps for your platform
-by making a pull request.
+can be installed. The OpenAPI Common library has been tested on the platforms listed below.
+If you manage to use it on another platform, consider contributing installation steps for
+your platform by making a pull request.
 
 Ubuntu 20.04
 ^^^^^^^^^^^^
 
 Ubuntu requires the Python module ``gssapi`` to be built from source. This requires the
-Kerberos headers, Python headers for the version of Python that you are using and a
+Kerberos headers, Python headers for the version of Python that you are using, and a
 supported compiler. (GCC works well.)
 
 You should then be able to install this module with the ``[linux-kerberos]`` extra.
@@ -130,17 +131,17 @@ You should then be able to install this module with the ``[linux-kerberos]`` ext
    sudo apt install build-essentials python3.8-dev libkrb5-dev
    pip install ansys-openapi-common[linux-kerberos]
 
-Once the installation completes, ensure your ``krb5.conf`` file is set up correctly for
-your Kerberos configuration and that you have a valid ``keytab file`, which is normally
-at ``/etc/krb5.keytab``.
+Once the installation completes, ensure that your ``krb5.conf`` file is set up correctly
+for your Kerberos configuration and that you have a valid ``keytab file`, which is
+normally in ``/etc/krb5.keytab``.
 
 API Reference
 -------------
-For comprehensive API information, see :doc:`API reference <api/api>`.
+For comprehensive API documentation, see :doc:`API reference <api/api>`.
 
 Contributing
 ------------
-Contributions to this repository are welcomed. For more information, see the
+Contributions to this library are welcomed. For more information, see the
 :doc:`Contributor Guide<contributing>`.
 
 Project Index
