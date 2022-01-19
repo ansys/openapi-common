@@ -1,7 +1,7 @@
 API Reference
 =============
 
-Common objects for pyAnsys REST API clients
+Common Objects for PyAnsys REST API Clients
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 .. py:currentmodule::ansys.openapi.common
 .. autoclass:: ansys.openapi.common.ApiClient
@@ -22,7 +22,7 @@ Common objects for pyAnsys REST API clients
 
    .. automethod:: __init__
 
-Integration extensions for other Ansys tools
+Integration Extensions for Other Ansys Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. automodule:: ansys.openapi.common._contrib.granta

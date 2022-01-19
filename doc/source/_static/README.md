@@ -1,1 +1,1 @@
-Static files will be found here (like images and other assets).
+You will find static files (like images and other assets) here.
