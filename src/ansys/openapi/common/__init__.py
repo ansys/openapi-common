@@ -1,7 +1,7 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
 
 from ._session import ApiClientFactory
-from ._util import SessionConfiguration
+from ._util import SessionConfiguration, generate_user_agent
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._api_client import ApiClient
 from ._contrib.granta import create_session_from_granta_stk

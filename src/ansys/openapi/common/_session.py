@@ -21,8 +21,6 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from ._util import CaseInsensitiveOrderedDict
 
-USER_AGENT = "Ansys OpenAPI Client"
-
 _oidc_enabled = True
 _linux_kerberos_enabled = True
 _platform_windows = False
@@ -84,7 +82,11 @@ class ApiClientFactory:
         logger.info(f"[TECHDOCS]Creating new session at '{api_url}")
 
         if session_configuration is None:
+            from . import __version__
+
             session_configuration = SessionConfiguration()
+            user_agent = generate_user_agent("ansys-openapi-common", __version__)
+            session_configuration.headers["User-Agent"] = user_agent
         self._session_configuration = session_configuration
 
         logger.debug(
@@ -108,8 +110,6 @@ class ApiClientFactory:
         )
         self._session.mount("https://", transport_adapter)
         self._session.mount("http://", transport_adapter)
-
-        self._session_configuration.headers["User-Agent"] = USER_AGENT
 
         config_dict = self._session_configuration.get_configuration_for_requests()
         for k, v in config_dict.items():
