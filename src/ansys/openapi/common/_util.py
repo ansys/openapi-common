@@ -422,3 +422,27 @@ def handle_response(response: requests.Response) -> requests.Response:
     if not 200 <= response.status_code <= 299:
         raise ApiException.from_response(response)
     return response
+
+
+def generate_user_agent(package_name: str, package_version: str) -> str:
+    """[TECHDOCS]Generate a User-Agent string of the form <package info> <python info> <os info>.
+
+    Parameters
+    ----------
+    package_name : str
+        The name of the package to be included in the User-Agent string
+    package_version : str
+        The version of the package to be included in the User-Agent string
+
+    Returns
+    -------
+    str
+        The User-Agent string
+    """
+
+    import platform
+
+    os_version = platform.platform()
+    python_implementation = platform.python_implementation()
+    python_version = platform.python_version()
+    return f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"

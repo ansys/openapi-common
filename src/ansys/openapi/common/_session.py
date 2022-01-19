@@ -13,6 +13,7 @@ from ._util import (
     parse_authenticate,
     SessionConfiguration,
     set_session_kwargs,
+    generate_user_agent,
 )
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
@@ -82,7 +83,11 @@ class ApiClientFactory:
         logger.info(f"[TECHDOCS]Creating new session at '{api_url}")
 
         if session_configuration is None:
+            from . import __version__
+
             session_configuration = SessionConfiguration()
+            user_agent = generate_user_agent("ansys-openapi-common", __version__)
+            session_configuration.headers["User-Agent"] = user_agent
         self._session_configuration = session_configuration
 
         logger.debug(
