@@ -19,7 +19,7 @@ Cloning the Source Repository
 -----------------------------
 
 Run this code to clone and install the latest version of the ``openapi-common``
-repository in development mode:
+repository:
 
 .. code::
 
