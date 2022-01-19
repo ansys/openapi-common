@@ -167,6 +167,14 @@ jobs:
           python-version: '3.10'
 
       - uses: actions/checkout@v2
+      
+      # used for documentation deployment
+      - name: Get Bot Application Token
+        id: get_workflow_token
+        uses: peter-murray/workflow-application-token-action@v1
+        with:
+          application_id: ${{ secrets.BOT_APPLICATION_ID }}
+          application_private_key: ${{ secrets.BOT_APPLICATION_PRIVATE_KEY }}
 
       - uses: actions/download-artifact@v2
         with:
@@ -182,8 +190,10 @@ jobs:
           path: ~/html
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
+          repository-name: pyansys/openapi-common-docs
+          token: ${{ steps.get_workflow_token.outputs.token }}
           BRANCH: gh-pages
           FOLDER: ~/html
           CLEAN: true
