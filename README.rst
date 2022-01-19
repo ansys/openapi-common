@@ -2,7 +2,7 @@ Project Overview
 ----------------
 The ``openapi-common`` repository provides the source code for authentication-aware client for OpenAPI client libraries.
 
-Tbe PyAnsys OpenAPI Common library is intended for use with the custom code generation
+The PyAnsys OpenAPI Common library is intended for use with the custom code generation
 template in the `PyAnsys project <https://github.com/pyansys>`_. This library currently
 supports authentication with Basic, Negotiate, NTLM, and OpenID Connect. Most features
 of the underlying requests session are exposed for use. Some basic configuration is also
@@ -17,7 +17,7 @@ Install ``openapi-common`` with:
 
    pip install ansys-openapi-common
 
-Alternatively, run this code to clone and install the latest version:
+Alternatively, clone and install with:
 
 .. code::
 
@@ -123,7 +123,7 @@ You should then be able to install this module with the ``[linux-kerberos]`` ext
    pip install ansys-openapi-common[linux-kerberos]
 
 Once the installation completes, ensure that your ``krb5.conf`` file is set up correctly
-for your Kerberos configuration and that you have a valid ``keytab file`, which is
+for your Kerberos configuration and that you have a valid ``keytab file``, which is
 normally in ``/etc/krb5.keytab``.
 
 License
