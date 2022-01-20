@@ -132,7 +132,7 @@ You should then be able to install this module with the ``[linux-kerberos]`` ext
    pip install ansys-openapi-common[linux-kerberos]
 
 Once the installation completes, ensure that your ``krb5.conf`` file is set up correctly
-for your Kerberos configuration and that you have a valid ``keytab file`, which is
+for your Kerberos configuration and that you have a valid ``keytab file``, which is
 normally in ``/etc/krb5.keytab``.
 
 API Reference
