@@ -5,8 +5,8 @@ Common Authentication Components Documentation
    :hidden:
    :maxdepth: 3
 
-   api/api.rst
-   contributing.rst
+   api/index
+   contributing
 
 
 Introduction and Purpose
@@ -137,7 +137,7 @@ normally in ``/etc/krb5.keytab``.
 
 API Reference
 -------------
-For comprehensive API documentation, see :doc:`API reference <api/api>`.
+For comprehensive API documentation, see :doc:`API reference <api/index>`.
 
 Contributing
 ------------

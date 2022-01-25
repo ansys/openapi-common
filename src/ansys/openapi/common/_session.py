@@ -74,7 +74,7 @@ class ApiClientFactory:
         ----------
         api_url : str
            Base URL of the API server.
-        session_configuration : Optional[SessionConfiguration]
+        session_configuration : SessionConfiguration, optional
            Additional configuration settings for the requests Session.
         """
         self._session = requests.Session()
@@ -130,6 +130,11 @@ class ApiClientFactory:
 
         Authentication must be configured for this method to succeed.
 
+        Returns
+        -------
+        :class:`ApiClient`
+            A client object that can be used to connect to the server and perform API operations.
+
         Raises
         ------
         ValueError
@@ -144,6 +149,11 @@ class ApiClientFactory:
 
         Clients relying on custom authentication such as client certificates, or non-standard tokens should use this
         method.
+
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            The original client factory object.
         """
         if self.__test_connection():
             logger.info("[TECHDOCS]Connection success")
@@ -175,6 +185,11 @@ class ApiClientFactory:
             Password for connection.
         domain : Optional[str]
             Domain to use for connection if required.
+
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            The original client factory object.
         """
         logger.info(f"[TECHDOCS]Setting credentials for user '{username}")
         if domain is not None:
@@ -222,6 +237,11 @@ class ApiClientFactory:
         On Linux this requires the `[linux-kerberos]` extension to be installed, and your Kerberos installation
         must be configured manually. See `here <https://github.com/requests/requests-kerberos>`_ for more
         information on how to configure your Kerberos installation.
+
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            The current client factory object.
         """
         if not (_platform_windows or _linux_kerberos_enabled):
             raise ImportError(
@@ -259,6 +279,11 @@ class ApiClientFactory:
         ----------
         idp_session_configuration : Optional[SessionConfiguration]
             Additional configuration settings for the requests Session when connected to the OpenID Identity Provider.
+
+        Returns
+        -------
+        :class:`OIDCSessionBuilder`
+            A builder object to authenticate via OIDC.
 
         Notes
         -----
@@ -373,9 +398,9 @@ class OIDCSessionBuilder:
 
         Parameters
         ----------
-        client_factory : ApiClientFactory
+        client_factory : :class:`ApiClientFactory`
             Parent API client factory object that will be returned once configuration is complete
-        session_factory : Optional[OIDCSessionFactory]
+        session_factory : :class:`OIDCSessionFactory`, optional
             OIDC session factory object that will be configured and used to return an OAuth supporting Session
         """
         self._client_factory = client_factory
@@ -391,6 +416,11 @@ class OIDCSessionBuilder:
         ----------
         token_name : str
             Name of the token key in the system keyring
+
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            The original client factory object.
 
         Raises
         ------
@@ -420,6 +450,11 @@ class OIDCSessionBuilder:
             Refresh token
         access_token : str
             Access token
+
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            The original client factory object.
         """
         if self._session_factory is None:
             return self._client_factory
@@ -438,6 +473,11 @@ class OIDCSessionBuilder:
         ----------
         login_timeout : int
             Time in seconds to wait for the user to authenticate in their web browser
+
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            The original client factory object.
         """
         if self._session_factory is None:
             return self._client_factory
