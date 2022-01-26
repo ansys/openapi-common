@@ -16,7 +16,6 @@ classes, functions, and attributes.
    ApiClient
    ApiClientFactory
    OIDCSessionBuilder
-   OIDCSessionFactory
    SessionConfiguration
 
 
