@@ -442,7 +442,7 @@ class OIDCSessionBuilder:
         refresh_token : str
             Refresh token.
         access_token : str
-            Access token
+            Access token.
 
         Returns
         -------
