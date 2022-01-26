@@ -153,7 +153,7 @@ class ApiClient:
         Certain headers will be overwritten by the API when sending requests, but default values for others can be set
         and will be respected, for example, if your API server is configured to require non-OIDC tokens for
         authentication.
-        
+
         Example
         -------
         >>> client = ApiClient(requests.Session(),

@@ -179,9 +179,7 @@ class ApiClientFactory:
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
             username = f"{domain}\\{username}"
-            logger.debug(
-                f"Setting domain for username, connecting as '{username}'."
-            )
+            logger.debug(f"Setting domain for username, connecting as '{username}'.")
 
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
@@ -193,9 +191,7 @@ class ApiClientFactory:
         )
         if "Negotiate" in headers or "NTLM" in headers:
             if _platform_windows:
-                logger.debug(
-                    "Attempting to connect with NTLM authentication..."
-                )
+                logger.debug("Attempting to connect with NTLM authentication...")
                 self._session.auth = HttpNtlmAuth(username, password)
                 if self.__test_connection():
                     logger.info("Connection successful.")
@@ -235,12 +231,8 @@ class ApiClientFactory:
             + ", ".join([method for method in headers.keys()])
         )
         if "Negotiate" in headers:
-            logger.debug(
-                f"Using {NegotiateAuth.__qualname__} as a Negotiate backend."
-            )
-            logger.debug(
-                "Attempting connection with Negotiate authentication..."
-            )
+            logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
+            logger.debug("Attempting connection with Negotiate authentication...")
             self._session.auth = NegotiateAuth()
             if self.__test_connection():
                 logger.info("Connection successful.")

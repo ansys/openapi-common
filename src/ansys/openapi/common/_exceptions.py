@@ -96,9 +96,7 @@ class ApiException(Exception):
         return new
 
     def __str__(self) -> str:
-        error_message = (
-            f"ApiException({self.status_code}, '{self.reason_phrase}')\n"
-        )
+        error_message = f"ApiException({self.status_code}, '{self.reason_phrase}')\n"
         if self.headers:
             error_message += f"HTTP response headers: {self.headers}\n"
         if self.body:

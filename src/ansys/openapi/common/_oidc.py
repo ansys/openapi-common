@@ -32,7 +32,7 @@ class OIDCSessionFactory:
     """
     Creates an OpenID Connect session with configuration fetched from the API server. Uses either the provided token
     credentials, or authorizes a user with a browser-based interactive prompt.
-    
+
     If your Identity Provider does not provide the exact scopes requested by your API server, you will be unable to
     connect for security reasons. To force the client to proceed with non-matching scopes, set the environment variable
     ``OAUTHLIB_RELAX_TOKEN_SCOPE`` to ``TRUE``.
@@ -239,8 +239,8 @@ class OIDCSessionFactory:
     def _parse_unauthorized_header(
         unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
-        """ Extracts required parameters from the response's ``WWW-Authenticate`` header. 
-        
+        """Extracts required parameters from the response's ``WWW-Authenticate`` header.
+
         Validates that OIDC is enabled and all information required to configure the session has been provided.
 
         Parameters
@@ -299,9 +299,7 @@ class OIDCSessionFactory:
         url : str
             URL referencing the OpenID Identity Provider's well-known endpoint.
         """
-        logger.info(
-            f"Fetching configuration information from Identity Provider {url}"
-        )
+        logger.info(f"Fetching configuration information from Identity Provider {url}")
         set_session_kwargs(self._initial_session, self._idp_connection_configuration)
         authority_response = self._initial_session.get(
             f"{url}.well-known/openid-configuration",

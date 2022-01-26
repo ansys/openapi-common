@@ -20,8 +20,8 @@ from requests.structures import CaseInsensitiveDict
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
-    """Preserves order of insertion and is case-insensitive. 
-    
+    """Preserves order of insertion and is case-insensitive.
+
     Intended for use when parsing ``WWW-Authenticate`` headers where odd combinations of entries are expected.
     """
 
