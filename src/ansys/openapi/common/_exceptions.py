@@ -9,8 +9,8 @@ if MYPY:
 
 class ApiConnectionException(Exception):
     """
-    Exception raised when connection to MI Servicelayer fails. Inspect the `.status_code` and `.reason_phrase` for more
-    information about the failure.
+    Exception raised when connection to the API server fails. Inspect the ``.status_code`` and ``.reason_phrase`` for
+    more information about the failure.
 
     Attributes
     ----------
@@ -30,7 +30,7 @@ class ApiConnectionException(Exception):
         super().__init__(message)
 
     def __repr__(self) -> str:
-        return f"[TECHDOCS]ApiConnectionException({self.status_code}, '{self.reason_phrase}',\n'{self.message}')"
+        return f"ApiConnectionException({self.status_code}, '{self.reason_phrase}',\n'{self.message}')"
 
 
 class AuthenticationWarning(Warning):
@@ -53,8 +53,8 @@ class AuthenticationWarning(Warning):
 
 class ApiException(Exception):
     """
-    Exception raised when the remote server returns an unsuccessful response. Inspect the `.status` and `.reason` for
-    more information about the failure.
+    Exception raised when the remote server returns an unsuccessful response. Inspect the ``.status_code`` and
+    ``.reason_phrase`` for more information about the failure.
 
     Attributes
     ----------
@@ -96,9 +96,7 @@ class ApiException(Exception):
         return new
 
     def __str__(self) -> str:
-        error_message = (
-            f"[TECHDOCS]ApiException({self.status_code}, '{self.reason_phrase}')\n"
-        )
+        error_message = f"ApiException({self.status_code}, '{self.reason_phrase}')\n"
         if self.headers:
             error_message += f"HTTP response headers: {self.headers}\n"
         if self.body:
@@ -106,4 +104,4 @@ class ApiException(Exception):
         return error_message
 
     def __repr__(self) -> str:
-        return f"[TECHDOCS]ApiException({self.status_code}, {self.reason_phrase}, {self.body})"
+        return f"ApiException({self.status_code}, {self.reason_phrase}, {self.body})"

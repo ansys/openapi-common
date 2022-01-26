@@ -96,7 +96,7 @@ Currently we support only the Authorization Code authentication flow.
      -
    * - OIDC
      - ➕ with ``[oidc]`` extra
-     - ➕ with ``[oidc]``` extra
+     - ➕ with ``[oidc]`` extra
      - ``with_oidc()``
      -
 
