@@ -42,8 +42,8 @@ class OIDCSessionFactory:
         self,
         initial_session: requests.Session,
         initial_response: requests.Response,
-        api_connection_configuration: Optional[SessionConfiguration] = None,
-        idp_connection_configuration: Optional[SessionConfiguration] = None,
+        api_session_configuration: Optional[SessionConfiguration] = None,
+        idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
         """
         Parameters
@@ -52,14 +52,14 @@ class OIDCSessionFactory:
             Session to use whilst negotiating with the Identity Provider.
         initial_response : requests.Response
             Initial 401 response from the API server when no ``Authorization`` header is provided.
-        api_connection_configuration : Optional[SessionConfiguration]
+        api_session_configuration : Optional[SessionConfiguration]
             Configuration settings for  connections to the API server.
-        idp_connection_configuration : Optional[SessionConfiguration]
+        idp_session_configuration : Optional[SessionConfiguration]
             Configuration settings for connections to the OpenID Identity Provider.
 
         Notes
         -----
-        The ``headers`` field in ``idp_connection_configuration`` is not fully respected; the ``Accept`` and
+        The ``headers`` field in ``idp_session_configuration`` is not fully respected; the ``Accept`` and
         ``Content-Type`` headers will be overridden. Other settings are respected.
         """
         self._callback_server: "OIDCCallbackHTTPServer"
@@ -78,16 +78,16 @@ class OIDCSessionFactory:
             initial_response
         )
 
-        if api_connection_configuration is None:
-            api_connection_configuration = SessionConfiguration()
-        if idp_connection_configuration is None:
-            idp_connection_configuration = SessionConfiguration()
+        if api_session_configuration is None:
+            api_session_configuration = SessionConfiguration()
+        if idp_session_configuration is None:
+            idp_session_configuration = SessionConfiguration()
 
-        self._api_connection_configuration = (
-            api_connection_configuration.get_configuration_for_requests()
+        self._api_session_configuration = (
+            api_session_configuration.get_configuration_for_requests()
         )
-        self._idp_connection_configuration = OIDCSessionFactory._override_idp_header(
-            idp_connection_configuration.get_configuration_for_requests()
+        self._idp_session_configuration = OIDCSessionFactory._override_idp_header(
+            idp_session_configuration.get_configuration_for_requests()
         )
 
         self._well_known_parameters = self._fetch_and_parse_well_known(
@@ -107,7 +107,7 @@ class OIDCSessionFactory:
             redirect_uri=self._authenticate_parameters["redirecturi"],
             scope=scopes,
         )
-        set_session_kwargs(self._oauth_session, self._api_connection_configuration)
+        set_session_kwargs(self._oauth_session, self._api_session_configuration)
 
         if "offline_access" in scopes:
             self._configure_token_refresh()
@@ -204,7 +204,7 @@ class OIDCSessionFactory:
             self._well_known_parameters["token_endpoint"],
             authorization_response=auth_code,
             include_client_id=True,
-            **self._idp_connection_configuration,
+            **self._idp_session_configuration,
         )
         if _log_tokens:
             logger.debug(f"Access token: {self._oauth_session.token}")
@@ -300,11 +300,11 @@ class OIDCSessionFactory:
             URL referencing the OpenID Identity Provider's well-known endpoint.
         """
         logger.info(f"Fetching configuration information from Identity Provider {url}")
-        set_session_kwargs(self._initial_session, self._idp_connection_configuration)
+        set_session_kwargs(self._initial_session, self._idp_session_configuration)
         authority_response = self._initial_session.get(
             f"{url}.well-known/openid-configuration",
         )
-        set_session_kwargs(self._initial_session, self._api_connection_configuration)
+        set_session_kwargs(self._initial_session, self._api_session_configuration)
 
         logger.debug("Received configuration:")
         oidc_configuration = CaseInsensitiveDict(
@@ -359,7 +359,7 @@ class OIDCSessionFactory:
         """
         if "apiAudience" not in self._authenticate_parameters:
             return
-        mi_headers: CaseInsensitiveDict = self._api_connection_configuration["headers"]
+        mi_headers: CaseInsensitiveDict = self._api_session_configuration["headers"]
         mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
-        idp_headers: CaseInsensitiveDict = self._idp_connection_configuration["headers"]
+        idp_headers: CaseInsensitiveDict = self._idp_session_configuration["headers"]
         idp_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]

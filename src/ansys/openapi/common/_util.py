@@ -273,15 +273,15 @@ class SessionConfiguration:
         Parameters
         ----------
         client_cert_path : str
-            Path to client certificate to be sent with requests, see :obj:`requests.Session.cert`.
+            Path to client certificate to be sent with requests.
         client_cert_key : str
-            Key to unlock client certificate, see :obj:`requests.Session.cert`.
-        cookies : `http.cookiejar.CookieJar` or subclass
-            `Cookies` to be sent with each request.
+            Key to unlock client certificate (if required).
+        cookies : :class:`http.cookiejar.CookieJar` or subclass
+            Cookies to be sent with each request.
         headers : dict
             Header values to include with each request, indexed by header name. Case-insensitive.
         max_redirects : int
-            Maximum number of requests to allow before halting.
+            Maximum number of redirects to allow before halting.
         proxies : dict
             Proxy server URLs, indexed by resource URLs.
         verify_ssl : bool
@@ -335,7 +335,7 @@ class SessionConfiguration:
         self,
     ) -> "RequestsConfiguration":
         """
-        Outputs configuration as a dictionary, with keys corresponding to requests session properties.
+        Outputs configuration as a dictionary, with keys corresponding to ``requests`` session properties.
         """
         output: RequestsConfiguration = {
             "cert": self._cert,

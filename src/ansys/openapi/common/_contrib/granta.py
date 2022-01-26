@@ -22,7 +22,7 @@ def create_session_from_granta_stk(
     Notes
     -----
     Requires the user to have the Granta MI Scripting Toolkit installed with at least version 2.4,
-    otherwise use the appropriate class method to configure the requests session.
+    otherwise use the appropriate class method to configure the ``requests`` session.
     """
     sl_url = stk_configuration["api_url"]
     auth_settings = stk_configuration["authentication"]

@@ -9,8 +9,8 @@ if MYPY:
 
 class ApiConnectionException(Exception):
     """
-    Exception raised when connection to the Granta MI Service Layer fails. Inspect the ``.status_code`` and
-    ``.reason_phrase`` for more information about the failure.
+    Exception raised when connection to the API server fails. Inspect the ``.status_code`` and ``.reason_phrase`` for
+    more information about the failure.
 
     Attributes
     ----------
@@ -53,8 +53,8 @@ class AuthenticationWarning(Warning):
 
 class ApiException(Exception):
     """
-    Exception raised when the remote server returns an unsuccessful response. Inspect the ``.status`` and ``.reason``
-    for more information about the failure.
+    Exception raised when the remote server returns an unsuccessful response. Inspect the ``.status_code`` and
+    ``.reason_phrase`` for more information about the failure.
 
     Attributes
     ----------

@@ -73,7 +73,7 @@ class ApiClient:
 
         For testing purposes it is common to configure an API with a self-signed certificate; by default the
         :class:`ApiClient` will not trust self-signed SSL certificates. To allow this, pass a path to the root
-        certificate to the SessionConfiguration object. For more examples of configuration see the
+        certificate to the :class:`SessionConfiguration` object. For more examples of configuration see the
         :class:`SessionConfiguration` documentation.
 
         >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
@@ -154,8 +154,8 @@ class ApiClient:
         and will be respected, for example, if your API server is configured to require non-OIDC tokens for
         authentication.
 
-        Example
-        -------
+        Examples
+        --------
         >>> client = ApiClient(requests.Session(),
         ...                    'http://my-api.com/API/v1.svc',
         ...                    SessionConfiguration())
@@ -273,7 +273,7 @@ class ApiClient:
 
         * If obj is ``None``, return ``None``.
         * If obj is ``str``, ``int``, ``float`` or ``bool``, return directly.
-        * If obj is :class:`datetime.datetime` or :classL`datetime.date`, convert to string in ``iso8601`` format.
+        * If obj is :class:`datetime.datetime` or :class:`datetime.date`, convert to string in ``iso8601`` format.
         * If obj is ``list``, sanitize each element in the ``list``.
         * If obj is ``tuple``, sanitize each element in the ``tuple``.
         * If obj is ``dict``, return the ``dict``.
@@ -331,9 +331,9 @@ class ApiClient:
 
         For responses that are in JSON format, processes the response and returns it:
 
-        * If ``response_type`` is ``file``, save the content to a temporary file and return the file name.
+        * If ``response_type`` is the string `"file"`, save the content to a temporary file and return the file name.
         * If ``response_type`` is :class:`datetime.date` or :class:`datetime.datetime`, parse the string and return the
-        ``datetime`` object.
+          ``datetime`` object.
         * If ``response_type`` is ``list``, recursively deserialize the list contents.
         * If ``response_type`` is ``dict``, recursively deserialize the dictionary keys and values.
         * If ``response_type`` is an OpenAPI model, return the model object.
