@@ -71,10 +71,10 @@ class ApiClient:
         ...                    SessionConfiguration())
         ... <ApiClient url: http://my-api.com/API/v1.svc>
 
-        For testing purposes it is common to configure an API with a self-signed certificate; by default the ApiClient
-        will not trust self-signed SSL certificates. To allow this, pass a path to the root certificate to the
-        SessionConfiguration object. For more examples of configuration see the :obj:`SessionConfiguration`
-        documentation.
+        For testing purposes it is common to configure an API with a self-signed certificate; by default the
+        :class:`ApiClient` will not trust self-signed SSL certificates. To allow this, pass a path to the root
+        certificate to the SessionConfiguration object. For more examples of configuration see the
+        :class:`SessionConfiguration` documentation.
 
         >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
         ... ssl_client = ApiClient(requests.Session(),
@@ -95,7 +95,7 @@ class ApiClient:
 
     def setup_client(self, models: ModuleType) -> None:
         """Sets up the client for use and registers models for serialization and deserialization. This step must be
-        completed prior to using the ApiClient.
+        completed prior to using the :class:`ApiClient`.
 
         Parameters
         ----------
@@ -138,8 +138,8 @@ class ApiClient:
 
         Notes
         -----
-        The behavior of the OpenID Connect login process is not governed by the User-Agent string. It is not possible to use a
-        different login flow by changing this value when using OIDC authentication.
+        The behavior of the OpenID Connect login process is not governed by the User-Agent string. It is not possible to
+        use a different login flow by changing this value when using OIDC authentication.
         """
         return self.default_headers["User-Agent"]
 
@@ -163,8 +163,8 @@ class ApiClient:
 
         Notes
         -----
-        Some headers will always be overwritten, and some may be depending on the API endpoint requested. As a guide, the
-        following headers will always be ignored and overwritten:
+        Some headers will always be overwritten, and some may be depending on the API endpoint requested. As a guide,
+        the following headers will always be ignored and overwritten:
 
         * ``Accept``
         * ``Content-Type``
@@ -271,13 +271,13 @@ class ApiClient:
 
         Based on the object type, returns the sanitized JSON representation to be sent to the server:
 
-        * If obj is `None`, return `None`.
-        * If obj is `str`, `int`, `float` or `bool`, return directly.
-        * If obj is `datetime.datetime` or `datetime.date`, convert to string in `iso8601` format.
-        * If obj is `list`, sanitize each element in the `list`.
-        * If obj is `tuple`, sanitize each element in the `tuple`.
-        * If obj is `dict`, return the `dict`.
-        * If obj is an OpenAPI model, return the `properties` `dict`.
+        * If obj is ``None``, return ``None``.
+        * If obj is ``str``, ``int``, ``float`` or ``bool``, return directly.
+        * If obj is :class:`datetime.datetime` or :classL`datetime.date`, convert to string in ``iso8601`` format.
+        * If obj is ``list``, sanitize each element in the ``list``.
+        * If obj is ``tuple``, sanitize each element in the ``tuple``.
+        * If obj is ``dict``, return the ``dict``.
+        * If obj is an OpenAPI model, return the ``properties`` ``dict``.
 
         Parameters
         ----------
@@ -331,11 +331,12 @@ class ApiClient:
 
         For responses that are in JSON format, processes the response and returns it:
 
-        * If `response_type` is "file", save the content to a temporary file and return the file name.
-        * If `response_type` is `datetime.date` or `datetime.datetime`, parse the string and return the `datetime` object.
-        * If `response_type` is `list`, recursively deserialize the list contents.
-        * If `response_type` is `dict`, recursively deserialize the dictionary keys and values.
-        * If `response_type` is an OpenAPI model, return the model object.
+        * If ``response_type`` is ``file``, save the content to a temporary file and return the file name.
+        * If ``response_type`` is :class:`datetime.date` or :class:`datetime.datetime`, parse the string and return the
+        ``datetime`` object.
+        * If ``response_type`` is ``list``, recursively deserialize the list contents.
+        * If ``response_type`` is ``dict``, recursively deserialize the dictionary keys and values.
+        * If ``response_type`` is an OpenAPI model, return the model object.
 
         Parameters
         ----------
@@ -382,7 +383,7 @@ class ApiClient:
     def __deserialize(
         self, data: SerializedType, klass: Union[str, Type]
     ) -> DeserializedType:
-        """Deserializes `dict`, `list`, and `str` into an object.
+        """Deserializes ``dict``, ``list``, and ``str`` into an object.
 
         Parameters
         ----------
@@ -447,7 +448,7 @@ class ApiClient:
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
-        """Makes the HTTP request (synchronous) and returns deserialized data.
+        """Makes the HTTP request and returns deserialized data.
 
         Parameters
         ----------
@@ -477,8 +478,8 @@ class ApiClient:
             If `False`, the underlying response object will be returned without reading/decoding response data
             (default `True`).
         _request_timeout : Union[float, Tuple[float]]
-            Timeout setting for this request. If only one number is provided, it is used as a total request timeout. It can also be a
-            pair (tuple) of (connection, read) timeouts. Overrides the session-level timeout setting.
+            Timeout setting for this request. If only one number is provided, it is used as a total request timeout. It
+            can also be a pair (tuple) of (connection, read) timeouts. Overrides the session-level timeout setting.
         """
         return self.__call_api(
             resource_path,
@@ -512,7 +513,7 @@ class ApiClient:
         Parameters
         ----------
         method : str
-            HTTP method verb to call.
+            HTTP method verb.
         url : str
             Absolute URL of target endpoint, including any path and query parameters.
         query_params : str
@@ -527,8 +528,8 @@ class ApiClient:
             If `False`, the underlying response object will be returned without reading/decoding response data
             (default `True`).
         _request_timeout : Union[float, Tuple[float]]
-            Timeout setting for this request. If only one number is provided, it is used as a total request timeout. It can also be a
-            pair (tuple) of (connection, read) timeouts. Overrides the session-level timeout setting.
+            Timeout setting for this request. If only one number is provided, it is used as a total request timeout. It
+            can also be a pair (tuple) of (connection, read) timeouts. Overrides the session-level timeout setting.
         """
 
         if method == "GET":
@@ -752,7 +753,7 @@ class ApiClient:
         """Deserializes body to file.
 
         Saves response body into a file in a temporary folder,
-        using the filename from the `Content-Disposition` header if provided.
+        using the filename from the ``Content-Disposition`` header if provided.
 
         Parameters
         ----------
@@ -827,12 +828,12 @@ class ApiClient:
 
     @staticmethod
     def __deserialize_datetime(value: str) -> datetime.datetime:
-        """Deserializes string to `datetime`.
+        """Deserializes string to ``datetime``.
 
         Parameters
         ----------
         value : str
-            String representation of the `datetime` object in ISO 8601 format.
+            String representation of the ``datetime`` object in ISO 8601 format.
         """
         try:
             return parse(value)
@@ -849,7 +850,7 @@ class ApiClient:
     def __deserialize_model(
         self, data: Union[Dict, List], klass: ModelType
     ) -> Union[ModelType, Dict, List]:
-        """Deserializes `list` or `dict` to model.
+        """Deserializes ``list`` or ``dict`` to model.
 
         Given a model type and the serialized data, deserialize into an instance of the model class.
 

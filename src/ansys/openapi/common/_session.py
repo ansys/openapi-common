@@ -218,7 +218,7 @@ class ApiClientFactory:
         Requires the user to have a valid Kerberos Ticket-Granting-Ticket (TGT).
 
         * On Windows, this is provided by default.
-        * On Linux, this requires the `[linux-kerberos]` extension to be installed, and your Kerberos installation
+        * On Linux, this requires the ``[linux-kerberos]`` extension to be installed, and your Kerberos installation
         must be configured manually. See `here <https://github.com/requests/requests-kerberos>`_ for more
         information on how to configure your Kerberos installation.
         """
@@ -261,7 +261,7 @@ class ApiClientFactory:
 
         Notes
         -----
-        OIDC Authentication requires the `[oidc]` extra to be installed.
+        OIDC Authentication requires the ``[oidc]`` extra to be installed.
         """
         if not _oidc_enabled:
             raise ImportError(
@@ -282,8 +282,8 @@ class ApiClientFactory:
 
     def __test_connection(self) -> bool:
         """Attempts to connect to the API server. If this returns a 2XX status code, the method returns
-        `True`, else the method will throw an :obj:`APIConnectionError` with the status code and the reason phrase. If the
-        underlying requests method returns an exception of its own it is left to propagate as-is (for example, a
+        `True`, else the method will throw an :obj:`APIConnectionError` with the status code and the reason phrase. If
+        the underlying requests method returns an exception of its own it is left to propagate as-is (for example, a
         :obj:`~requests.exceptions.SSLException` if the remote certificate is untrusted).
 
         Raises
@@ -394,7 +394,7 @@ class OIDCSessionBuilder:
         Raises
         ------
         ValueError
-            If no token is found in the system keyring with the provided `token_name`.
+            If no token is found in the system keyring with the provided ``token_name``.
         """
         if self._session_factory is None:
             return self._client_factory

@@ -53,9 +53,9 @@ class OIDCSessionFactory:
         initial_response : requests.Response
             Initial 401 response from the API server when no ``Authorization`` header is provided.
         api_requests_configuration : Optional[SessionConfiguration]
-            Configuration settings request for connections to the API server.
+            Configuration settings for  connections to the API server.
         idp_requests_configuration : Optional[SessionConfiguration]
-            Configuration settings request for connections to the OpenID Identity Provider.
+            Configuration settings for connections to the OpenID Identity Provider.
 
         Notes
         -----
@@ -163,7 +163,7 @@ class OIDCSessionFactory:
         Raises
         ------
         ValueError
-            If no token is found in the system keyring with the provided `token_name`.
+            If no token is found in the system keyring with the provided ``token_name``.
         """
         refresh_token = keyring.get_password(token_name, self._api_url)
         if refresh_token is None:
@@ -219,7 +219,7 @@ class OIDCSessionFactory:
     def _configure_token_refresh(self) -> None:
         """Configures automatic token refresh, if available.
 
-        Currently only supports authorization code flow, as we do not support `client_secrets`.
+        Only Authorization Code Flow is currently supported.
         """
 
         def token_updater(token: Dict[str, str]) -> None:

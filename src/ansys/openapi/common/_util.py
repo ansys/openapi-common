@@ -79,7 +79,7 @@ class Singleton(type):
     """
     Metaclass that adds Singleton behaviour.
 
-    When derived classes are created for the first time, they are added to the `._instances` property. Further instances of the
+    When derived classes are created for the first time, they are added to the ``._instances`` property. Further instances of the
     class will fetch the existing instance, rather than creating a new one.
     """
 
@@ -117,8 +117,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         self.auth_parser = pp.delimitedList(credentials("schemes*"), delim=", ")
 
     def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
-        """
-        Parses a given header's content and returns a dictionary of authentication methods and parameters or tokens.
+        """Parses a given header's content and returns a dictionary of authentication methods and parameters or tokens.
 
         Invalid headers (according to the specification above) will return an empty response.
 
@@ -274,9 +273,9 @@ class SessionConfiguration:
         Parameters
         ----------
         client_cert_path : str
-            Path to client certificate to be sent with requests, see `requests.Session.cert`.
+            Path to client certificate to be sent with requests, see :obj:`requests.Session.cert`.
         client_cert_key : str
-            Key to unlock client certificate, see `requests.Session.cert`.
+            Key to unlock client certificate, see :obj:`requests.Session.cert`.
         cookies : `http.cookiejar.CookieJar` or subclass
             `Cookies` to be sent with each request.
         headers : dict
@@ -292,8 +291,8 @@ class SessionConfiguration:
         temp_folder_path : str
             Path to temporary directory where downloaded files will be stored (default is user TEMP directory).
         debug : bool
-            Controls whether debug logging will be generated, this will include sensitive information if either the
-            `auth_logger` or `transport_logger` are configured to output logs.
+            Controls whether debug logging will be generated, this will include sensitive information about the
+            authentication process.
         safe_chars_for_path_param : str
             Additional characters to treat as 'safe' when creating path parameters, see
             `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_ for more information.
@@ -353,7 +352,7 @@ class SessionConfiguration:
         cls, configuration_dict: "RequestsConfiguration"
     ) -> "SessionConfiguration":
         """
-        Creates a `SessionConfiguration` object from its dictionary form, inverse of
+        Creates a :class:`SessionConfiguration` object from its dictionary form, inverse of
         :meth:`.get_configuration_for_requests`.
 
         Parameters
@@ -406,7 +405,7 @@ class ModelType(type):
 def handle_response(response: requests.Response) -> requests.Response:
     """Helper method. Checks the status code of a response.
 
-    If the response is a 2XX then it is returned as-is, otherwise an ApiException will be raised.
+    If the response is a 2XX then it is returned as-is, otherwise an :class:`ApiException` will be raised.
 
     Throws
     ------
