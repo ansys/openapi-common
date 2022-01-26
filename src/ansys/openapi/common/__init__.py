@@ -4,6 +4,7 @@ from ._session import ApiClientFactory, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._api_client import ApiClient
+from ._oidc import OIDCSessionFactory
 from ._contrib.granta import create_session_from_granta_stk
 
 __all__ = [
@@ -16,6 +17,7 @@ __all__ = [
     "create_session_from_granta_stk",
     "generate_user_agent",
     "OIDCSessionBuilder",
+    "OIDCSessionFactory",
 ]
 
 try:

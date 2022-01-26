@@ -35,6 +35,22 @@ class OIDCSessionFactory:
     If your Identity provider does not provide the exact scopes requested by your API server you will be unable to
     connect for security reasons, to force the client to proceed with non-matching scopes set the environment variable
     ``OAUTHLIB_RELAX_TOKEN_SCOPE`` to ``TRUE``.
+
+    Parameters
+    ----------
+    initial_session : requests.Session
+        Session for use whilst negotiating with the identity provider.
+    initial_response : requests.Response
+        Initial 401 response from the API server when no ``Authorization`` header is provided.
+    api_requests_configuration : Optional[SessionConfiguration]
+        Requests configuration settings for connections to the API server.
+    idp_requests_configuration : Optional[SessionConfiguration]
+        Requests configuration settings for connections to the OpenID Identity Provider.
+
+    Notes
+    -----
+    The ``headers`` field in ``idp_requests_configuration`` is not fully respected, the ``Accept`` and
+    ``Content-Type`` headers will be overridden. Other settings are respected.
     """
 
     def __init__(
@@ -44,24 +60,7 @@ class OIDCSessionFactory:
         api_requests_configuration: Optional[SessionConfiguration] = None,
         idp_requests_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
-        """
-        [TECHDOCS]
-        Parameters
-        ----------
-        initial_session : requests.Session
-            Session for use whilst negotiating with the identity provider.
-        initial_response : requests.Response
-            Initial 401 response from the API server when no ``Authorization`` header is provided.
-        api_requests_configuration : Optional[SessionConfiguration]
-            Requests configuration settings for connections to the API server.
-        idp_requests_configuration : Optional[SessionConfiguration]
-            Requests configuration settings for connections to the OpenID Identity Provider.
 
-        Notes
-        -----
-        The ``headers`` field in ``idp_requests_configuration`` is not fully respected, the ``Accept`` and
-        ``Content-Type`` headers will be overridden. Other settings are respected.
-        """
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
         self._oauth_session: OAuth2Session

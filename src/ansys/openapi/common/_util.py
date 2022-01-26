@@ -252,7 +252,39 @@ class RequestsConfiguration(TypedDict):
 
 
 class SessionConfiguration:
-    """Provides configuration for the API client session."""
+    """Provides configuration for the API client session.
+
+    Parameters
+    ----------
+    client_cert_path : str
+        Path to client certificate to be sent with requests, see requests.Session.cert.
+    client_cert_key : str
+        Key to unlock client certificate, see requests.Session.cert.
+    cookies : http.cookiejar.CookieJar or subclass
+        Cookies to be sent with each request.
+    headers : dict
+        Header values to include with each request indexed by header name, case-insensitive.
+    max_redirects : int
+        Maximum number of requests to allow before halting.
+    proxies : dict
+        Proxy server urls indexed by resource urls.
+    verify_ssl : bool
+        Verify the SSL certificate of the remote host (default True).
+    cert_store_path : str
+        Path to custom certificate store (in .pem format).
+    temp_folder_path : str
+        Path to temporary directory where downloaded files will be stored (default is user TEMP directory).
+    debug : bool
+        Controls whether debug logging will be generated, this will include sensitive information if either the
+        `auth_logger` or `transport_logger` are configured to output logs.
+    safe_chars_for_path_param : str
+        Additional characters to treat as 'safe' when creating path parameters, see
+        `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_ for more information.
+    retry_count : int
+        Number of attempts to make if the API server fails to return a valid response (default 3).
+    request_timeout : int
+        Timeout for requests to the API server in seconds (default 31).
+    """
 
     def __init__(
         self,
@@ -270,38 +302,7 @@ class SessionConfiguration:
         retry_count: int = 3,
         request_timeout: int = 31,
     ) -> None:
-        """
-        Parameters
-        ----------
-        client_cert_path : str
-            Path to client certificate to be sent with requests, see requests.Session.cert.
-        client_cert_key : str
-            Key to unlock client certificate, see requests.Session.cert.
-        cookies : http.cookiejar.CookieJar or subclass
-            Cookies to be sent with each request.
-        headers : dict
-            Header values to include with each request indexed by header name, case-insensitive.
-        max_redirects : int
-            Maximum number of requests to allow before halting.
-        proxies : dict
-            Proxy server urls indexed by resource urls.
-        verify_ssl : bool
-            Verify the SSL certificate of the remote host (default True).
-        cert_store_path : str
-            Path to custom certificate store (in .pem format).
-        temp_folder_path : str
-            Path to temporary directory where downloaded files will be stored (default is user TEMP directory).
-        debug : bool
-            Controls whether debug logging will be generated, this will include sensitive information if either the
-            `auth_logger` or `transport_logger` are configured to output logs.
-        safe_chars_for_path_param : str
-            Additional characters to treat as 'safe' when creating path parameters, see
-            `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_ for more information.
-        retry_count : int
-            Number of attempts to make if the API server fails to return a valid response (default 3).
-        request_timeout : int
-            Timeout for requests to the API server in seconds (default 31).
-        """
+
         self.client_cert_path = client_cert_path
         self.client_cert_key = client_cert_key
         self.cookies = cookies or http.cookiejar.CookieJar()
