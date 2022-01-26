@@ -441,7 +441,7 @@ def generate_user_agent(package_name: str, package_version: str) -> str:
 
     import platform
 
-    os_version = platform.platform()
     python_implementation = platform.python_implementation()
     python_version = platform.python_version()
+    os_version = platform.platform()
     return f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"
