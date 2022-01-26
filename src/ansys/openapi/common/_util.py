@@ -158,7 +158,7 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     Parameters
     ----------
     value : str
-        A **www-authenticate** header.
+        A ``WWW-Authenticate`` header.
     """
     parser = AuthenticateHeaderParser()
     return parser.parse_header(value)
