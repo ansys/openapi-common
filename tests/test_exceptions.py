@@ -7,7 +7,6 @@ from ansys.openapi.common import ApiException, ApiConnectionException
 from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
-@pytest.mark.skip("Awaiting documentation review")
 def test_api_connection_exception_repr():
     status_code = 403
     reason_phrase = "Forbidden"
@@ -19,23 +18,27 @@ def test_api_connection_exception_repr():
     exception_repr = api_connection_exception.__repr__()
 
     exception_from_repr = eval(exception_repr)
-    assert exception_from_repr == api_connection_exception
+    assert type(exception_from_repr) == type(api_connection_exception)
+    assert exception_from_repr.status_code == api_connection_exception.status_code
+    assert exception_from_repr.reason_phrase == api_connection_exception.reason_phrase
+    assert exception_from_repr.message == api_connection_exception.message
 
 
-@pytest.mark.skip("Awaiting documentation review")
 def test_api_exception_repr():
     status_code = 404
     reason_phrase = "Not Found"
-    message = f"Record with ID '{str(uuid.uuid4())}' not found"
+    message = f"Record with ID \"{str(uuid.uuid4())}\" not found"
 
-    api_connection_exception = ApiException(status_code, reason_phrase, message)
-    exception_repr = api_connection_exception.__repr__()
+    api_exception = ApiException(status_code, reason_phrase, message)
+    exception_repr = api_exception.__repr__()
 
     exception_from_repr = eval(exception_repr)
-    assert exception_from_repr == api_connection_exception
+    assert type(exception_from_repr) == type(api_exception)
+    assert exception_from_repr.status_code == api_exception.status_code
+    assert exception_from_repr.reason_phrase == api_exception.reason_phrase
+    assert exception_from_repr.body == api_exception.body
 
 
-@pytest.mark.skip("Awaiting documentation review")
 def test_authentication_warning():
     message = f"OpenID Connect was requested but no authentication was required."
 
@@ -43,7 +46,8 @@ def test_authentication_warning():
     warning_repr = authentication_warning.__repr__()
 
     warning_from_repr = eval(warning_repr)
-    assert warning_from_repr == authentication_warning
+    assert type(warning_from_repr) == type(authentication_warning)
+    assert warning_from_repr.message == authentication_warning.message
 
 
 @pytest.mark.parametrize("include_headers", (False, True))

@@ -30,7 +30,7 @@ class ApiConnectionException(Exception):
         super().__init__(message)
 
     def __repr__(self) -> str:
-        return f"ApiConnectionException({self.status_code}, '{self.reason_phrase}',\n'{self.message}')"
+        return f"ApiConnectionException({self.status_code}, '{self.reason_phrase}','{self.message}')"
 
 
 class AuthenticationWarning(Warning):
@@ -48,7 +48,7 @@ class AuthenticationWarning(Warning):
         self.message = message
 
     def __repr__(self) -> str:
-        return f"AuthenticationWarning({self.message})"
+        return f"AuthenticationWarning('{self.message}')"
 
 
 class ApiException(Exception):
@@ -104,4 +104,4 @@ class ApiException(Exception):
         return error_message
 
     def __repr__(self) -> str:
-        return f"ApiException({self.status_code}, {self.reason_phrase}, {self.body})"
+        return f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
