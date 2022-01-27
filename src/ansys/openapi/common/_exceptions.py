@@ -104,4 +104,6 @@ class ApiException(Exception):
         return error_message
 
     def __repr__(self) -> str:
-        return f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
+        return (
+            f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
+        )

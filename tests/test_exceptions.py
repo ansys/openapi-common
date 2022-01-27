@@ -27,7 +27,7 @@ def test_api_connection_exception_repr():
 def test_api_exception_repr():
     status_code = 404
     reason_phrase = "Not Found"
-    message = f"Record with ID \"{str(uuid.uuid4())}\" not found"
+    message = f'Record with ID "{str(uuid.uuid4())}" not found'
 
     api_exception = ApiException(status_code, reason_phrase, message)
     exception_repr = api_exception.__repr__()
