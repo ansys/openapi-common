@@ -231,8 +231,7 @@ class ApiClientFactory:
 
         * On Windows, this is provided by default.
         * On Linux, this requires the ``[linux-kerberos]`` extension to be installed, and your Kerberos installation
-          must be configured manually. See `here <https://github.com/requests/requests-kerberos>`_ for more
-          information on how to configure your Kerberos installation.
+          must be configured correctly.
 
         Returns
         -------
