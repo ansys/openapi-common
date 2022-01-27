@@ -470,7 +470,7 @@ class OIDCSessionBuilder:
         Returns
         -------
         :class:`ApiClientFactory`
-            The original client factory object.
+            Original client factory object.
         """
         if self._session_factory is None:
             return self._client_factory
