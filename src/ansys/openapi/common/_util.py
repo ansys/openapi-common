@@ -433,7 +433,7 @@ def generate_user_agent(package_name: str, package_version: str) -> str:
     package_name : str
         Name of the package to include in the user-agent string.
     package_version : str
-        Bersion of the package to include in the user-agent string.
+        Version of the package to include in the user-agent string.
 
     Returns
     -------

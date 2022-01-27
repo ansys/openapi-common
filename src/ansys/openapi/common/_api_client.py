@@ -474,7 +474,7 @@ class ApiClient:
             Dictionary of the file name and path for ``multipart/form-data``.
         _return_http_data_only : bool, optional
             Whether to return response data without head status code and headers. The default
-            is ```False``.
+            is ``False``.
         collection_formats : Dict[str, str]
             Collection format name for path, query, header, and post parameters. This parameter maps the
             parameter name to the collection type.

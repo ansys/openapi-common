@@ -7,7 +7,7 @@ API Reference
 .. currentmodule:: ansys.openapi.common
 
 
-This section summarizes the API's public openapi-common
+This section summarizes the ``openapi-common`` public
 classes, functions, and attributes.
 
 .. autosummary::
