@@ -256,13 +256,14 @@ class SessionConfiguration:
     Parameters
     ----------
     client_cert_path : str
-        Path to client certificate to send with requests.
+        Path to the client certificate to send with the requests.
     client_cert_key : str
-        Key to unlock client certificate (if required).
+        Key to unlock the client certificate (if required).
     cookies : :class:`http.cookiejar.CookieJar` or subclass
         Cookies to send with each request.
     headers : dict
-        Header values to include with each request, indexed by header name. This parameter is case-insensitive.
+        Header values to include with each request, indexed by header name. This parameter is
+        case-insensitive.
     max_redirects : int
         Maximum number of redirects to allow before halting.
     proxies : dict
@@ -270,11 +271,12 @@ class SessionConfiguration:
     verify_ssl : bool
         Whether to verify the SSL certificate of the remote host. The default is ``True``.
     cert_store_path : str
-        Path to custom certificate store (in .pem format).
+        Path to the custom certificate store in ``.pem`` format.
     temp_folder_path : str
-        Path to temporary directory where downloaded files are to be stored. The default is the user's ``TEMP`` directory.
-    debug : bool
-        Whether debug logging is generated. The logging will include sensitive information about the
+        Path to the temporary directory where downloaded files are to be stored. The default is
+        the user's ``TEMP`` directory.
+    debug : bool, optional
+        Whether debug logging is generated. The default is ``False``. The logging include sensitives information about the
         authentication process.
     safe_chars_for_path_param : str
         Additional characters to treat as 'safe' when creating path parameters. For more information,
@@ -424,19 +426,19 @@ def handle_response(response: requests.Response) -> requests.Response:
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:
-    """Generate a User-Agent string of the form <package info> <python info> <os info>.
+    """Generate a user-agent string in the form <package info> <python info> <os info>.
 
     Parameters
     ----------
     package_name : str
-        The name of the package to be included in the User-Agent string.
+        Name of the package to include in the user-agent string.
     package_version : str
-        The version of the package to be included in the User-Agent string.
+        Version of the package to include in the user-agent string.
 
     Returns
     -------
     str
-        The User-Agent string.
+        User-agent string.
     """
 
     import platform
