@@ -9,8 +9,8 @@ if MYPY:
 
 class ApiConnectionException(Exception):
     """
-    Exception raised when connection to the API server fails. Inspect the ``.status_code`` and ``.reason_phrase`` for
-    more information about the failure.
+    Exception raised when connection to the API server fails. For more information about the failure,
+    inspect ``.status_code`` and ``.reason_phrase``.
 
     Attributes
     ----------
@@ -19,7 +19,7 @@ class ApiConnectionException(Exception):
     reason_phrase : str
         Description of the response as provided by the server.
     message : str
-        The content of the response as provided by the server.
+        Content of the response as provided by the server.
 
     """
 
@@ -53,8 +53,8 @@ class AuthenticationWarning(Warning):
 
 class ApiException(Exception):
     """
-    Exception raised when the remote server returns an unsuccessful response. Inspect the ``.status_code`` and
-    ``.reason_phrase`` for more information about the failure.
+    Exception raised when the remote server returns an unsuccessful response. For more information about
+    the failure, inspect ``.status_code`` and ``.reason_phrase``.
 
     Attributes
     ----------
@@ -62,10 +62,10 @@ class ApiException(Exception):
         HTTP status code associated with the response.
     reason_phrase : str
         Description of the response as provided by the server.
-    body : Optional[str]
-        Content of the response as provided by the server.
-    headers : Optional[CaseInsensitiveDict]
-        Response headers as provided by the server.
+    body : str, optional
+        Content of the response as provided by the server. The default is ``None``.
+    headers : CaseInsensitiveDict, optional
+        Response headers as provided by the server. The defeault is ``None``.
     """
 
     status_code: int

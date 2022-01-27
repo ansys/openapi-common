@@ -22,7 +22,7 @@ HTTP APIs, minimizing overhead and reducing code duplication.
 Background
 ----------
 A widely used standard for HTTP REST-style APIs is the OpenAPI standard,
-formerly known as Swagger. The Open API Common library is designed to be
+formerly known as Swagger. The OpenAPI Common library is designed to be
 used alongside code generation tools to produce client libraries for HTTP
 APIs.
 
@@ -98,7 +98,7 @@ You can set all options that are available in Python library *requests* through
 the client. This enables you to configure custom SSL certificate validation, send
 client certificates if your API server requires them, and configure many other options.
 
-For example to send a client certificate with every request:
+For example, to send a client certificate with every request:
 
 .. code:: python
 
@@ -124,7 +124,7 @@ Ubuntu requires the Python module ``gssapi`` to be built from source. This requi
 Kerberos headers, Python headers for the version of Python that you are using, and a
 supported compiler. (GCC works well.)
 
-You should then be able to install this module with the ``[linux-kerberos]`` extra.
+You should then be able to install this module with the ``[linux-kerberos]`` extra:
 
 .. code-block:: sh
 
@@ -141,8 +141,8 @@ For comprehensive API documentation, see :doc:`API reference <api/index>`.
 
 Contributing
 ------------
-Contributions to this library are welcomed. For more information, see the
-:doc:`Contributor Guide<contributing>`.
+We welcome contributions to this library. For more information, see the
+:doc:`Contributing<contributing>`.
 
 Project Index
 -------------

@@ -38,5 +38,5 @@ To reach the project support team, email `pyansys.support@ansys.com <pyansys.sup
 Viewing OpenAPI Client Documentation
 ------------------------------------
 Documentation for the latest stable release of the OpenAPI Client
-is hosted at `OpenAPI Client Documentation <https://aedtdocs.pyansys.com>`_.  
+is hosted at `OpenAPI Client Documentation <https://grantami.docs.pyansys.com>`_.  
 

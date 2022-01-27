@@ -31,7 +31,7 @@ SerializedType = Union[None, PrimitiveType, List, Tuple, Dict]
 
 # noinspection DuplicatedCode
 class ApiClient:
-    """Provides generic API client for OpenAPI client library builds.
+    """Provides a generic API client for OpenAPI client library builds.
 
     This client handles client-server communication and is invariant across
     implementations. Specifics of the methods and models for each application are
@@ -54,7 +54,7 @@ class ApiClient:
     ...                    SessionConfiguration())
     ... <ApiClient url: http://my-api.com/API/v1.svc>
 
-    For testing purposes it is common to configure an API with a self-signed certificate. By default, the
+    For testing purposes, it is common to configure an API with a self-signed certificate. By default, the
     :class:`ApiClient` will not trust self-signed SSL certificates. To allow this, pass a path to the root
     certificate to the :class:`SessionConfiguration` object. For more configuration examples, see the
     :class:`SessionConfiguration` documentation.
@@ -114,10 +114,10 @@ class ApiClient:
 
     @property
     def user_agent(self) -> str:
-        """The user agent reported to the API server in the ``User-Agent`` header.
+        """User agent reported to the API server in the ``User-Agent`` header.
 
-        Some APIs will behave differently for different client applications; change this if your API requires different
-        behavior.
+        Some APIs will behave differently for different client applications. Change this if your
+        API requires different behavior.
 
         Examples
         --------
@@ -138,8 +138,9 @@ class ApiClient:
 
         Notes
         -----
-        The behavior of the OpenID Connect login process is not governed by the User-Agent string. It is not possible to
-        use a different login flow by changing this value when using OIDC authentication.
+        The behavior of the OpenID Connect login process is not governed by the user-agent string.
+        It is not possible to use a different login flow by changing this value when using OIDC
+        authentication.
         """
         return self.default_headers["User-Agent"]
 
@@ -151,8 +152,8 @@ class ApiClient:
         """Sets a default value for a header on all requests.
 
         Certain headers will be overwritten by the API when sending requests, but default values for others can be set
-        and will be respected, for example, if your API server is configured to require non-OIDC tokens for
-        authentication.
+        and will be respected. For example, they are set and respected if your API server is configured to require
+        non-OIDC tokens for authentication.
 
         Examples
         --------
@@ -170,7 +171,7 @@ class ApiClient:
         * ``Content-Type``
 
         The ``Authorization`` header may be overwritten depending on what, if any, authentication scheme is provided for
-        the requests Session.
+        the requests session.
         """
         self.default_headers[header_name] = header_value
 
@@ -269,7 +270,7 @@ class ApiClient:
     def sanitize_for_serialization(self, obj: Any) -> Any:
         """Builds a JSON POST object.
 
-        Based on the object type, returns the sanitized JSON representation to be sent to the server:
+        Based on the object type, this method returns the sanitized JSON representation to send to the server:
 
         * If obj is ``None``, return ``None``.
         * If obj is ``str``, ``int``, ``float`` or ``bool``, return directly.
@@ -282,7 +283,7 @@ class ApiClient:
         Parameters
         ----------
         obj : DeserializedType
-            The data to be sanitized and serialized.
+            Data to sanitize and serialize.
 
         Examples
         --------
@@ -325,11 +326,11 @@ class ApiClient:
     def deserialize(
         self, response: requests.Response, response_type: Union[str, Type]
     ) -> DeserializedType:
-        """Deserializes response into an object.
+        """Deserializes the response into an object.
 
-        Based on the type of response, creates the appropriate object for use.
+        Based on the type of response, the appropriate object is created for use.
 
-        For responses that are in JSON format, processes the response and returns it:
+        For responses that are in JSON format, this method processes the response and returns it:
 
         * If ``response_type`` is the string `"file"`, save the content to a temporary file and return the file name.
         * If ``response_type`` is :class:`datetime.date` or :class:`datetime.datetime`, parse the string and return the
@@ -343,7 +344,7 @@ class ApiClient:
         response : requests.Response
             Response object received from the API.
         response_type : Union[str, Type]
-            Either the string name of the class represented, or the type.
+            String name of the class represented or the type.
 
         Examples
         --------
@@ -390,11 +391,12 @@ class ApiClient:
         data : Union[Dict, List, str]
             Response data to be deserialized.
         klass : Union[str, Type]
-            Type of object the data should be deserialized into. One of:
+            Type of object the data should be deserialized into one of
+            these:
 
-            * String class name.
-            * String Type definition for list or dictionary.
-            * Type.
+            * String class name
+            * String Type definition for list or dictionary
+            * Type
         """
 
         if data is None:
@@ -453,7 +455,7 @@ class ApiClient:
         Parameters
         ----------
         resource_path : str
-            Path to method endpoint, relative to base URL.
+            Path to the method endpoint, relative to the base URL.
         method : str
             HTTP method verb to call.
         path_params : Union[Dict[str, Union[str, int]], List[Tuple]]
@@ -461,25 +463,29 @@ class ApiClient:
         query_params : Union[Dict[str, Union[str, int]], List[Tuple]]
             Query parameters to pass in the URL.
         header_params : Union[Dict[str, Union[str, int]], List[Tuple]]
-            Header parameters to be placed in the request header.
+            Header parameters to place in the request header.
         body : DeserializedType
             Request body.
         post_params : List[Tuple]
-            Request POST form parameters, for ``application/x-www-form-urlencoded``, ``multipart/form-data``.
+            Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
         response_type : Union[str, Type]
             Expected response data type.
         files : Dict[str, str]
-            Dictionary of filename and path for ``multipart/form-data``.
-        _return_http_data_only : bool
-            Return response data without head status code and headers (default `False`).
+            Dictionary of the file name and path for ``multipart/form-data``.
+        _return_http_data_only : bool, optional
+            Whether to return response data without head status code and headers. The default
+            is ```False``.
         collection_formats : Dict[str, str]
-            Collection format name for path, query, header, and post parameters. Maps parameter name to collection type.
-        _preload_content : bool
-            If `False`, the underlying response object will be returned without reading/decoding response data
-            (default `True`).
+            Collection format name for path, query, header, and post parameters. This parameter maps the
+            parameter name to the collection type.
+        _preload_content : bool, optional
+            Whether to return the underlying response without reading or decoding response data. The default
+            is ``True``, in which case the reading or decoding data is read.  If ``False``, recording or response
+            data is not read.
         _request_timeout : Union[float, Tuple[float]]
-            Timeout setting for this request. If only one number is provided, it is used as a total request timeout. It
-            can also be a pair (tuple) of (connection, read) timeouts. Overrides the session-level timeout setting.
+            Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
+            It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
+            timeout setting.
         """
         return self.__call_api(
             resource_path,
@@ -515,21 +521,23 @@ class ApiClient:
         method : str
             HTTP method verb.
         url : str
-            Absolute URL of target endpoint, including any path and query parameters.
+            Absolute URL of the target endpoint, including any path and query parameters.
         query_params : str
             Query parameters to pass in the URL.
         headers : Dict
-            Headers to be attached to the request.
+            Headers to attach to the request.
         post_params : List[Tuple]
-            Request post form parameters, for ``application/x-www-form-urlencoded``, ``multipart/form-data``.
+            Request post form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
         body : SerializedType
             Request body.
-        _preload_content : bool
-            If `False`, the underlying response object will be returned without reading/decoding response data
-            (default `True`).
+        _preload_content : bool, optional
+            Whether to return the underlying response without reading or decoding response data. The default
+            is ``True``, in which case the reading or decoding data is read.  If ``False``, recording or response
+            data is not read.
         _request_timeout : Union[float, Tuple[float]]
-            Timeout setting for this request. If only one number is provided, it is used as a total request timeout. It
-            can also be a pair (tuple) of (connection, read) timeouts. Overrides the session-level timeout setting.
+            Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
+            It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
+            timeout setting.
         """
 
         if method == "GET":
@@ -626,10 +634,10 @@ class ApiClient:
         Parameters
         ----------
         params : Union[Dict, List[Tuple]]
-            Parameters for the request, either a dictionary with name and value, or a list of tuples with names and
-            values.
+            Parameters for the request, either a dictionary with a name and value or a list
+            of tuples with names and values.
         collection_formats : Dict[str, str]
-            Dictionary with parameter name and collection type specifier.
+            Dictionary with a parameter name and collection type specifier.
         """
 
         new_params: List[Tuple[Any, Any]] = []
@@ -661,7 +669,7 @@ class ApiClient:
     ) -> List[Tuple]:
         """Builds form parameters.
 
-        Combines plain form parameters and file parameters into a structure suitable for transmission.
+        This method combines plain form parameters and file parameters into a structure suitable for transmission.
 
         Parameters
         ----------
@@ -737,7 +745,7 @@ class ApiClient:
 
         Notes
         -----
-        If more than one valid ``Content-Type`` is provided, the first one in the list will be used.
+        If more than one valid ``Content-Type`` is provided, the first one in the list is used.
         """
         if not content_types:
             return "application/json"
@@ -750,10 +758,10 @@ class ApiClient:
             return content_types[0]
 
     def __deserialize_file(self, response: requests.Response) -> str:
-        """Deserializes body to file.
+        """Deserializes the body to a file.
 
-        Saves response body into a file in a temporary folder,
-        using the filename from the ``Content-Disposition`` header if provided.
+        Saves the response body in a file in a temporary folder,
+        using the file name from the ``Content-Disposition`` header if provided.
 
         Parameters
         ----------
