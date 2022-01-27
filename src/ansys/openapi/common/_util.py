@@ -20,8 +20,9 @@ from requests.structures import CaseInsensitiveDict
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
-    """[TECHDOCS]Dictionary object that preserves order of insertion and is case-insensitive. Intended for use when
-    parsing ``WWW-Authenticate`` headers where odd combinations of entries are expected.
+    """Preserves order of insertion and is case-insensitive.
+
+    Intended for use when parsing ``WWW-Authenticate`` headers where odd combinations of entries are expected.
     """
 
     __slots__ = ()
@@ -76,10 +77,10 @@ class CaseInsensitiveOrderedDict(OrderedDict):
 
 class Singleton(type):
     """
-    [TECHDOCS]Metaclass that adds Singleton behaviour.
+    Metaclass that adds Singleton behaviour.
 
-    The first time derived classes are created they are added to the `._instances` property, further instances of the
-    class will fetch the instance, rather than creating a new instance.
+    When derived classes are created for the first time, they are added to the ``._instances`` property. Further instances of the
+    class will fetch the existing instance, rather than creating a new one.
     """
 
     _instances: Dict[type, object] = {}
@@ -91,11 +92,11 @@ class Singleton(type):
 
 
 class AuthenticateHeaderParser(metaclass=Singleton):
-    """[TECHDOCS]Parser for ``WWW-Authenticate`` headers
+    """Parser for ``WWW-Authenticate`` headers.
 
     This parser implements the RFC-7235 specification for the ``WWW-Authenticate`` header, together with
-    the extension by Microsoft to support Negotiate authentication. It's a singleton, since there is
-    a nontrivial amount of work to set the parser engine up.
+    the extension by Microsoft to support Negotiate authentication. This is a Singleton, because there is
+    a non-trivial amount of work to set the parser engine up.
     """
 
     def __init__(self) -> None:
@@ -116,15 +117,14 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         self.auth_parser = pp.delimitedList(credentials("schemes*"), delim=", ")
 
     def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
-        """
-        Parse a given header content and return a dictionary of authentication methods and parameters or tokens.
+        """Parses a given header's content and returns a dictionary of authentication methods and parameters or tokens.
 
-        Invalid headers according to the specification above will return an empty response.
+        Invalid headers (according to the specification above) will return an empty response.
 
         Parameters
         ----------
         value : str
-            String contents of a ``WWW-Authenticate`` header.
+            Contents of a ``WWW-Authenticate`` header.
         """
         try:
             parsed_value = self.auth_parser.parseString(value, parseAll=True)
@@ -152,14 +152,13 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
 
 def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
-    """[TECHDOCS]Parses a string containing a ``WWW-Authenticate`` header and returns a dictionary with the supported
-
-    authentication types and the provided parameters (if any exist)
+    """Parses a string containing a ``WWW-Authenticate`` header and returns a dictionary with the supported
+    authentication types and provided parameters (if any exist).
 
     Parameters
     ----------
     value : str
-        A **www-authenticate** header
+        A ``WWW-Authenticate`` header.
     """
     parser = AuthenticateHeaderParser()
     return parser.parse_header(value)
@@ -168,12 +167,12 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
 def set_session_kwargs(
     session: requests.Session, property_dict: "RequestsConfiguration"
 ) -> None:
-    """[TECHDOCS]Sets session parameters from a provided dictionary.
+    """Sets session parameters from the dictionary provided.
 
     Parameters
     ----------
     session : :obj:`requests.Session`
-        requests Session object to be configured.
+        Session object to be configured.
     property_dict : dict
         Mapping from requests session parameter to value.
     """
@@ -182,12 +181,12 @@ def set_session_kwargs(
 
 
 class ResponseHandler(BaseHTTPRequestHandler):
-    """[TECHDOCS]OIDC Callback handler, returns authentication complete page when authentication flow completes.
+    """OpenID Connect Callback handler. Returns authentication complete page when authentication flow completes.
 
     Attributes
     ----------
     _response_html : str
-        HTML to be rendered to the user when redirected after successful authentication with the Identity Provider.
+        User-facing HTML to be rendered when redirected after successful authentication with the Identity Provider.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -210,7 +209,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
 
     # noinspection PyPep8Naming
     def do_GET(self) -> None:
-        """[TECHDOCS]Handle GET requests to the callback URL"""
+        """Handles GET requests to the callback URL."""
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
@@ -221,12 +220,12 @@ class ResponseHandler(BaseHTTPRequestHandler):
 
 
 class OIDCCallbackHTTPServer(HTTPServer):
-    """[TECHDOCS]HTTP Server to handle callback requests on successful OpenID Connect authentication.
+    """HTTP Server to handle callback requests on successful OpenID Connect authentication.
 
     Attributes
     ----------
     _auth_code : Queue
-        Store for provided authentication code received from the user's browser when authentication completes.
+        Store for authentication code received from the user's browser when authentication completes.
     """
 
     def __init__(self) -> None:
@@ -274,26 +273,26 @@ class SessionConfiguration:
         Parameters
         ----------
         client_cert_path : str
-            Path to client certificate to be sent with requests, see requests.Session.cert.
+            Path to client certificate to be sent with requests.
         client_cert_key : str
-            Key to unlock client certificate, see requests.Session.cert.
-        cookies : http.cookiejar.CookieJar or subclass
+            Key to unlock client certificate (if required).
+        cookies : :class:`http.cookiejar.CookieJar` or subclass
             Cookies to be sent with each request.
         headers : dict
-            Header values to include with each request indexed by header name, case-insensitive.
+            Header values to include with each request, indexed by header name. Case-insensitive.
         max_redirects : int
-            Maximum number of requests to allow before halting.
+            Maximum number of redirects to allow before halting.
         proxies : dict
-            Proxy server urls indexed by resource urls.
+            Proxy server URLs, indexed by resource URLs.
         verify_ssl : bool
-            Verify the SSL certificate of the remote host (default True).
+            Verify the SSL certificate of the remote host (default `True`).
         cert_store_path : str
             Path to custom certificate store (in .pem format).
         temp_folder_path : str
             Path to temporary directory where downloaded files will be stored (default is user TEMP directory).
         debug : bool
-            Controls whether debug logging will be generated, this will include sensitive information if either the
-            `auth_logger` or `transport_logger` are configured to output logs.
+            Controls whether debug logging will be generated, this will include sensitive information about the
+            authentication process.
         safe_chars_for_path_param : str
             Additional characters to treat as 'safe' when creating path parameters, see
             `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_ for more information.
@@ -336,7 +335,7 @@ class SessionConfiguration:
         self,
     ) -> "RequestsConfiguration":
         """
-        Output configuration as a dictionary with keys corresponding to requests session properties.
+        Outputs configuration as a dictionary, with keys corresponding to ``requests`` session properties.
         """
         output: RequestsConfiguration = {
             "cert": self._cert,
@@ -353,7 +352,7 @@ class SessionConfiguration:
         cls, configuration_dict: "RequestsConfiguration"
     ) -> "SessionConfiguration":
         """
-        Create a SessionConfiguration object from its dictionary form, inverse of
+        Creates a :class:`SessionConfiguration` object from its dictionary form, inverse of
         :meth:`.get_configuration_for_requests`.
 
         Parameters
@@ -371,7 +370,7 @@ class SessionConfiguration:
                 new.client_cert_path = cert
             else:
                 raise ValueError(
-                    f"[TECHDOCS]Invalid 'cert' field, must be Tuple or str, not '{type(cert)}'"
+                    f"Invalid 'cert' field. Must be Tuple or str, not '{type(cert)}'"
                 )
         if configuration_dict["verify"] is not None:
             verify = configuration_dict["verify"]
@@ -382,7 +381,7 @@ class SessionConfiguration:
                 new.verify_ssl = verify
             else:
                 raise ValueError(
-                    f"[TECHDOCS]Invalid 'verify' field, must be str or bool, not '{type(verify)}'"
+                    f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'"
                 )
         if configuration_dict["cookies"] is not None:
             new.cookies = configuration_dict["cookies"]
@@ -404,14 +403,14 @@ class ModelType(type):
 
 
 def handle_response(response: requests.Response) -> requests.Response:
-    """Helper method to check the status code of a response.
+    """Helper method. Checks the status code of a response.
 
-    If the response is a 2XX then it is returned as-is, otherwise an ApiException will be raised.
+    If the response is a 2XX then it is returned as-is, otherwise an :class:`ApiException` will be raised.
 
     Throws
     ------
     ApiException
-        If the status code was not 2XX
+        If the status code was not 2XX.
 
     Parameters
     ----------
@@ -425,24 +424,24 @@ def handle_response(response: requests.Response) -> requests.Response:
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:
-    """[TECHDOCS]Generate a User-Agent string of the form <package info> <python info> <os info>.
+    """Generate a User-Agent string of the form <package info> <python info> <os info>.
 
     Parameters
     ----------
     package_name : str
-        The name of the package to be included in the User-Agent string
+        The name of the package to be included in the User-Agent string.
     package_version : str
-        The version of the package to be included in the User-Agent string
+        The version of the package to be included in the User-Agent string.
 
     Returns
     -------
     str
-        The User-Agent string
+        The User-Agent string.
     """
 
     import platform
 
-    os_version = platform.platform()
     python_implementation = platform.python_implementation()
     python_version = platform.python_version()
+    os_version = platform.platform()
     return f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"

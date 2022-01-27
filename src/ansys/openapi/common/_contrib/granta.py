@@ -8,12 +8,12 @@ def create_session_from_granta_stk(
     api_session_configuration: Optional[SessionConfiguration] = None,
     idp_session_configuration: Optional[SessionConfiguration] = None,
 ) -> "ApiClient":
-    """Set up the client authentication using the configured authentication from a Granta MI STK session.
+    """Set up the client authentication using the configured authentication from a Granta MI Scripting Toolkit session.
 
     Parameters
     ----------
     stk_configuration : Dict
-        Configuration dictionary provided by the Granta MI STK session.
+        Configuration dictionary provided by the Granta MI Scripting Toolkit session.
     api_session_configuration : Optional[SessionConfiguration]
         Additional configuration settings for the requests Session when connected to the Granta MI Service Layer.
     idp_session_configuration : Optional[SessionConfiguration]
@@ -22,7 +22,7 @@ def create_session_from_granta_stk(
     Notes
     -----
     Requires the user to have the Granta MI Scripting Toolkit installed with at least version 2.4,
-    otherwise use the appropriate class method to configure the requests session.
+    otherwise use the appropriate class method to configure the ``requests`` session.
     """
     sl_url = stk_configuration["api_url"]
     auth_settings = stk_configuration["authentication"]
@@ -59,4 +59,4 @@ def create_session_from_granta_stk(
             .connect()
         )
     else:
-        raise KeyError(f"[TECHDOCS]Invalid mode: {mode}")
+        raise KeyError(f"Invalid mode: {mode}")
