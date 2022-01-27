@@ -1,6 +1,6 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
 
-from ._session import ApiClientFactory
+from ._session import ApiClientFactory, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._api_client import ApiClient
@@ -14,6 +14,8 @@ __all__ = [
     "ApiConnectionException",
     "AuthenticationWarning",
     "create_session_from_granta_stk",
+    "generate_user_agent",
+    "OIDCSessionBuilder",
 ]
 
 try:
