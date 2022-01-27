@@ -465,7 +465,7 @@ class OIDCSessionBuilder:
         Parameters
         ----------
         login_timeout : int
-            Time in seconds to wait for the user to authenticate in their web browser (default 60s).
+            Time in seconds to wait for the user's web browse to authenticate. The default is ``60s``.
 
         Returns
         -------
