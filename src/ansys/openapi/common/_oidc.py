@@ -61,7 +61,6 @@ class OIDCSessionFactory:
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
-
         self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
         self._oauth_session: OAuth2Session

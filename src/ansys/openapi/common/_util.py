@@ -301,7 +301,6 @@ class SessionConfiguration:
         retry_count: int = 3,
         request_timeout: int = 31,
     ) -> None:
-
         self.client_cert_path = client_cert_path
         self.client_cert_key = client_cert_key
         self.cookies = cookies or http.cookiejar.CookieJar()

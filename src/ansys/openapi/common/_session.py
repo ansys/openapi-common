@@ -77,7 +77,6 @@ class ApiClientFactory:
     def __init__(
         self, api_url: str, session_configuration: Optional[SessionConfiguration] = None
     ) -> None:
-
         self._session = requests.Session()
         self._api_url = api_url
         self._configured = False

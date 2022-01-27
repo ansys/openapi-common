@@ -83,7 +83,6 @@ class ApiClient:
         api_url: str,
         configuration: SessionConfiguration,
     ):
-
         self.models: Dict[str, ModelType] = {}
         self.api_url = api_url
         self.rest_client = session
