@@ -31,9 +31,9 @@ SerializedType = Union[None, PrimitiveType, List, Tuple, Dict]
 
 # noinspection DuplicatedCode
 class ApiClient:
-    """Generic API client for OpenAPI client library builds.
+    """Provides generic API client for OpenAPI client library builds.
 
-    This client handles client-server communication, and is invariant across
+    This client handles client-server communication and is invariant across
     implementations. Specifics of the methods and models for each application are
     generated from OpenAPI templates and are responsible for interfacing with the
     public API exposed by the client.
@@ -41,11 +41,11 @@ class ApiClient:
     Parameters
     ----------
     session : requests.Session
-        Base session object that the API Client will use.
+        Base session object that the API client is to use.
     api_url : str
         Base URL for the API. All generated endpoint URLs are relative to this address.
     configuration : SessionConfiguration
-        Configuration options for the API Client.
+        Configuration options for the API client.
 
     Examples
     --------
@@ -54,9 +54,9 @@ class ApiClient:
     ...                    SessionConfiguration())
     ... <ApiClient url: http://my-api.com/API/v1.svc>
 
-    For testing purposes it is common to configure an API with a self-signed certificate; by default the
+    For testing purposes it is common to configure an API with a self-signed certificate. By default, the
     :class:`ApiClient` will not trust self-signed SSL certificates. To allow this, pass a path to the root
-    certificate to the :class:`SessionConfiguration` object. For more examples of configuration see the
+    certificate to the :class:`SessionConfiguration` object. For more configuration examples, see the
     :class:`SessionConfiguration` documentation.
 
     >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')

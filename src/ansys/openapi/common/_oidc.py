@@ -33,24 +33,24 @@ class OIDCSessionFactory:
     Creates an OpenID Connect session with configuration fetched from the API server. Uses either the provided token
     credentials, or authorizes a user with a browser-based interactive prompt.
 
-    If your Identity Provider does not provide the exact scopes requested by your API server, you will be unable to
+    If your identity provider does not provide the exact scopes requested by your API server, you will be unable to
     connect for security reasons. To force the client to proceed with non-matching scopes, set the environment variable
     ``OAUTHLIB_RELAX_TOKEN_SCOPE`` to ``TRUE``.
 
     Parameters
     ----------
     initial_session : requests.Session
-        Session to use whilst negotiating with the Identity Provider.
+        Session to use while negotiating with the identity provider.
     initial_response : requests.Response
         Initial 401 response from the API server when no ``Authorization`` header is provided.
-    api_session_configuration : Optional[SessionConfiguration]
+    api_session_configuration : SessionConfiguration, optional
         Configuration settings for  connections to the API server.
-    idp_session_configuration : Optional[SessionConfiguration]
-        Configuration settings for connections to the OpenID Identity Provider.
+    idp_session_configuration : SessionConfiguration, optional
+        Configuration settings for connections to the OpenID identity provider.
 
     Notes
     -----
-    The ``headers`` field in ``idp_session_configuration`` is not fully respected; the ``Accept`` and
+    The ``headers`` field in ``idp_session_configuration`` is not fully respected. The ``Accept`` and
     ``Content-Type`` headers will be overridden. Other settings are respected.
     """
 
