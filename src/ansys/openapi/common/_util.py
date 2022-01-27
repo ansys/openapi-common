@@ -272,7 +272,7 @@ class SessionConfiguration:
     cert_store_path : str
         Path to custom certificate store (in .pem format).
     temp_folder_path : str
-        Path to temporary directory where downloaded files will be stored (default is user TEMP directory).
+        Path to temporary directory where downloaded files are to be stored. The default is the user's ``TEMP`` directory.
     debug : bool
         Whether debug logging is generated. The logging will include sensitive information about the
         authentication process.
