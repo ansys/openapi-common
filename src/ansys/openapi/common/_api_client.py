@@ -7,7 +7,7 @@ import tempfile
 from types import ModuleType
 
 from dateutil.parser import parse
-from typing import Dict, Union, List, Tuple, Type, Optional, cast, Any, Callable
+from typing import Dict, Union, List, Tuple, Type, Optional, Any, Callable
 from urllib.parse import quote
 
 import requests

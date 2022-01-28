@@ -499,6 +499,7 @@ class TestResponseHandling:
     @pytest.fixture(autouse=True)
     def _blank_client(self):
         from .models import example_model
+
         self._transport = requests.Session()
         self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
         self._client.setup_client(example_model)
