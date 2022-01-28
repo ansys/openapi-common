@@ -163,12 +163,8 @@ class TestDeserialization:
     @pytest.mark.parametrize(
         ("value", "type_"), (("foo", str), (int(2), int), (2.0, float), (True, bool))
     )
-    @pytest.mark.parametrize("use_type_string", (True, False))
-    def test_deserialize_primitive(self, value, type_, use_type_string):
-        if use_type_string:
-            type_ref = type_.__name__
-        else:
-            type_ref = type_
+    def test_deserialize_primitive(self, value, type_):
+        type_ref = type_.__name__
         deserialized_primitive = self._client._ApiClient__deserialize(value, type_ref)
         assert isinstance(deserialized_primitive, type_)
         assert deserialized_primitive == value
@@ -179,14 +175,14 @@ class TestDeserialization:
     def test_deserialize_float_casts(self, target_type, expected_result):
         test_float = 3.1
         deserialized_object = self._client._ApiClient__deserialize(
-            test_float, target_type
+            test_float, target_type.__name__
         )
         assert isinstance(deserialized_object, target_type)
         assert deserialized_object == expected_result
 
     def test_deserialize_bytes(self):
         source_bytes = b"\x66\x6f\x6f"
-        deserialized_bytes = self._client._ApiClient__deserialize(source_bytes, bytes)
+        deserialized_bytes = self._client._ApiClient__deserialize(source_bytes, "bytes")
         assert isinstance(deserialized_bytes, bytes)
         assert deserialized_bytes == source_bytes
 
@@ -216,14 +212,10 @@ class TestDeserialization:
             assert key in deserialized_dict
             assert deserialized_dict[key] == int(val)
 
-    @pytest.mark.parametrize("use_type_string", (True, False))
-    def test_deserialize_date(self, use_type_string):
+    def test_deserialize_date(self):
         source_date = datetime.date(2371, 4, 26)
         date_string = source_date.isoformat()
-        if use_type_string:
-            type_ref = "date"
-        else:
-            type_ref = datetime.date
+        type_ref = "date"
         deserialized_date = self._client._ApiClient__deserialize(date_string, type_ref)
         assert isinstance(deserialized_date, datetime.date)
         assert deserialized_date == source_date
@@ -236,22 +228,17 @@ class TestDeserialization:
         assert invalid_date in exception_info.value.reason_phrase
         assert f"{object_type} object" in exception_info.value.reason_phrase
 
-    @pytest.mark.parametrize("use_type_string", (True, False))
-    def test_deserialize_datetime(self, use_type_string):
+    def test_deserialize_datetime(self):
         source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21)
         datetime_string = source_datetime.isoformat()
-        if use_type_string:
-            type_ref = "datetime"
-        else:
-            type_ref = datetime.datetime
+        type_ref = "datetime"
         deserialized_datetime = self._client._ApiClient__deserialize(
             datetime_string, type_ref
         )
         assert isinstance(deserialized_datetime, datetime.datetime)
         assert deserialized_datetime == source_datetime
 
-    @pytest.mark.parametrize("use_type_string", (True, False))
-    def test_deserialize_model(self, use_type_string):
+    def test_deserialize_model(self):
         from . import models
 
         self._client.setup_client(models)
@@ -263,10 +250,7 @@ class TestDeserialization:
             "ListOfStrings": ["It's", "a", "list"],
             "String": "foo",
         }
-        if use_type_string:
-            type_ref = "ExampleModel"
-        else:
-            type_ref = models.ExampleModel
+        type_ref = "ExampleModel"
         deserialized_model = self._client._ApiClient__deserialize(model_dict, type_ref)
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
@@ -514,8 +498,10 @@ class TestResponseHandling:
 
     @pytest.fixture(autouse=True)
     def _blank_client(self):
+        from .models import example_model
         self._transport = requests.Session()
         self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
+        self._client.setup_client(example_model)
         self._adapter = requests_mock.Adapter()
         self._transport.mount(TEST_URL, self._adapter)
 
@@ -627,9 +613,7 @@ class TestResponseHandling:
         record_id = str(uuid.uuid4())
         path_params = {"ID": record_id}
 
-        from .models import ExampleModel
-
-        response_type = ExampleModel
+        response_type = "ExampleModel"
 
         expected_url = TEST_URL + f"/models/{record_id}"
 

@@ -63,6 +63,7 @@ class ApiClient(ApiClientBase):
     PRIMITIVE_TYPES = (float, bool, bytes, str, int)
     NATIVE_TYPES_MAPPING = {
         "int": int,
+        "bytes": bytes,
         "float": float,
         "str": str,
         "bool": bool,
