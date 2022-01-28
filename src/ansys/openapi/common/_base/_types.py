@@ -41,6 +41,15 @@ class ModelBase(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+class ApiBase(metaclass=abc.ABCMeta):
+    """Provides a base class defining the interface that API clients will use to interact with generated client
+    libraries."""
+
+    @abc.abstractmethod
+    def __init__(self, api_client: "ApiClientBase") -> None:
+        ...
+
+
 class ApiClientBase(metaclass=abc.ABCMeta):
     """Provides a base class defining the interface that generated client libraries depend upon."""
 
