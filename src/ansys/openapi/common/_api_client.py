@@ -17,9 +17,8 @@ from ._util import (
     SessionConfiguration,
     handle_response,
 )
-from ._base import PrimitiveType, DeserializedType, SerializedType, ModelBase
+from ._base import PrimitiveType, DeserializedType, SerializedType, ModelBase, ApiClientBase
 from ._exceptions import ApiException
-from ._base import ApiClientBase
 
 
 # noinspection DuplicatedCode
@@ -455,7 +454,7 @@ class ApiClient(ApiClientBase):
         body : DeserializedType
             Request body.
         post_params : List[Tuple]
-            Request POST form parameters for ``application/x-www-form-urlencoded`` and``multipart/form-data``.
+            Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
         response_type : str
             Expected response data type.
         files : Dict[str, str]
@@ -468,7 +467,7 @@ class ApiClient(ApiClientBase):
             parameter name to the collection type.
         _preload_content : bool, optional
             Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case the reading or decoding data is read.  If ``False``, recording or response
+            is ``True``, in which case the reading or decoding data is read. If ``False``, recording or response
             data is not read.
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.

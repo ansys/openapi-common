@@ -45,9 +45,8 @@ class ApiBase(metaclass=abc.ABCMeta):
     """Provides a base class defining the interface that API clients will use to interact with generated client
     libraries."""
 
-    @abc.abstractmethod
     def __init__(self, api_client: "ApiClientBase") -> None:
-        ...
+        self.api_client = api_client
 
 
 class ApiClientBase(metaclass=abc.ABCMeta):
