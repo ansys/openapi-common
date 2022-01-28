@@ -17,7 +17,13 @@ from ._util import (
     SessionConfiguration,
     handle_response,
 )
-from ._base import PrimitiveType, DeserializedType, SerializedType, ModelBase, ApiClientBase
+from ._base import (
+    PrimitiveType,
+    DeserializedType,
+    SerializedType,
+    ModelBase,
+    ApiClientBase,
+)
 from ._exceptions import ApiException
 
 
