@@ -3,7 +3,7 @@ import warnings
 from typing import Tuple, Union, Container, Optional, Mapping, TypeVar, Any
 
 import requests
-from urllib3.util.retry import Retry
+from urllib3.util.retry import Retry  # type: ignore
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth  # type: ignore
