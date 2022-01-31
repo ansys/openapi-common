@@ -271,6 +271,24 @@ class TestDeserialization:
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
 
+    def test_deserialize_model_with_discriminator(self):
+        from . import models
+
+        self._client.setup_client(models)
+
+        model_instance = models.ExampleModel("foo", 3, False, ["It's", "a", "list"])
+        model_dict = {
+            "Boolean": False,
+            "Integer": 3,
+            "ListOfStrings": ["It's", "a", "list"],
+            "String": "foo",
+            "modelType": "ExampleModel",
+        }
+        type_ref = "ExampleBaseModel"
+        deserialized_model = self._client._ApiClient__deserialize(model_dict, type_ref)
+        assert isinstance(deserialized_model, models.ExampleModel)
+        assert deserialized_model == model_instance
+
     @pytest.mark.parametrize(
         ("data", "target_type"),
         (
