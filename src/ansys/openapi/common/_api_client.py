@@ -844,10 +844,6 @@ class ApiClient(ApiClientBase):
                 reason_phrase=f"Failed to parse `{value}` as datetime object",
             )
 
-    @staticmethod
-    def __hasattr(object_: Any, name: Any) -> bool:
-        return name in object_.__class__.__dict__
-
     def __deserialize_model(
         self, data: Dict, klass: Type[ModelBase]
     ) -> Union[ModelBase, Dict]:
@@ -862,11 +858,6 @@ class ApiClient(ApiClientBase):
         klass : ModelType
             Type of the model to be deserialized.
         """
-
-        if not klass.swagger_types and not self.__hasattr(
-            klass, "get_real_child_model"
-        ):
-            return data
 
         kwargs = {}
         if klass.swagger_types is not None:
