@@ -4,33 +4,31 @@ import json
 import os
 import re
 import tempfile
+from types import ModuleType
+
 from dateutil.parser import parse
-from typing import Dict, Union, List, Tuple, Type, Optional, cast, Any, Callable
+from typing import Dict, Union, List, Tuple, Type, Optional, Any, Callable
 from urllib.parse import quote
 
 import requests
 from requests.structures import CaseInsensitiveDict
 
-from ._util import SessionConfiguration, ModelType, handle_response
-from ._exceptions import ApiException
-from types import ModuleType
-
-PrimitiveType = Union[float, bool, bytes, str, int]
-DeserializedType = Union[
-    None,
+from ._util import (
+    SessionConfiguration,
+    handle_response,
+)
+from ._base import (
     PrimitiveType,
-    datetime.datetime,
-    datetime.date,
-    List,
-    Tuple,
-    Dict,
-    ModelType,
-]
-SerializedType = Union[None, PrimitiveType, List, Tuple, Dict]
+    DeserializedType,
+    SerializedType,
+    ModelBase,
+    ApiClientBase,
+)
+from ._exceptions import ApiException
 
 
 # noinspection DuplicatedCode
-class ApiClient:
+class ApiClient(ApiClientBase):
     """Provides a generic API client for OpenAPI client library builds.
 
     This client handles client-server communication and is invariant across
@@ -70,6 +68,7 @@ class ApiClient:
     PRIMITIVE_TYPES = (float, bool, bytes, str, int)
     NATIVE_TYPES_MAPPING = {
         "int": int,
+        "bytes": bytes,
         "float": float,
         "str": str,
         "bool": bool,
@@ -83,7 +82,7 @@ class ApiClient:
         api_url: str,
         configuration: SessionConfiguration,
     ):
-        self.models: Dict[str, ModelType] = {}
+        self.models: Dict[str, Type[ModelBase]] = {}
         self.api_url = api_url
         self.rest_client = session
         self.default_headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
@@ -185,7 +184,7 @@ class ApiClient:
         body: Optional[Any] = None,
         post_params: Optional[Any] = None,
         files: Optional[Any] = None,
-        response_type: Optional[Union[str, Type]] = None,
+        response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -324,7 +323,7 @@ class ApiClient:
         }
 
     def deserialize(
-        self, response: requests.Response, response_type: Union[str, Type]
+        self, response: requests.Response, response_type: str
     ) -> DeserializedType:
         """Deserializes the response into an object.
 
@@ -332,19 +331,19 @@ class ApiClient:
 
         For responses that are in JSON format, this method processes the response and returns it:
 
-        * If ``response_type`` is the string `"file"`, save the content to a temporary file and return the file name.
-        * If ``response_type`` is :class:`datetime.date` or :class:`datetime.datetime`, parse the string and return the
+        * If ``response_type`` is ``"file"``, save the content to a temporary file and return the file name.
+        * If ``response_type`` is ``"datetime.date"`` or ``"datetime.datetime"``, parse the string and return the
           ``datetime`` object.
-        * If ``response_type`` is ``list``, recursively deserialize the list contents.
-        * If ``response_type`` is ``dict``, recursively deserialize the dictionary keys and values.
-        * If ``response_type`` is an OpenAPI model, return the model object.
+        * If ``response_type`` is ``"list"``, recursively deserialize the list contents.
+        * If ``response_type`` is ``"dict"``, recursively deserialize the dictionary keys and values.
+        * If ``response_type`` is the name of an OpenAPI model, return the model object.
 
         Parameters
         ----------
         response : requests.Response
             Response object received from the API.
-        response_type : Union[str, Type]
-            String name of the class represented or the type.
+        response_type : str
+            String name of the class represented.
 
         Examples
         --------
@@ -381,44 +380,39 @@ class ApiClient:
 
         return self.__deserialize(data, response_type)
 
-    def __deserialize(
-        self, data: SerializedType, klass: Union[str, Type]
-    ) -> DeserializedType:
+    def __deserialize(self, data: SerializedType, klass_name: str) -> DeserializedType:
         """Deserializes ``dict``, ``list``, and ``str`` into an object.
 
         Parameters
         ----------
         data : Union[Dict, List, str]
             Response data to be deserialized.
-        klass : Union[str, Type]
-            Type of object the data should be deserialized into one of
-            these:
+        klass_name : str
+            Type of object the data should be deserialized into. One of:
 
-            * String class name
-            * String Type definition for list or dictionary
-            * Type
+            * String class name.
+            * String Type definition for list or dictionary.
         """
 
         if data is None:
             return None
 
-        if isinstance(klass, str):
-            list_match = re.match(r"list\[(.*)]", klass)
-            if list_match is not None:
-                assert isinstance(data, list)
-                sub_kls = list_match.group(1)
-                return [self.__deserialize(sub_data, sub_kls) for sub_data in data]
+        list_match = re.match(r"list\[(.*)]", klass_name)
+        if list_match is not None:
+            assert isinstance(data, list)
+            sub_kls = list_match.group(1)
+            return [self.__deserialize(sub_data, sub_kls) for sub_data in data]
 
-            dict_match = re.match(r"dict\(([^,]*), (.*)\)", klass)
-            if dict_match is not None:
-                assert isinstance(data, dict)
-                sub_kls = dict_match.group(2)
-                return {k: self.__deserialize(v, sub_kls) for k, v in data.items()}
+        dict_match = re.match(r"dict\(([^,]*), (.*)\)", klass_name)
+        if dict_match is not None:
+            assert isinstance(data, dict)
+            sub_kls = dict_match.group(2)
+            return {k: self.__deserialize(v, sub_kls) for k, v in data.items()}
 
-            if klass in self.NATIVE_TYPES_MAPPING:
-                klass = self.NATIVE_TYPES_MAPPING[klass]
-            else:
-                klass = self.models[klass]
+        if klass_name in self.NATIVE_TYPES_MAPPING:
+            klass = self.NATIVE_TYPES_MAPPING[klass_name]
+        else:
+            klass = self.models[klass_name]
 
         if klass in self.PRIMITIVE_TYPES:
             assert isinstance(data, (str, int, float, bool, bytes))
@@ -430,9 +424,8 @@ class ApiClient:
             assert isinstance(data, str)
             return self.__deserialize_datetime(data)
         else:
-            assert isinstance(data, (dict, list))
-            klass_cast = cast(ModelType, klass)
-            return self.__deserialize_model(data, klass_cast)
+            assert isinstance(data, dict)
+            return self.__deserialize_model(data, klass)
 
     def call_api(
         self,
@@ -444,7 +437,7 @@ class ApiClient:
         body: Optional[DeserializedType] = None,
         post_params: Optional[List[Tuple]] = None,
         files: Optional[Dict[str, str]] = None,
-        response_type: Union[str, Type, None] = None,
+        response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -468,7 +461,7 @@ class ApiClient:
             Request body.
         post_params : List[Tuple]
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
-        response_type : Union[str, Type]
+        response_type : str, optional
             Expected response data type.
         files : Dict[str, str]
             Dictionary of the file name and path for ``multipart/form-data``.
@@ -480,7 +473,7 @@ class ApiClient:
             parameter name to the collection type.
         _preload_content : bool, optional
             Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case the reading or decoding data is read.  If ``False``, recording or response
+            is ``True``, in which case the reading or decoding data is read. If ``False``, recording or response
             data is not read.
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
@@ -851,29 +844,20 @@ class ApiClient:
                 reason_phrase=f"Failed to parse `{value}` as datetime object",
             )
 
-    @staticmethod
-    def __hasattr(object_: Any, name: Any) -> bool:
-        return name in object_.__class__.__dict__
-
     def __deserialize_model(
-        self, data: Union[Dict, List], klass: ModelType
-    ) -> Union[ModelType, Dict, List]:
-        """Deserializes ``list`` or ``dict`` to model.
+        self, data: Dict, klass: Type[ModelBase]
+    ) -> Union[ModelBase, Dict]:
+        """Deserializes ``dict`` to model.
 
         Given a model type and the serialized data, deserialize into an instance of the model class.
 
         Parameters
         ----------
-        data : Union[Dict, List]
+        data : Dict
             Serialized representation of the model object.
         klass : ModelType
             Type of the model to be deserialized.
         """
-
-        if not klass.swagger_types and not self.__hasattr(
-            klass, "get_real_child_model"
-        ):
-            return data
 
         kwargs = {}
         if klass.swagger_types is not None:
@@ -896,8 +880,11 @@ class ApiClient:
             for key, value in data.items():
                 if key not in klass.swagger_types:
                     instance[key] = value
-        if self.__hasattr(instance, "get_real_child_model"):
+        try:
             klass_name = instance.get_real_child_model(data)
             if klass_name:
-                instance = self.__deserialize(data, klass_name)
-        return instance  # type: ignore[no-any-return]
+                instance = self.__deserialize(data, klass_name)  # type: ignore[assignment]
+        except NotImplementedError:
+            pass
+
+        return instance

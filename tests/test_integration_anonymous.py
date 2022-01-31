@@ -48,9 +48,9 @@ class TestAnonymous:
         assert "OK" in resp.text
 
     def test_patch_model(self):
-        from .models import ExampleModel
+        from . import models
 
-        deserialized_response = ExampleModel(
+        deserialized_response = models.ExampleModel(
             string_property="new_model",
             int_property=1,
             list_property=["red", "yellow", "green"],
@@ -61,14 +61,13 @@ class TestAnonymous:
         method = "PATCH"
         path_params = {"ID": TEST_MODEL_ID}
 
-        from .models import ExampleModel
-
-        response_type = ExampleModel
+        response_type = "ExampleModel"
 
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_anonymous().connect()
+        client.setup_client(models)
 
         response = client.call_api(
             resource_path,

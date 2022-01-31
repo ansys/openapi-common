@@ -396,14 +396,6 @@ class SessionConfiguration:
         return new
 
 
-class ModelType(type):
-    """Metaclass for all models. Enables easier type hinting
-    in packages that interact with generated code."""
-
-    attribute_map: dict
-    swagger_types: dict
-
-
 def handle_response(response: requests.Response) -> requests.Response:
     """Helper method. Checks the status code of a response.
 
