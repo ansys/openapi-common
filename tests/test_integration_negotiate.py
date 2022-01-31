@@ -13,7 +13,6 @@ from ansys.openapi.common import (
     ApiConnectionException,
 )
 from .integration.common import (
-    ExampleModelPyd,
     TEST_MODEL_ID,
     TEST_PORT,
     ExampleModelPyd,
