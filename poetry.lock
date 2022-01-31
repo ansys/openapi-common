@@ -417,7 +417,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "pyansys-sphinx-theme"
-version = "0.2.0"
+version = "0.2.2"
 description = "PyData-based Sphinx theme from the PyAnsys community"
 category = "main"
 optional = true
@@ -964,7 +964,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "fe5abe96544c956bc5d9c4ca41ccd1d6941a2abae9f940e575a086f4da327793"
+content-hash = "c11796466c053c06dfed5d8e81e75c7519e668135a17591c5e877fae7b9bcc20"
 
 [metadata.files]
 alabaster = [
@@ -1311,7 +1311,7 @@ py = [
     {file = "py-1.11.0.tar.gz", hash = "sha256:51c75c4126074b472f746a24399ad32f6053d1b34b68d2fa41e558e6f4a98719"},
 ]
 pyansys-sphinx-theme = [
-    {file = "pyansys-sphinx-theme-0.2.0.tar.gz", hash = "sha256:26f660182045df94c07644f2c454e63a1271d45f0626c6489dba6c0bc9b035a1"},
+    {file = "pyansys-sphinx-theme-0.2.2.tar.gz", hash = "sha256:bc4139587e4020743242fd279eab419606a3e742d2ee9be1a6bd5944bb51f925"},
 ]
 pycparser = [
     {file = "pycparser-2.21-py2.py3-none-any.whl", hash = "sha256:8ee45429555515e1f6b185e78100aea234072576aa43ab53aefcae078162fca9"},
