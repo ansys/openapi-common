@@ -119,6 +119,12 @@ class ApiClient:
         Some APIs will behave differently for different client applications. Change this if your
         API requires different behavior.
 
+        Notes
+        -----
+        The behavior of the OpenID Connect login process is not governed by the user-agent string.
+        It is not possible to use a different login flow by changing this value when using OIDC
+        authentication.
+
         Examples
         --------
         >>> client = ApiClient(requests.Session(),
@@ -135,12 +141,6 @@ class ApiClient:
         ... client.user_agent = (
         ...    'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'
         ... )
-
-        Notes
-        -----
-        The behavior of the OpenID Connect login process is not governed by the user-agent string.
-        It is not possible to use a different login flow by changing this value when using OIDC
-        authentication.
         """
         return self.default_headers["User-Agent"]
 
@@ -155,13 +155,6 @@ class ApiClient:
         and will be respected. For example, they are set and respected if your API server is configured to require
         non-OIDC tokens for authentication.
 
-        Examples
-        --------
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
-        ... client.set_default_header('Authorization', 'my-token-value')
-
         Notes
         -----
         Some headers will always be overwritten, and some may be depending on the API endpoint requested. As a guide,
@@ -172,6 +165,13 @@ class ApiClient:
 
         The ``Authorization`` header may be overwritten depending on what, if any, authentication scheme is provided for
         the requests session.
+
+        Examples
+        --------
+        >>> client = ApiClient(requests.Session(),
+        ...                    'http://my-api.com/API/v1.svc',
+        ...                    SessionConfiguration())
+        ... client.set_default_header('Authorization', 'my-token-value')
         """
         self.default_headers[header_name] = header_value
 
@@ -732,6 +732,10 @@ class ApiClient:
         content_types : Optional[List[str]]
             List of content types.
 
+        Notes
+        -----
+        If more than one valid ``Content-Type`` is provided, the first one in the list is used.
+
         Examples
         --------
         >>> ApiClient.select_header_content_type()
@@ -742,10 +746,6 @@ class ApiClient:
 
         >>> ApiClient.select_header_content_type(['*/*'])
         'application/json'
-
-        Notes
-        -----
-        If more than one valid ``Content-Type`` is provided, the first one in the list is used.
         """
         if not content_types:
             return "application/json"
