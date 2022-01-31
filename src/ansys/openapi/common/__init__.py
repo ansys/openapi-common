@@ -5,7 +5,7 @@ from ._util import SessionConfiguration, generate_user_agent
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._api_client import ApiClient
 from ._contrib.granta import create_session_from_granta_stk
-from ._base import ApiClientBase, ModelBase
+from ._base import ApiBase, ApiClientBase, ModelBase
 
 __all__ = [
     "ApiClient",
