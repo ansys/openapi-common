@@ -17,6 +17,7 @@ __all__ = [
     "create_session_from_granta_stk",
     "generate_user_agent",
     "OIDCSessionBuilder",
+    "ApiBase",
     "ApiClientBase",
     "ModelBase",
 ]
