@@ -174,10 +174,6 @@ class ApiClientFactory:
         whether Negotiate, NTLM, or Basic Authentication should be used. The selected authentication method will then be
         configured for use.
 
-        Notes
-        -----
-        NTLM authentication is not currently supported on Linux.
-
         Parameters
         ----------
         username : str
@@ -191,6 +187,10 @@ class ApiClientFactory:
         -------
         :class:`ApiClientFactory`
             Original client factory object.
+
+        Notes
+        -----
+        NTLM authentication is not currently supported on Linux.
         """
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
@@ -225,6 +225,11 @@ class ApiClientFactory:
     def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
         """Sets up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
+        Returns
+        -------
+        :class:`ApiClientFactory`
+            Current client factory object.
+
         Notes
         -----
         Requires the user to have a valid Kerberos Ticket-Granting-Ticket (TGT).
@@ -232,11 +237,6 @@ class ApiClientFactory:
         * On Windows, this is provided by default.
         * On Linux, this requires the ``[linux-kerberos]`` extension to be installed and your Kerberos installation
           to be configured correctly.
-
-        Returns
-        -------
-        :class:`ApiClientFactory`
-            Current client factory object.
         """
         if not (_platform_windows or _linux_kerberos_enabled):
             raise ImportError(
