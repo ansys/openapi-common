@@ -18,7 +18,7 @@ DeserializedType = Union[
 SerializedType = Union[None, PrimitiveType, List, Tuple, Dict]
 
 
-class ModelBase(metaclass=abc.ABCMeta):
+class ModelBase(metaclass=abc.ABCMeta):  # pragma: no cover
     """Provides a base class defining the interface that API clients will use to interact with generated client
     libraries."""
 
@@ -41,7 +41,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-class ApiBase(metaclass=abc.ABCMeta):
+class ApiBase(metaclass=abc.ABCMeta):  # pragma: no cover
     """Provides a base class defining the interface that API clients will use to interact with generated client
     libraries."""
 
@@ -49,7 +49,7 @@ class ApiBase(metaclass=abc.ABCMeta):
         self.api_client = api_client
 
 
-class ApiClientBase(metaclass=abc.ABCMeta):
+class ApiClientBase(metaclass=abc.ABCMeta):  # pragma: no cover
     """Provides a base class defining the interface that generated client libraries depend upon."""
 
     @staticmethod
