@@ -15,21 +15,15 @@ class ExampleBaseModel(Model):
                             and the value is json key in definition.
     """
 
-    swagger_types = {
-        'model_type': 'str'
-    }
+    swagger_types = {"model_type": "str"}
 
-    attribute_map = {
-        'model_type': 'modelType'
-    }
+    attribute_map = {"model_type": "modelType"}
 
-    discriminator_value_class_map = {
-        'examplemodel': 'ExampleModel'
-    }
+    discriminator_value_class_map = {"examplemodel": "ExampleModel"}
 
     def __init__(self, model_type=None):  # noqa: E501
         """Model - a model defined in Swagger"""  # noqa: E501
-        self.discriminator = 'modelType'
+        self.discriminator = "modelType"
         self._model_type = model_type
 
     @property
@@ -39,7 +33,9 @@ class ExampleBaseModel(Model):
     @model_type.setter
     def model_type(self, model_type):
         if model_type is None:
-            raise ValueError("Invalid value for `model_type`, must not be `None`")  # noqa: E501
+            raise ValueError(
+                "Invalid value for `model_type`, must not be `None`"
+            )  # noqa: E501
 
         self._model_type = model_type
 
