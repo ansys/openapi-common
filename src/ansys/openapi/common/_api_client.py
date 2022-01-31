@@ -342,7 +342,7 @@ class ApiClient(ApiClientBase):
         ----------
         response : requests.Response
             Response object received from the API.
-        response_type : Union[str, Type]
+        response_type : str
             String name of the class represented.
 
         Examples
@@ -461,7 +461,7 @@ class ApiClient(ApiClientBase):
             Request body.
         post_params : List[Tuple]
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
-        response_type : str
+        response_type : str, optional
             Expected response data type.
         files : Dict[str, str]
             Dictionary of the file name and path for ``multipart/form-data``.
