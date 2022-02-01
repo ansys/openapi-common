@@ -520,7 +520,7 @@ class ApiClient(ApiClientBase):
         headers : Dict
             Headers to attach to the request.
         post_params : List[Tuple]
-            Request post form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
+            Request post form parameters for ``multipart/form-data``.
         body : SerializedType
             Request body.
         _preload_content : bool, optional
