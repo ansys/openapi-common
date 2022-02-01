@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "ansys-openapi-common"
 description = "Provides a helper to create sessions for use with Ansys OpenAPI clients."
-version = "0.1.0.dev0"
+version = "1.0.0"
 license = "MIT"
 authors = ["ANSYS, Inc."]
 maintainers = ["PyAnsys Maintainers <pyansys.maintainers@ansys.com>"]
@@ -18,7 +18,7 @@ keywords = [
 ]
 classifiers = [
   "License :: OSI Approved :: MIT License",
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Operating System :: Microsoft :: Windows",
@@ -29,7 +29,6 @@ classifiers = [
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
-  "Private :: Do Not Upload"
 ]
 packages = [
   { include = "**/*.py", from = "src" }
