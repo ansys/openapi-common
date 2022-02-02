@@ -9,17 +9,17 @@ if MYPY:
 
 class ApiConnectionException(Exception):
     """
-    Exception raised when connection to the API server fails. For more information about the failure,
-    inspect ``.status_code`` and ``.reason_phrase``.
+    Provides the exception to raise when connection to the API server fails. For more information
+    about the failure, inspect ``.status_code`` and ``.reason_phrase``.
 
     Attributes
     ----------
     status_code : int
         HTTP status code associated with the response.
     reason_phrase : str
-        Description of the response as provided by the server.
+        Description of the response provided by the server.
     message : str
-        Content of the response as provided by the server.
+        Content of the response provided by the server.
 
     """
 
@@ -35,7 +35,7 @@ class ApiConnectionException(Exception):
 
 class AuthenticationWarning(Warning):
     """
-    Warning raised when the server connection process completes but does proceed as expected.
+    Provides the warning to raise when the server connection process completes but does proceed as expected.
     """
 
     def __init__(self, message: str) -> None:
@@ -43,7 +43,7 @@ class AuthenticationWarning(Warning):
         Parameters
         ----------
         message : str
-            Cause of the warning and any additional information
+            Cause of the warning and any additional information.
         """
         self.message = message
 
@@ -53,19 +53,19 @@ class AuthenticationWarning(Warning):
 
 class ApiException(Exception):
     """
-    Exception raised when the remote server returns an unsuccessful response. For more information about
-    the failure, inspect ``.status_code`` and ``.reason_phrase``.
+    Provides the exception to raise when the remote server returns an unsuccessful response. For more information
+    about the failure, inspect ``.status_code`` and ``.reason_phrase``.
 
     Attributes
     ----------
     status_code : int
         HTTP status code associated with the response.
     reason_phrase : str
-        Description of the response as provided by the server.
+        Description of the response provided by the server.
     body : str, optional
-        Content of the response as provided by the server. The default is ``None``.
+        Content of the response provided by the server. The default is ``None``.
     headers : CaseInsensitiveDict, optional
-        Response headers as provided by the server. The defeault is ``None``.
+        Response headers provided by the server. The defeault is ``None``.
     """
 
     status_code: int

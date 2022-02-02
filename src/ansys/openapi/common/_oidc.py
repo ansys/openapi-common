@@ -30,8 +30,8 @@ else:
 
 class OIDCSessionFactory:
     """
-    Creates an OpenID Connect session with configuration fetched from the API server. This class uses either the
-    provided token credentials or authorizes a user with a browser-based interactive prompt.
+    Creates an OpenID Connect session with the configuration fetched from the API server. This class uses either
+    the provided token credentials or authorizes a user with a browser-based interactive prompt.
 
     If your identity provider does not provide the exact scopes requested by your API server, you will be unable to
     connect for security reasons. To force the client to proceed with non-matching scopes, set the environment variable
@@ -44,7 +44,7 @@ class OIDCSessionFactory:
     initial_response : requests.Response
         Initial 401 response from the API server when no ``Authorization`` header is provided.
     api_session_configuration : SessionConfiguration, optional
-        Configuration settings for  connections to the API server.
+        Configuration settings for connections to the API server.
     idp_session_configuration : SessionConfiguration, optional
         Configuration settings for connections to the OpenID identity provider.
 
@@ -117,19 +117,19 @@ class OIDCSessionFactory:
     def get_session_with_provided_token(
         self, refresh_token: str, access_token: Optional[str] = None
     ) -> OAuth2Session:
-        """Creates a :class:`OAuth2Session` object with provided tokens.
+        """Create a :class:`OAuth2Session` object with provided tokens.
 
-        Configures a session to request an Access Token with the provided Refresh Token.
+        This method configures a session to request an access token with the provided refresh token.
         This will happen automatically when the first request is sent to the server. Alternatively,
-        an Access Token can be provided, and it will be used until it expires. After expiry,
-        the Refresh Token will be used to request a new Access Token.
+        an access token can be provided, and it will be used until it expires. After it expires,
+        the refresh token will be used to request a new access token.
 
         Parameters
         ----------
         refresh_token : str
-            Refresh token for the API server, typically Base64 encoded JSON Web Token.
+            Refresh token for the API server, typically a Base64-encoded JSON web token.
         access_token : Optional[str]
-            Access token for the API server, typically Base64 encoded JSON Web Token.
+            Access token for the API server, typically a Base64-encoded JSON web token.
         """
         logger.info("Setting tokens...")
         if access_token is not None:
@@ -149,9 +149,9 @@ class OIDCSessionFactory:
     def get_session_with_stored_token(
         self, token_name: str = "ansys-openapi-common-oidc"
     ) -> OAuth2Session:
-        """Creates a :class:`OAuth2Session` object with a stored token.
+        """Create a :class:`OAuth2Session` object with a stored token.
 
-        Uses a token stored in the system keyring to authenticate the session. This method requires a correctly
+        This method uses a token stored in the system keyring to authenticate the session. It requires a correctly
         configured system keyring backend.
 
         Parameters
@@ -173,12 +173,12 @@ class OIDCSessionFactory:
     def get_session_with_interactive_authorization(
         self, login_timeout: int = 60
     ) -> OAuth2Session:
-        """Creates a :class:`OAuth2Session` object, authorizing the user via their system web browser.
+        """Create a :class:`OAuth2Session` object, authorizing the user via the system web browser.
 
         Parameters
         ----------
-        login_timeout : int
-            Number of seconds to wait for the user to authenticate (default 60s).
+        login_timeout : int, optional
+            Number of seconds to wait for the user to authenticate. The default is ``60s``.
         """
 
         async def await_callback() -> Any:
@@ -216,9 +216,9 @@ class OIDCSessionFactory:
         return self._oauth_session
 
     def _configure_token_refresh(self) -> None:
-        """Configures automatic token refresh, if available.
+        """Configure automatic token refresh, if available.
 
-        Only Authorization Code Flow is currently supported.
+        This method only supports Authorization Code Flow currently.
         """
 
         def token_updater(token: Dict[str, str]) -> None:
@@ -238,9 +238,10 @@ class OIDCSessionFactory:
     def _parse_unauthorized_header(
         unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
-        """Extracts required parameters from the response's ``WWW-Authenticate`` header.
+        """Extract required parameters from the response's ``WWW-Authenticate`` header.
 
-        Validates that OIDC is enabled and all information required to configure the session has been provided.
+        This method validates that OIDC is enabled and all information required to configure the session
+        has been provided.
 
         Parameters
         ----------
@@ -278,25 +279,25 @@ class OIDCSessionFactory:
         if len(missing_headers) > 1:
             missing_header_string = '", "'.join(missing_headers)
             raise ConnectionError(
-                f"Unable to connect with OpenID Connect, mandatory headers '{missing_header_string}' "
-                f"were not provided, cannot continue..."
+                f"Unable to connect with OpenID Connect. Mandatory headers '{missing_header_string}' "
+                f"were not provided. Cannot continue..."
             )
         elif len(missing_headers) == 1:
             raise ConnectionError(
-                f"Unable to connect with OpenID Connect, mandatory header '{missing_headers[0]}' "
-                f"was not provided, cannot continue..."
+                f"Unable to connect with OpenID Connect. Mandatory header '{missing_headers[0]}' "
+                f"was not provided. Cannot continue..."
             )
         else:
             return bearer_parameters
 
     def _fetch_and_parse_well_known(self, url: str) -> CaseInsensitiveDict:
-        """Performs a GET request to the OpenID Identity Provider's well-known endpoint and verifies that the
+        """Perform a GET request to the OpenID identity provider's well-known endpoint and verify that the
         required parameters are returned.
 
         Parameters
         ----------
         url : str
-            URL referencing the OpenID Identity Provider's well-known endpoint.
+            URL referencing the OpenID identity provider's well-known endpoint.
         """
         logger.info(f"Fetching configuration information from Identity Provider {url}")
         set_session_kwargs(self._initial_session, self._idp_session_configuration)
@@ -323,13 +324,13 @@ class OIDCSessionFactory:
         if len(missing_headers) > 1:
             missing_headers_string = ", ".join(missing_headers)
             raise ConnectionError(
-                f"Unable to connect with OpenID Connect, mandatory well-known parameters "
-                f"'{missing_headers_string}' were not provided, cannot continue..."
+                f"Unable to connect with OpenID Connect. Mandatory well-known parameters "
+                f"'{missing_headers_string}' were not provided. Cannot continue..."
             )
         elif len(missing_headers) == 1:
             raise ConnectionError(
-                f"Unable to connect with OpenID Connect, well-known parameter '{missing_headers[0]}' "
-                f"was not provided, cannot continue..."
+                f"Unable to connect with OpenID Connect. Well-known parameter '{missing_headers[0]}' "
+                f"was not provided. Cannot continue..."
             )
 
         return oidc_configuration
@@ -338,13 +339,13 @@ class OIDCSessionFactory:
     def _override_idp_header(
         requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
-        """Helper method. Overrides user-provided ``Accept`` and ``Content-Type`` headers to ensure correct
-        response from the OpenID Identity Provider.
+        """Override user-provided ``Accept`` and ``Content-Type`` headers to ensure correct
+        response from the OpenID identity povider.
 
         Parameters
         ----------
         requests_configuration : RequestsConfiguration
-            Configuration options for connection to the OpenID Identity Provider.
+            Configuration options for connection to the OpenID identity provider.
         """
         if requests_configuration["headers"] is not None:
             headers = requests_configuration["headers"]
@@ -353,8 +354,8 @@ class OIDCSessionFactory:
         return requests_configuration
 
     def _add_api_audience_if_set(self) -> None:
-        """Helper method. Sets the ``ApiAudience`` header on connection to the API, if provided by the OpenID
-        Identity Provider. This is mainly required for Auth0.
+        """Set the ``ApiAudience`` header on connection to the API, if provided by the OpenID
+        identity provider. This is mainly required for Auth0.
         """
         if "apiAudience" not in self._authenticate_parameters:
             return
