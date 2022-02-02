@@ -78,7 +78,7 @@ class CaseInsensitiveOrderedDict(OrderedDict):
 
 class Singleton(type):
     """
-    Adds Singleton behaviour.
+    Metaclass that adds Singleton behaviour.
 
     When derived classes are created for the first time, they are added to the ``._instances`` property. Further instances of the
     class will fetch the existing instance, rather than creating a new one.

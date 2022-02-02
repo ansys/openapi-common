@@ -528,7 +528,7 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         cert : Union[None, bytes, str, Container[Union[bytes, str]]]
             User-provided client certificate to send with the request, optionally with password.
         proxies : Mapping[str, str], optional
-            Proxies dictionary to apply to the request.
+            Dictionary of proxies to apply to the request.
         """
         return super().send(
             request, stream, timeout or self.timeout, verify, cert, proxies

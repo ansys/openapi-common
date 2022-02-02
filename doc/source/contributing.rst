@@ -35,5 +35,5 @@ To reach the support team, email `pyansys.support@ansys.com <pyansys.support@ans
 Viewing OpenAPI Common Documentation
 ------------------------------------
 Documentation for the latest stable release of the OpenAPI Common library
-is hosted at `OpenAPI Common Documentation <https://grantami.docs.pyansys.com>`_.  
+is hosted at `OpenAPI Common Documentation <https://openapi.docs.pyansys.com>`_.  
 
