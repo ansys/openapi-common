@@ -257,32 +257,32 @@ class SessionConfiguration:
 
     Parameters
     ----------
-    client_cert_path : str
-        Path to the client certificate to send with the requests.
-    client_cert_key : str
-        Key to unlock the client certificate (if required).
-    cookies : :class:`http.cookiejar.CookieJar` or subclass
-        Cookies to send with each request.
-    headers : dict
+    client_cert_path : str, optional
+        Path to the client certificate to send with the requests. The default is ``None``.
+    client_cert_key : str, optional
+        Key to unlock the client certificate (if required). The default is ``None``.
+    cookies : :class:`http.cookiejar.CookieJar` or subclass, optional
+        Cookies to send with each request. The default is ``None``.
+    headers : dict, optional
         Header values to include with each request, indexed by header name. This parameter is
-        case-insensitive.
-    max_redirects : int
-        Maximum number of redirects to allow before halting.
-    proxies : dict
-        Proxy server URLs, indexed by resource URLs.
+        case-insensitive. The default is ``None``.
+    max_redirects : int, optional
+        Maximum number of redirects to allow before halting. The default is ``10``.
+    proxies : dict, optional
+        Proxy server URLs, indexed by resource URLs. The default is ``None``.
     verify_ssl : bool, optional
         Whether to verify the SSL certificate of the remote host. The default is ``True``.
-    cert_store_path : str
-        Path to the custom certificate store in ``.pem`` format.
+    cert_store_path : str, optional
+        Path to the custom certificate store in ``.pem`` format.  The default is ``None``.
     temp_folder_path : str, optional
         Path to the temporary directory where downloaded files are to be stored. The default is
         ``None``, in which case the user's ``TEMP`` directory is used.
     debug : bool, optional
         Whether a debug log is generated. The default is ``False``. The log include sensitives information about the
         authentication process.
-    safe_chars_for_path_param : str
-        Additional characters to treat as 'safe' when creating path parameters. For more information,
-        see `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_.
+    safe_chars_for_path_param : str, optional
+        Additional characters to treat as 'safe' when creating path parameters. The default is `` ``. For more
+        information, see `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_.
     retry_count : int, optional
         Number of attempts to make if the API server fails to return a valid response. The default is ``3``.
     request_timeout : int, optional
@@ -339,7 +339,7 @@ class SessionConfiguration:
         self,
     ) -> "RequestsConfiguration":
         """
-        Retrieve configuration as a dictionary, with keys corresponding to ``requests`` session properties.
+        Retrieve the configuration as a dictionary, with keys corresponding to ``requests`` session properties.
         """
         output: RequestsConfiguration = {
             "cert": self._cert,

@@ -267,7 +267,7 @@ class ApiClient(ApiClientBase):
             return return_data, response_data.status_code, response_data.headers
 
     def sanitize_for_serialization(self, obj: Any) -> Any:
-        """Builds a JSON POST object.
+        """Build a JSON POST object.
 
         Based on the object type, this method returns the sanitized JSON representation to send to the server:
 
@@ -325,7 +325,7 @@ class ApiClient(ApiClientBase):
     def deserialize(
         self, response: requests.Response, response_type: str
     ) -> DeserializedType:
-        """Deserializes the response into an object.
+        """Deserialize the response into an object.
 
         Based on the type of response, the appropriate object is created for use.
 
