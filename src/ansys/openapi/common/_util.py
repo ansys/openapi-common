@@ -278,10 +278,10 @@ class SessionConfiguration:
         Path to the temporary directory where downloaded files are to be stored. The default is
         ``None``, in which case the user's ``TEMP`` directory is used.
     debug : bool, optional
-        Whether a debug log is generated. The default is ``False``. The log include sensitives information about the
-        authentication process.
+        Whether a debug log is generated. The default is ``False``. The log include sensitives information
+        about the authentication process.
     safe_chars_for_path_param : str, optional
-        Additional characters to treat as 'safe' when creating path parameters. The default is `` ``. For more
+        Additional characters to treat as 'safe' when creating path parameters. For more
         information, see `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_.
     retry_count : int, optional
         Number of attempts to make if the API server fails to return a valid response. The default is ``3``.
