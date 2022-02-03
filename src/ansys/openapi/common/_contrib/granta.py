@@ -12,11 +12,11 @@ def create_session_from_granta_stk(
 
     Parameters
     ----------
-    stk_configuration : Dict
+    stk_configuration : dict
         Configuration dictionary provided by the Granta MI Scripting Toolkit session.
-    api_session_configuration : Optional[SessionConfiguration]
+    api_session_configuration : SessionConfiguration, optional
         Additional configuration settings for the requests session when connected to the Granta MI Service Layer.
-    idp_session_configuration : Optional[SessionConfiguration]
+    idp_session_configuration : SessionConfiguration, optional
         Additional configuration settings for the ""Requests`` session when connected to the OpenID identity provider.
 
     Notes

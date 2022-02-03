@@ -53,9 +53,9 @@ class ApiClient(ApiClientBase):
     ... <ApiClient url: http://my-api.com/API/v1.svc>
 
     For testing purposes, it is common to configure an API with a self-signed certificate. By default, the
-    :class:`ApiClient` will not trust self-signed SSL certificates. To allow this, pass a path to the root
-    certificate to the :class:`SessionConfiguration` object. For more configuration examples, see the
-    :class:`SessionConfiguration` documentation.
+    :class:`ApiClient` class will not trust self-signed SSL certificates. To allow this, pass a path to the
+    root certificate to the :class:`SessionConfiguration` object. For more configuration examples, see
+    :class:`SessionConfiguration`.
 
     >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
     ... ssl_client = ApiClient(requests.Session(),
@@ -93,8 +93,8 @@ class ApiClient(ApiClientBase):
         return f"<ApiClient url: {self.api_url}>"
 
     def setup_client(self, models: ModuleType) -> None:
-        """Sets up the client for use and registers models for serialization and deserialization. This step must be
-        completed prior to using the :class:`ApiClient`.
+        """Set up the client for use and register models for serialization and deserialization. This step must be
+        completed prior to using the :class:`ApiClient` class.
 
         Parameters
         ----------
@@ -148,7 +148,7 @@ class ApiClient(ApiClientBase):
         self.default_headers["User-Agent"] = value
 
     def set_default_header(self, header_name: str, header_value: str) -> None:
-        """Sets a default value for a header on all requests.
+        """Set a default value for a header on all requests.
 
         Certain headers will be overwritten by the API when sending requests, but default values for others can be set
         and will be respected. For example, they are set and respected if your API server is configured to require
@@ -156,8 +156,8 @@ class ApiClient(ApiClientBase):
 
         Notes
         -----
-        Some headers will always be overwritten, and some may be depending on the API endpoint requested. As a guide,
-        the following headers will always be ignored and overwritten:
+        Some headers will always be overwritten, and some may be overwritten, depending on the API endpoint requested.
+        As a guide, the following headers will always be ignored and overwritten:
 
         * ``Accept``
         * ``Content-Type``
@@ -267,7 +267,7 @@ class ApiClient(ApiClientBase):
             return return_data, response_data.status_code, response_data.headers
 
     def sanitize_for_serialization(self, obj: Any) -> Any:
-        """Builds a JSON POST object.
+        """Build a JSON POST object.
 
         Based on the object type, this method returns the sanitized JSON representation to send to the server:
 
@@ -325,17 +325,17 @@ class ApiClient(ApiClientBase):
     def deserialize(
         self, response: requests.Response, response_type: str
     ) -> DeserializedType:
-        """Deserializes the response into an object.
+        """Deserialize the response into an object.
 
         Based on the type of response, the appropriate object is created for use.
 
         For responses that are in JSON format, this method processes the response and returns it:
 
-        * If ``response_type`` is ``"file"``, save the content to a temporary file and return the file name.
-        * If ``response_type`` is ``"datetime.date"`` or ``"datetime.datetime"``, parse the string and return the
+        * If ``response_type`` is ``file``, save the content to a temporary file and return the file name.
+        * If ``response_type`` is ``datetime.date`` or ``datetime.datetime``, parse the string and return the
           ``datetime`` object.
-        * If ``response_type`` is ``"list"``, recursively deserialize the list contents.
-        * If ``response_type`` is ``"dict"``, recursively deserialize the dictionary keys and values.
+        * If ``response_type`` is ``list``, recursively deserialize the list contents.
+        * If ``response_type`` is ``dict``, recursively deserialize the dictionary keys and values.
         * If ``response_type`` is the name of an OpenAPI model, return the model object.
 
         Parameters
@@ -381,17 +381,17 @@ class ApiClient(ApiClientBase):
         return self.__deserialize(data, response_type)
 
     def __deserialize(self, data: SerializedType, klass_name: str) -> DeserializedType:
-        """Deserializes ``dict``, ``list``, and ``str`` into an object.
+        """Deserialize ``dict``, ``list``, and ``str`` into an object.
 
         Parameters
         ----------
-        data : Union[Dict, List, str]
-            Response data to be deserialized.
+        data : Union[dict, list, str]
+            Response data to deserialize.
         klass_name : str
-            Type of object the data should be deserialized into. One of:
+            Type of object to deserialize the data to. The type can be a:
 
-            * String class name.
-            * String Type definition for list or dictionary.
+            * String class name
+            * String type definition for list or dictionary
         """
 
         if data is None:
@@ -443,7 +443,7 @@ class ApiClient(ApiClientBase):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
-        """Makes the HTTP request and returns deserialized data.
+        """Make the HTTP request and return the deserialized data.
 
         Parameters
         ----------
@@ -473,8 +473,8 @@ class ApiClient(ApiClientBase):
             parameter name to the collection type.
         _preload_content : bool, optional
             Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case the reading or decoding data is read. If ``False``, recording or response
-            data is not read.
+            is ``True``, in which case response data is read or decoded. If ``False``, response data is not
+            read or decoded.
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
@@ -507,7 +507,7 @@ class ApiClient(ApiClientBase):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
     ) -> requests.Response:
-        """Makes the HTTP request and returns it directly.
+        """Make the HTTP request and return it directly.
 
         Parameters
         ----------
@@ -525,8 +525,8 @@ class ApiClient(ApiClientBase):
             Request body.
         _preload_content : bool, optional
             Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case the reading or decoding data is read.  If ``False``, recording or response
-            data is not read.
+            is ``True``, in which case the response data is read or decoded.  If ``False``, the response
+            data is not read or decoded.
         _request_timeout : Union[float, Tuple[float]]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
@@ -615,14 +615,14 @@ class ApiClient(ApiClientBase):
         else:
             raise ValueError(
                 "http method must be `GET`, `HEAD`, `OPTIONS`,"
-                " `POST`, `PATCH`, `PUT` or `DELETE`."
+                " `POST`, `PATCH`, `PUT`, or `DELETE`."
             )
 
     @staticmethod
     def parameters_to_tuples(
         params: Union[Dict, List[Tuple]], collection_formats: Optional[Dict[str, str]]
     ) -> List[Tuple[Any, Any]]:
-        """Gets parameters as a list of tuples, formatting collections.
+        """Get parameters as a list of tuples, formatting collections.
 
         Parameters
         ----------
@@ -660,7 +660,7 @@ class ApiClient(ApiClientBase):
         post_params: Optional[List[Tuple]] = None,
         files: Optional[Dict[str, Union[str, List[str]]]] = None,
     ) -> List[Tuple]:
-        """Builds form parameters.
+        """Build form parameters.
 
         This method combines plain form parameters and file parameters into a structure suitable for transmission.
 
@@ -697,11 +697,11 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
-        """Returns a correctly formatted ``Accept`` header value from the provided array of accepted content types.
+        """Return a correctly formatted ``Accept`` header value from the provided array of accepted content types.
 
         Parameters
         ----------
-        accepts : Optional[List[str]]
+        accepts : List[str], optional
             List of accepted content types.
 
         Examples
@@ -718,11 +718,11 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def select_header_content_type(content_types: Optional[List[str]]) -> str:
-        """Returns the preferred ``Content-Type`` header value from the provided array of valid content types.
+        """Return the preferred ``Content-Type`` header value from the provided array of valid content types.
 
         Parameters
         ----------
-        content_types : Optional[List[str]]
+        content_types : List[str], optional
             List of content types.
 
         Notes
@@ -751,15 +751,15 @@ class ApiClient(ApiClientBase):
             return content_types[0]
 
     def __deserialize_file(self, response: requests.Response) -> str:
-        """Deserializes the body to a file.
+        """Deserialize the body to a file.
 
-        Saves the response body in a file in a temporary folder,
+        This method saves the response body in a file in a temporary folder,
         using the file name from the ``Content-Disposition`` header if provided.
 
         Parameters
         ----------
         response : requests.Response
-            The API response object to be deserialized.
+            The API response object to deserialize.
         """
         fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
         os.close(fd)
@@ -783,12 +783,12 @@ class ApiClient(ApiClientBase):
     def __deserialize_primitive(
         data: PrimitiveType, klass: Callable[[PrimitiveType], PrimitiveType]
     ) -> PrimitiveType:
-        """Deserializes to primitive type.
+        """Deserialize to the primitive type.
 
         Parameters
         ----------
         data : Union[str, int, float, bool, bytes]
-            Data to be deserialized into primitive type.
+            Data to deserialize into the primitive type.
         klass : Type
             Type of target object for deserialization.
         """
@@ -801,18 +801,18 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def __deserialize_object(value: object) -> object:
-        """Returns an original value.
+        """Return an original value.
 
         Parameters
         ----------
         value : object
-            A generic object that does not match any specific deserialization strategy.
+            Generic object that does not match any specific deserialization strategy.
         """
         return value
 
     @staticmethod
     def __deserialize_date(value: str) -> datetime.date:
-        """Deserializes string to date.
+        """Deserialize string to ``datetime.date``.
 
         Parameters
         ----------
@@ -829,7 +829,7 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def __deserialize_datetime(value: str) -> datetime.datetime:
-        """Deserializes string to ``datetime``.
+        """Deserialize string to ``datetime.datetime``.
 
         Parameters
         ----------
@@ -847,7 +847,7 @@ class ApiClient(ApiClientBase):
     def __deserialize_model(
         self, data: Dict, klass: Type[ModelBase]
     ) -> Union[ModelBase, Dict]:
-        """Deserializes ``dict`` to model.
+        """Deserialize ``dict`` to model.
 
         Given a model type and the serialized data, deserialize into an instance of the model class.
 
@@ -856,7 +856,7 @@ class ApiClient(ApiClientBase):
         data : Dict
             Serialized representation of the model object.
         klass : ModelType
-            Type of the model to be deserialized.
+            Type of the model to deserialize.
         """
 
         kwargs = {}

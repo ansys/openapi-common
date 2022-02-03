@@ -22,7 +22,8 @@ from requests.structures import CaseInsensitiveDict
 class CaseInsensitiveOrderedDict(OrderedDict):
     """Preserves order of insertion and is case-insensitive.
 
-    Intended for use when parsing ``WWW-Authenticate`` headers where odd combinations of entries are expected.
+    This class is intended for use when parsing ``WWW-Authenticate`` headers where odd combinations of entries
+    are expected.
     """
 
     __slots__ = ()
@@ -92,7 +93,7 @@ class Singleton(type):
 
 
 class AuthenticateHeaderParser(metaclass=Singleton):
-    """Parser for ``WWW-Authenticate`` headers.
+    """Parses ``WWW-Authenticate`` headers.
 
     This parser implements the RFC-7235 specification for the ``WWW-Authenticate`` header, together with
     the extension by Microsoft to support Negotiate authentication. This is a Singleton, because there is
@@ -117,7 +118,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         self.auth_parser = pp.delimitedList(credentials("schemes*"), delim=", ")
 
     def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
-        """Parses a given header's content and returns a dictionary of authentication methods and parameters or tokens.
+        """Parse a given header's content and return a dictionary of authentication methods and parameters or tokens.
 
         Invalid headers (according to the specification above) will return an empty response.
 
@@ -152,7 +153,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
 
 def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
-    """Parses a string containing a ``WWW-Authenticate`` header and returns a dictionary with the supported
+    """Parse a string containing a ``WWW-Authenticate`` header and return a dictionary with the supported
     authentication types and provided parameters (if any exist).
 
     Parameters
@@ -167,12 +168,12 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
 def set_session_kwargs(
     session: requests.Session, property_dict: "RequestsConfiguration"
 ) -> None:
-    """Sets session parameters from the dictionary provided.
+    """Set session parameters from the dictionary provided.
 
     Parameters
     ----------
     session : :obj:`requests.Session`
-        Session object to be configured.
+        Session object to configure.
     property_dict : dict
         Mapping from requests session parameter to value.
     """
@@ -181,12 +182,13 @@ def set_session_kwargs(
 
 
 class ResponseHandler(BaseHTTPRequestHandler):
-    """OpenID Connect Callback handler. Returns authentication complete page when authentication flow completes.
+    """Provides an OpenID Connect callback handler. This class returns a page indicating authentication
+    completion when the authentication flow completes.
 
     Attributes
     ----------
     _response_html : str
-        User-facing HTML to be rendered when redirected after successful authentication with the Identity Provider.
+        User-facing HTML to render when redirected after successful authentication with the identity provider.
     """
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
@@ -209,7 +211,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
 
     # noinspection PyPep8Naming
     def do_GET(self) -> None:
-        """Handles GET requests to the callback URL."""
+        """Handle GET requests to the callback URL."""
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
@@ -220,7 +222,7 @@ class ResponseHandler(BaseHTTPRequestHandler):
 
 
 class OIDCCallbackHTTPServer(HTTPServer):
-    """HTTP Server to handle callback requests on successful OpenID Connect authentication.
+    """Provides the HTTP Server that is to handle callback requests on successful OpenID Connect authentication.
 
     Attributes
     ----------
@@ -255,36 +257,39 @@ class SessionConfiguration:
 
     Parameters
     ----------
-    client_cert_path : str
-        Path to the client certificate to send with the requests.
-    client_cert_key : str
-        Key to unlock the client certificate (if required).
-    cookies : :class:`http.cookiejar.CookieJar` or subclass
-        Cookies to send with each request.
-    headers : dict
+    client_cert_path : str, optional
+        Path to the client certificate to send with the requests. The default is ``None``, in which case
+        no client certificate will be sent with requests.
+    client_cert_key : str, optional
+        Key to unlock the client certificate (if required). The default is ``None``.
+    cookies : :class:`http.cookiejar.CookieJar` or subclass, optional
+        Cookies to send with each request. The default is ``None``.
+    headers : dict, optional
         Header values to include with each request, indexed by header name. This parameter is
-        case-insensitive.
-    max_redirects : int
-        Maximum number of redirects to allow before halting.
-    proxies : dict
-        Proxy server URLs, indexed by resource URLs.
-    verify_ssl : bool
+        case-insensitive. The default is ``None``, in which case only required headers will be included.
+    max_redirects : int, optional
+        Maximum number of redirects to allow before halting. The default is ``10``.
+    proxies : dict, optional
+        Proxy server URLs, indexed by resource URLs. The default is ``None``, in which case
+        no proxies are registered for use.
+    verify_ssl : bool, optional
         Whether to verify the SSL certificate of the remote host. The default is ``True``.
-    cert_store_path : str
-        Path to the custom certificate store in ``.pem`` format.
-    temp_folder_path : str
+    cert_store_path : str, optional
+        Path to the custom certificate store in ``.pem`` format.  The default is ``None``, in which case
+        only certificates included in the ``certifi`` package will be trusted.
+    temp_folder_path : str, optional
         Path to the temporary directory where downloaded files are to be stored. The default is
-        the user's ``TEMP`` directory.
+        ``None``, in which case the user's ``TEMP`` directory will be used.
     debug : bool, optional
-        Whether debug logging is generated. The default is ``False``. The logging include sensitives information about the
-        authentication process.
-    safe_chars_for_path_param : str
-        Additional characters to treat as 'safe' when creating path parameters. For more information,
-        see `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_.
-    retry_count : int
+        Whether a debug log is generated. The default is ``False``. The log include sensitives information
+        about the authentication process.
+    safe_chars_for_path_param : str, optional
+        Additional characters to treat as 'safe' when creating path parameters. For more
+        information, see `RFC 3986 <https://datatracker.ietf.org/doc/html/rfc3986#section-2.2>`_.
+    retry_count : int, optional
         Number of attempts to make if the API server fails to return a valid response. The default is ``3``.
-    request_timeout : int
-        Timeout for requests to the API server in seconds. The default is ``31``.
+    request_timeout : int, optional
+        Timeout in seconds for requests to the API server. The default is ``31``.
     """
 
     def __init__(
@@ -337,7 +342,7 @@ class SessionConfiguration:
         self,
     ) -> "RequestsConfiguration":
         """
-        Outputs configuration as a dictionary, with keys corresponding to ``requests`` session properties.
+        Retrieve the configuration as a dictionary, with keys corresponding to ``requests`` session properties.
         """
         output: RequestsConfiguration = {
             "cert": self._cert,
@@ -354,12 +359,12 @@ class SessionConfiguration:
         cls, configuration_dict: "RequestsConfiguration"
     ) -> "SessionConfiguration":
         """
-        Creates a :class:`SessionConfiguration` object from its dictionary form, inverse of
-        :meth:`.get_configuration_for_requests`.
+        Create a :class:`SessionConfiguration` object from its dictionary form, which is the inverse of
+        the :meth:`.get_configuration_for_requests` method.
 
         Parameters
         ----------
-        configuration_dict : Dict
+        configuration_dict : dict
             Dictionary form of the session parameters.
         """
         new = cls()
@@ -372,7 +377,7 @@ class SessionConfiguration:
                 new.client_cert_path = cert
             else:
                 raise ValueError(
-                    f"Invalid 'cert' field. Must be Tuple or str, not '{type(cert)}'"
+                    f"Invalid 'cert' field. Must be Tuple or str, not '{type(cert)}'."
                 )
         if configuration_dict["verify"] is not None:
             verify = configuration_dict["verify"]
@@ -383,7 +388,7 @@ class SessionConfiguration:
                 new.verify_ssl = verify
             else:
                 raise ValueError(
-                    f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'"
+                    f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'."
                 )
         if configuration_dict["cookies"] is not None:
             new.cookies = configuration_dict["cookies"]
@@ -397,9 +402,9 @@ class SessionConfiguration:
 
 
 def handle_response(response: requests.Response) -> requests.Response:
-    """Helper method. Checks the status code of a response.
+    """Check the status code of a response.
 
-    If the response is a 2XX then it is returned as-is, otherwise an :class:`ApiException` will be raised.
+    If the response is 2XX, it is returned as-is. Otherwise an :class:`ApiException` class will be raised.
 
     Throws
     ------

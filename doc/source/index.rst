@@ -141,7 +141,7 @@ For comprehensive API documentation, see :doc:`API reference <api/index>`.
 
 Contributing
 ------------
-We welcome contributions to this library. For more information, see the
+We welcome contributions to this library. For more information, see
 :doc:`Contributing<contributing>`.
 
 Project Index
