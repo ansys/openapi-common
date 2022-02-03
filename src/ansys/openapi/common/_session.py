@@ -318,7 +318,7 @@ class ApiClientFactory:
     def __handle_initial_response(
         self, initial_response: requests.Response
     ) -> "Optional[ApiClientFactory]":
-        """Verify that an initial 401 error is returned if we expect to require authentication. If a 2XX response
+        """Verify that an initial 401 response is returned if we expect to require authentication. If a 2XX response
         is returned, then all is well, but we will not use any authentication in future. Otherwise, something else has
         gone awry: return an :obj:`ApiConnectionException` object with information about the response.
 

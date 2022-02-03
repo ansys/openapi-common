@@ -812,7 +812,7 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def __deserialize_date(value: str) -> datetime.date:
-        """Deserialize string to date.
+        """Deserialize string to ``datetime.date``.
 
         Parameters
         ----------
@@ -829,7 +829,7 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def __deserialize_datetime(value: str) -> datetime.datetime:
-        """Deserialize string to ``datetime``.
+        """Deserialize string to ``datetime.datetime``.
 
         Parameters
         ----------
