@@ -127,7 +127,7 @@ class OIDCSessionFactory:
         Parameters
         ----------
         refresh_token : str
-            Refresh token for the API server, typically a Base64-encoded JSON web token.
+            Refresh token for the API server, typically a Base64-encoded JSON Web Token.
         access_token : Optional[str]
             Access token for the API server, typically a Base64-encoded JSON web token.
         """

@@ -258,25 +258,28 @@ class SessionConfiguration:
     Parameters
     ----------
     client_cert_path : str, optional
-        Path to the client certificate to send with the requests. The default is ``None``.
+        Path to the client certificate to send with the requests. The default is ``None``, in which case
+        no client certificate will be sent with requests.
     client_cert_key : str, optional
         Key to unlock the client certificate (if required). The default is ``None``.
     cookies : :class:`http.cookiejar.CookieJar` or subclass, optional
         Cookies to send with each request. The default is ``None``.
     headers : dict, optional
         Header values to include with each request, indexed by header name. This parameter is
-        case-insensitive. The default is ``None``.
+        case-insensitive. The default is ``None``, in which case only required headers will be included.
     max_redirects : int, optional
         Maximum number of redirects to allow before halting. The default is ``10``.
     proxies : dict, optional
-        Proxy server URLs, indexed by resource URLs. The default is ``None``.
+        Proxy server URLs, indexed by resource URLs. The default is ``None``, in which case
+        no proxies are registered for use.
     verify_ssl : bool, optional
         Whether to verify the SSL certificate of the remote host. The default is ``True``.
     cert_store_path : str, optional
-        Path to the custom certificate store in ``.pem`` format.  The default is ``None``.
+        Path to the custom certificate store in ``.pem`` format.  The default is ``None``, in which case
+        only certificates included in the ``certifi`` package will be trusted.
     temp_folder_path : str, optional
         Path to the temporary directory where downloaded files are to be stored. The default is
-        ``None``, in which case the user's ``TEMP`` directory is used.
+        ``None``, in which case the user's ``TEMP`` directory will be used.
     debug : bool, optional
         Whether a debug log is generated. The default is ``False``. The log include sensitives information
         about the authentication process.
