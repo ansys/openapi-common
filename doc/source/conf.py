@@ -7,6 +7,7 @@ import sys
 project = "ansys.openapi.common"
 copyright = "(c) 2021 ANSYS, Inc. All rights reserved"
 author = "ANSYS Inc."
+html_title = f"OpenAPI Common {__version__}"
 
 sys.path.insert(0, os.path.abspath("../src"))
 
