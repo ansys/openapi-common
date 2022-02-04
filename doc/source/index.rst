@@ -1,5 +1,5 @@
-Common Authentication Components Documentation
-==============================================
+OpenAPI Common |version|
+========================
 
 .. toctree::
    :hidden:

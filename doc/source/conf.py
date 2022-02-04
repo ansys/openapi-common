@@ -7,6 +7,7 @@ import sys
 project = "ansys.openapi.common"
 copyright = "(c) 2021 ANSYS, Inc. All rights reserved"
 author = "ANSYS Inc."
+html_title = f"OpenAPI Common {common.__version__}"
 
 sys.path.insert(0, os.path.abspath("../src"))
 
@@ -100,6 +101,11 @@ html_logo = "./_static/pyansys-logo-black-cropped.png"
 html_theme_options = {
     "github_url": "https://github.com/pyansys/openapi-common",
     "show_prev_next": False,
+    "show_breadcrumbs": True,
+    "additional_breadcrumbs": [
+        ("PyAnsys Documentation", "https://docs.pyansys.com"),
+        ("Shared Components", "https://shared.docs.pyansys.com")
+    ]
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
