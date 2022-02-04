@@ -100,6 +100,11 @@ html_logo = "./_static/pyansys-logo-black-cropped.png"
 html_theme_options = {
     "github_url": "https://github.com/pyansys/openapi-common",
     "show_prev_next": False,
+    "show_breadcrumbs": True,
+    "additional_breadcrumbs": [
+        ("PyAnsys Documentation", "https://docs.pyansys.com"),
+        ("Shared Components", "https://shared.docs.pyansys.com")
+    ]
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
