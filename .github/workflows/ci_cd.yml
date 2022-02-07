@@ -191,7 +191,7 @@ jobs:
           path: ~/html
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        uses: JamesIves/github-pages-deploy-action@v4.2.3
         with:
           repository-name: pyansys/openapi-common-docs
           token: ${{ steps.get_workflow_token.outputs.token }}
