@@ -193,7 +193,10 @@ class OIDCSessionFactory:
         logger.info("Authenticating user...")
         logger.debug(f"Opening web browser with URL {authorization_url}")
         webbrowser.open(authorization_url)
-        auth_code = asyncio.wait_for(await_callback(), login_timeout)
+        loop = asyncio.get_event_loop()
+        auth_code_task = asyncio.wait_for(await_callback(), login_timeout)
+        auth_code = loop.run_until_complete(auth_code_task)
+        loop.close()
         logger.info("Authentication complete, fetching token...")
         if _log_tokens:
             logger.debug(f"Received authorization code: {auth_code}")
@@ -360,6 +363,6 @@ class OIDCSessionFactory:
         if "apiAudience" not in self._authenticate_parameters:
             return
         mi_headers: CaseInsensitiveDict = self._api_session_configuration["headers"]
-        mi_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
+        mi_headers["audience"] = self._authenticate_parameters["apiAudience"]
         idp_headers: CaseInsensitiveDict = self._idp_session_configuration["headers"]
-        idp_headers["apiAudience"] = self._authenticate_parameters["apiAudience"]
+        idp_headers["audience"] = self._authenticate_parameters["apiAudience"]
