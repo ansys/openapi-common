@@ -8,6 +8,7 @@ from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth  # type: ignore
 
+from . import __version__
 from ._api_client import ApiClient
 from ._util import (
     parse_authenticate,
@@ -84,9 +85,9 @@ class ApiClientFactory:
         logger.info(f"Creating new session at '{api_url}")
 
         if session_configuration is None:
-            from . import __version__
-
             session_configuration = SessionConfiguration()
+
+        if "User-Agent" not in session_configuration.headers:
             user_agent = generate_user_agent("ansys-openapi-common", __version__)
             session_configuration.headers["User-Agent"] = user_agent
         self._session_configuration = session_configuration

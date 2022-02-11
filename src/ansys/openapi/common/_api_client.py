@@ -85,8 +85,6 @@ class ApiClient(ApiClientBase):
         self.models: Dict[str, Type[ModelBase]] = {}
         self.api_url = api_url
         self.rest_client = session
-        self.default_headers: CaseInsensitiveDict[str] = CaseInsensitiveDict()
-        self.default_headers["User-Agent"] = "Swagger-Codegen/1.0.0/python"
         self.configuration = configuration
 
     def __repr__(self) -> str:
@@ -111,69 +109,6 @@ class ApiClient(ApiClientBase):
         """
         self.models = models.__dict__
 
-    @property
-    def user_agent(self) -> str:
-        """User agent reported to the API server in the ``User-Agent`` header.
-
-        Some APIs will behave differently for different client applications. Change this if your
-        API requires different behavior.
-
-        Notes
-        -----
-        The behavior of the OpenID Connect login process is not governed by the user-agent string.
-        It is not possible to use a different login flow by changing this value when using OIDC
-        authentication.
-
-        Examples
-        --------
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
-        ... client.user_agent
-        'Swagger-Codegen/1.0.0/python'
-
-        Change the user-agent string to impersonate a Mozilla Firefox browser:
-
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
-        ... client.user_agent = (
-        ...    'Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0'
-        ... )
-        """
-        return self.default_headers["User-Agent"]
-
-    @user_agent.setter
-    def user_agent(self, value: str) -> None:
-        self.default_headers["User-Agent"] = value
-
-    def set_default_header(self, header_name: str, header_value: str) -> None:
-        """Set a default value for a header on all requests.
-
-        Certain headers will be overwritten by the API when sending requests, but default values for others can be set
-        and will be respected. For example, they are set and respected if your API server is configured to require
-        non-OIDC tokens for authentication.
-
-        Notes
-        -----
-        Some headers will always be overwritten, and some may be overwritten, depending on the API endpoint requested.
-        As a guide, the following headers will always be ignored and overwritten:
-
-        * ``Accept``
-        * ``Content-Type``
-
-        The ``Authorization`` header may be overwritten depending on what, if any, authentication scheme is provided for
-        the requests session.
-
-        Examples
-        --------
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
-        ... client.set_default_header('Authorization', 'my-token-value')
-        """
-        self.default_headers[header_name] = header_value
-
     def __call_api(
         self,
         resource_path: str,
@@ -193,7 +128,6 @@ class ApiClient(ApiClientBase):
 
         # header parameters
         header_params = header_params or {}
-        header_params.update(self.default_headers)
         if header_params:
             header_params_sanitized = self.sanitize_for_serialization(header_params)
             header_params = dict(

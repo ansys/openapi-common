@@ -36,30 +36,6 @@ def test_repr(blank_client):
     assert type(blank_client).__name__ in str(blank_client)
 
 
-def test_default_user_agent(blank_client):
-    assert blank_client.user_agent == "Swagger-Codegen/1.0.0/python"
-
-
-def test_set_user_agent(blank_client):
-    blank_client.user_agent = UA_STRING
-    assert blank_client.user_agent == UA_STRING
-    assert blank_client.default_headers["User-Agent"] == UA_STRING
-
-
-def test_default_default_headers(blank_client):
-    assert len(blank_client.default_headers) == 1
-    assert "User-Agent" in blank_client.default_headers.keys()
-
-
-def test_set_default_header(blank_client):
-    test_header_value = secrets.token_hex(8)
-    test_header_name = secrets.token_hex(8)
-    assert test_header_name not in blank_client.default_headers
-    blank_client.set_default_header(test_header_name, test_header_value)
-    assert test_header_name in blank_client.default_headers
-    assert blank_client.default_headers[test_header_name.upper()] == test_header_value
-
-
 class TestSerialization:
     _test_value_list = ["foo", int(2), 2.0, True]
     _test_value_types = [str, int, float, bool]
