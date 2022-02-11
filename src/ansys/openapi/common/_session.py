@@ -153,7 +153,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`ApiClientFactory`
+        :class:`~ansys.openapi.common.ApiClientFactory`
             Original client factory object.
         """
         if self.__test_connection():
@@ -185,7 +185,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`ApiClientFactory`
+        :class:`~ansys.openapi.common.ApiClientFactory`
             Original client factory object.
 
         Notes
@@ -227,7 +227,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`ApiClientFactory`
+        :class:`~ansys.openapi.common.ApiClientFactory`
             Current client factory object.
 
         Notes
@@ -268,12 +268,12 @@ class ApiClientFactory:
 
         Parameters
         ----------
-        idp_session_configuration : SessionConfiguration, optional
+        idp_session_configuration : :class:`~ansys.openapi.common.SessionConfiguration`, optional
             Additional configuration settings for the requests session when connected to the OpenID identity provider.
 
         Returns
         -------
-        :class:`OIDCSessionBuilder`
+        :class:`~ansys.openapi.common.OIDCSessionBuilder`
             Builder object to authenticate via OIDC.
 
         Notes
