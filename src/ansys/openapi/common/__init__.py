@@ -1,5 +1,14 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
 
+try:
+    from importlib import metadata as metadata
+
+    __version__ = metadata.version("ansys-openapi-common")
+except ImportError:
+    from importlib_metadata import metadata as metadata_backport
+
+    __version__ = metadata_backport("ansys-openapi-common")["version"]
+
 from ._session import ApiClientFactory, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
@@ -21,12 +30,3 @@ __all__ = [
     "ApiClientBase",
     "ModelBase",
 ]
-
-try:
-    from importlib import metadata as metadata
-
-    __version__ = metadata.version("ansys-openapi-common")
-except ImportError:
-    from importlib_metadata import metadata as metadata_backport
-
-    __version__ = metadata_backport("ansys-openapi-common")["version"]
