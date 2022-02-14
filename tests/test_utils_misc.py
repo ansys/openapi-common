@@ -136,7 +136,9 @@ class TestOIDCHTTPServer:
         assert test_code in oidc_callback_server.auth_code
 
 
-def test_oidc_callback_server_port_acquisition_and_release(oidc_callback_server_process):
+def test_oidc_callback_server_port_acquisition_and_release(
+    oidc_callback_server_process,
+):
     # Check that the process is bound to the OIDC callback port
     proc = psutil.Process(oidc_callback_server_process.pid)
     assert any([conn.laddr.port == 32284 for conn in proc.connections()])
