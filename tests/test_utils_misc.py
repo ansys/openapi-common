@@ -1,7 +1,8 @@
 import secrets
 import threading
 import psutil
-import os
+import time
+from multiprocessing import Process
 
 import pytest
 import requests
@@ -103,7 +104,6 @@ def oidc_callback_server():
 class TestOIDCHTTPServer:
     def test_authorize_returns_200(self, oidc_callback_server):
         resp = requests.get("http://localhost:32284")
-
         assert resp.status_code == 200
         assert "Login successful" in resp.text
         assert "Content-Type" in resp.headers
@@ -112,16 +112,38 @@ class TestOIDCHTTPServer:
     def test_authorize_with_code_parses_code(self, oidc_callback_server):
         test_code = secrets.token_hex(32)
         resp = requests.get(f"http://localhost:32284?code={test_code}")
-
         assert resp.status_code == 200
         assert test_code in oidc_callback_server.auth_code
 
 
-class TestOIDCHTTPServerPorts:
-    def test_port_binding(self, oidc_callback_server):
-        proc = psutil.Process(os.getpid())
-        connections = proc.connections(kind="tcp")
-        assert any([conn.laddr.port == 32284 for conn in connections])
+def run_webserver():
+    callback_server = OIDCCallbackHTTPServer()
+    callback_server.handle_request()
+    del callback_server
+    # Wait an arbitrarily long time. We'll kill this process from the outside
+    while True:
+        time.sleep(1)
 
 
-# TODO test port releasing
+def test_port_acquisition_and_release():
+    p = Process(target=run_webserver, daemon=True)
+    p.start()
+
+    # Wait for the process to start up
+    time.sleep(5)
+
+    # Check that the process is bound to the OIDC callback port
+    proc = psutil.Process(p.pid)
+    assert any([conn.laddr.port == 32284 for conn in proc.connections()])
+
+    # Send the request that will cause the server to close
+    requests.get("http://localhost:32284?code=1234567890")
+
+    # Check that the process is no longer bound to the OIDC callback port
+    connections = proc.connections(kind="tcp")
+    for conn in connections:
+        print(conn.laddr)
+    assert all([conn.laddr.port != 32284 for conn in connections])
+
+    # Clean up
+    p.terminate()
