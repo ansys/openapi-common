@@ -180,27 +180,16 @@ class OIDCSessionFactory:
         login_timeout : int, optional
             Number of seconds to wait for the user to authenticate. The default is ``60s``.
         """
-
-        async def await_callback() -> Any:
-            thread = threading.Thread(target=self._callback_server.serve_forever)
-            thread.daemon = True
-            thread.start()
-            return await self._callback_server.get_auth_code()
-
         authorization_url, state = self._oauth_session.authorization_url(
             self._well_known_parameters["authorization_endpoint"]
         )
         logger.info("Authenticating user...")
         logger.debug(f"Opening web browser with URL {authorization_url}")
         webbrowser.open(authorization_url)
-        loop = asyncio.get_event_loop()
-        auth_code_task = asyncio.wait_for(await_callback(), login_timeout)
-        auth_code = loop.run_until_complete(auth_code_task)
-        loop.close()
+        auth_code = self._get_auth_code(login_timeout)
         logger.info("Authentication complete, fetching token...")
         if _log_tokens:
             logger.debug(f"Received authorization code: {auth_code}")
-        self._callback_server.shutdown()
 
         _ = self._oauth_session.fetch_token(
             self._well_known_parameters["token_endpoint"],
@@ -217,6 +206,26 @@ class OIDCSessionFactory:
                 )
         logger.info("Tokens retrieved successfully. Authentication complete.")
         return self._oauth_session
+
+    def _get_auth_code(self, login_timeout: int) -> str:
+        """Receive the callback request from the OIDC identity provider.
+
+        Parameters
+        ----------
+        login_timeout : int, optional
+            Number of seconds to wait for the user to authenticate.
+
+        Returns
+        -------
+        str
+            The url of the callback request, which contains the authentication code.
+        """
+
+        self._callback_server.timeout = login_timeout
+        self._callback_server.handle_request()
+        auth_code = self._callback_server.auth_code
+        del self._callback_server  # Ensures bound port is released for subsequent OIDC connections
+        return auth_code
 
     def _configure_token_refresh(self) -> None:
         """Configure automatic token refresh, if available.
