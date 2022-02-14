@@ -1,4 +1,3 @@
-import asyncio
 import secrets
 import threading
 import psutil
@@ -90,69 +89,39 @@ class TestCaseInsensitiveOrderedDict:
         assert dict_from_repr == self.example_dict
 
 
+@pytest.fixture(scope="function")
+def oidc_callback_server():
+    callback_server = OIDCCallbackHTTPServer()
+    thread = threading.Thread(target=callback_server.handle_request)
+    thread.daemon = True
+    thread.start()
+    yield callback_server
+    del callback_server
+    del thread
+
+
 class TestOIDCHTTPServer:
-    def test_authorize_returns_200(self):
-        callback_server = OIDCCallbackHTTPServer()
-        session = requests.Session()
-
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-
-        resp = session.get("http://localhost:32284")
-
-        callback_server.shutdown()
-        del callback_server
-        del thread
+    def test_authorize_returns_200(self, oidc_callback_server):
+        resp = requests.get("http://localhost:32284")
 
         assert resp.status_code == 200
         assert "Login successful" in resp.text
         assert "Content-Type" in resp.headers
         assert "text/html" in resp.headers["Content-Type"]
 
-    def test_authorize_with_code_parses_code(self):
-        callback_server = OIDCCallbackHTTPServer()
-        session = requests.Session()
-
+    def test_authorize_with_code_parses_code(self, oidc_callback_server):
         test_code = secrets.token_hex(32)
-
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-
-        resp = session.get(f"http://localhost:32284?code={test_code}")
-
-        loop = asyncio.get_event_loop()
-        code = loop.run_until_complete(callback_server.get_auth_code())
-        callback_server.shutdown()
+        resp = requests.get(f"http://localhost:32284?code={test_code}")
 
         assert resp.status_code == 200
-        assert test_code in code
+        assert test_code in oidc_callback_server.auth_code
 
-    def test_callback_server_binds_to_port(self):
-        callback_server = OIDCCallbackHTTPServer()
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
 
+class TestOIDCHTTPServerPorts:
+    def test_port_binding(self, oidc_callback_server):
         proc = psutil.Process(os.getpid())
         connections = proc.connections(kind="tcp")
-        port_exists = False
-        for conn in connections:
-            if conn.laddr.port == 32284:
-                port_exists = True
-        assert port_exists
+        assert any([conn.laddr.port == 32284 for conn in connections])
 
-        callback_server.shutdown()
 
-    def test_callback_server_releases_port(self):
-        callback_server = OIDCCallbackHTTPServer()
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-        callback_server.shutdown()
-
-        proc = psutil.Process(os.getpid())
-        connections = proc.connections(kind="tcp")
-        for conn in connections:
-            assert conn.laddr.port != 32284
+# TODO test port releasing
