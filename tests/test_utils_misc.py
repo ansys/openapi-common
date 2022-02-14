@@ -90,8 +90,26 @@ class TestCaseInsensitiveOrderedDict:
         assert dict_from_repr == self.example_dict
 
 
+def run_server():
+    callback_server = OIDCCallbackHTTPServer()
+    callback_server.handle_request()
+
+
+@pytest.fixture(scope="function")
+def oidc_callback_server_process():
+    # Run the OIDC callback server in a process, and return the process
+    # Doesn't perform any cleanup, so p.terminate() must be called by the test
+    p = Process(target=run_server, daemon=True)
+    p.start()
+    # Wait for the process to start up
+    time.sleep(5)
+    return p
+
+
 @pytest.fixture(scope="function")
 def oidc_callback_server():
+    # Run the OIDC callback server in a thread, and return the server
+    # Clean up when finished
     callback_server = OIDCCallbackHTTPServer()
     thread = threading.Thread(target=callback_server.handle_request)
     thread.daemon = True
@@ -102,8 +120,10 @@ def oidc_callback_server():
 
 
 class TestOIDCHTTPServer:
-    def test_authorize_returns_200(self, oidc_callback_server):
+    def test_authorize_returns_200(self, oidc_callback_server_process):
         resp = requests.get("http://localhost:32284")
+        oidc_callback_server_process.terminate()
+
         assert resp.status_code == 200
         assert "Login successful" in resp.text
         assert "Content-Type" in resp.headers
@@ -116,24 +136,9 @@ class TestOIDCHTTPServer:
         assert test_code in oidc_callback_server.auth_code
 
 
-def run_webserver():
-    callback_server = OIDCCallbackHTTPServer()
-    callback_server.handle_request()
-    del callback_server
-    # Wait an arbitrarily long time. We'll kill this process from the outside
-    while True:
-        time.sleep(1)
-
-
-def test_port_acquisition_and_release():
-    p = Process(target=run_webserver, daemon=True)
-    p.start()
-
-    # Wait for the process to start up
-    time.sleep(5)
-
+def test_oidc_callback_server_port_acquisition_and_release(oidc_callback_server_process):
     # Check that the process is bound to the OIDC callback port
-    proc = psutil.Process(p.pid)
+    proc = psutil.Process(oidc_callback_server_process.pid)
     assert any([conn.laddr.port == 32284 for conn in proc.connections()])
 
     # Send the request that will cause the server to close
@@ -145,5 +150,4 @@ def test_port_acquisition_and_release():
         print(conn.laddr)
     assert all([conn.laddr.port != 32284 for conn in connections])
 
-    # Clean up
-    p.terminate()
+    oidc_callback_server_process.terminate()
