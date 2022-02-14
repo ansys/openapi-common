@@ -1,6 +1,8 @@
 import asyncio
 import secrets
 import threading
+import psutil
+import os
 
 import pytest
 import requests
@@ -123,7 +125,34 @@ class TestOIDCHTTPServer:
         loop = asyncio.get_event_loop()
         code = loop.run_until_complete(callback_server.get_auth_code())
         callback_server.shutdown()
-        del callback_server
 
         assert resp.status_code == 200
         assert test_code in code
+
+    def test_callback_server_binds_to_port(self):
+        callback_server = OIDCCallbackHTTPServer()
+        thread = threading.Thread(target=callback_server.serve_forever)
+        thread.daemon = True
+        thread.start()
+
+        proc = psutil.Process(os.getpid())
+        connections = proc.connections(kind="tcp")
+        port_exists = False
+        for conn in connections:
+            if conn.laddr.port == 32284:
+                port_exists = True
+        assert port_exists
+
+        callback_server.shutdown()
+
+    def test_callback_server_releases_port(self):
+        callback_server = OIDCCallbackHTTPServer()
+        thread = threading.Thread(target=callback_server.serve_forever)
+        thread.daemon = True
+        thread.start()
+        callback_server.shutdown()
+
+        proc = psutil.Process(os.getpid())
+        connections = proc.connections(kind="tcp")
+        for conn in connections:
+            assert conn.laddr.port != 32284
