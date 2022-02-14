@@ -256,7 +256,7 @@ def test_can_connect_with_oidc_using_token():
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
             .with_oidc()
-            .with_token(access_token=ACCESS_TOKEN, refresh_token="")
+            .with_token(refresh_token="")
             .connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)

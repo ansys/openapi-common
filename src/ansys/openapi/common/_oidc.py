@@ -1,16 +1,13 @@
-import asyncio
 import os
-import threading
-import webbrowser
-from typing import Dict, Optional, Any
+from typing import Optional
 
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_oauthlib import OAuth2Session  # type: ignore
+from requests_auth import OAuth2AuthorizationCodePKCE, InvalidGrantRequest
+from requests_auth.authentication import OAuth2
 
 from ._util import (
-    OIDCCallbackHTTPServer,
     parse_authenticate,
     SessionConfiguration,
     set_session_kwargs,
@@ -61,9 +58,7 @@ class OIDCSessionFactory:
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
-        self._callback_server: "OIDCCallbackHTTPServer"
         self._initial_session = initial_session
-        self._oauth_session: OAuth2Session
         self._api_url = initial_response.url
 
         logger.debug("Creating OIDC session handler...")
@@ -88,7 +83,6 @@ class OIDCSessionFactory:
         self._idp_session_configuration = OIDCSessionFactory._override_idp_header(
             idp_session_configuration.get_configuration_for_requests()
         )
-
         self._well_known_parameters = self._fetch_and_parse_well_known(
             self._authenticate_parameters["authority"]
         )
@@ -101,54 +95,58 @@ class OIDCSessionFactory:
             if "scope" in self._authenticate_parameters
             else []
         )
-        self._oauth_session = OAuth2Session(
+
+        self._auth = OAuth2AuthorizationCodePKCE(
+            authorization_url=self._well_known_parameters["authorization_endpoint"],
+            token_url=self._well_known_parameters["token_endpoint"],
+            redirect_uri_port=32284,
+            audience=self._authenticate_parameters["apiAudience"] if "apiAudience" in self._authenticate_parameters else None,
             client_id=self._authenticate_parameters["clientid"],
-            redirect_uri=self._authenticate_parameters["redirecturi"],
             scope=scopes,
+            session=self._initial_session
         )
-        set_session_kwargs(self._oauth_session, self._api_session_configuration)
 
-        if "offline_access" in scopes:
-            self._configure_token_refresh()
+        self._auth.refresh_data.pop('audience', None)
 
-        self._callback_server = OIDCCallbackHTTPServer()
+        self._authorized_session = requests.Session()
+
+        set_session_kwargs(self._authorized_session, self._api_session_configuration)
+
         logger.info("Configuration complete.")
 
     def get_session_with_provided_token(
-        self, refresh_token: str, access_token: Optional[str] = None
-    ) -> OAuth2Session:
+        self, refresh_token: str
+    ):
         """Create a :class:`OAuth2Session` object with provided tokens.
 
-        This method configures a session to request an access token with the provided refresh token.
-        This will happen automatically when the first request is sent to the server. Alternatively,
-        an access token can be provided, and it will be used until it expires. After it expires,
-        the refresh token will be used to request a new access token.
+        This method configures a session to request an access token with the provided refresh token,
+        an access token will be requested immediately.
 
         Parameters
         ----------
         refresh_token : str
             Refresh token for the API server, typically a Base64-encoded JSON Web Token.
-        access_token : Optional[str]
-            Access token for the API server, typically a Base64-encoded JSON web token.
         """
         logger.info("Setting tokens...")
-        if access_token is not None:
-            if _log_tokens:
-                logger.debug(f"Setting access token: {access_token}")
-            self._oauth_session.token = {
-                "token_type": "bearer",
-                "access_token": access_token,
-            }
         if refresh_token is not None:
             if _log_tokens:
                 logger.debug(f"Setting refresh token: {refresh_token}")
-            # noinspection PyProtectedMember
-            self._oauth_session._client.refresh_token = refresh_token
-        return self._oauth_session
+            try:
+                state, token, expires_in, new_refresh_token = self._auth.refresh_token(refresh_token)
+            except InvalidGrantRequest as excinfo:
+                logger.debug(str(excinfo))
+                raise ValueError("The provided refresh token was invalid, please request a new token.")
+            with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
+                # noinspection PyProtectedMember
+                if new_refresh_token is None:
+                    new_refresh_token = refresh_token
+                OAuth2.token_cache._add_access_token(state, token, expires_in, new_refresh_token)
+        self._authorized_session.auth = self._auth
+        return self._authorized_session
 
     def get_session_with_stored_token(
         self, token_name: str = "ansys-openapi-common-oidc"
-    ) -> OAuth2Session:
+    ):
         """Create a :class:`OAuth2Session` object with a stored token.
 
         This method uses a token stored in the system keyring to authenticate the session. It requires a correctly
@@ -172,7 +170,7 @@ class OIDCSessionFactory:
 
     def get_session_with_interactive_authorization(
         self, login_timeout: int = 60
-    ) -> OAuth2Session:
+    ):
         """Create a :class:`OAuth2Session` object, authorizing the user via the system web browser.
 
         Parameters
@@ -181,61 +179,10 @@ class OIDCSessionFactory:
             Number of seconds to wait for the user to authenticate. The default is ``60s``.
         """
 
-        async def await_callback() -> Any:
-            thread = threading.Thread(target=self._callback_server.serve_forever)
-            thread.daemon = True
-            thread.start()
-            return await self._callback_server.get_auth_code()
-
-        authorization_url, state = self._oauth_session.authorization_url(
-            self._well_known_parameters["authorization_endpoint"]
-        )
-        logger.info("Authenticating user...")
-        logger.debug(f"Opening web browser with URL {authorization_url}")
-        webbrowser.open(authorization_url)
-        loop = asyncio.get_event_loop()
-        auth_code_task = asyncio.wait_for(await_callback(), login_timeout)
-        auth_code = loop.run_until_complete(auth_code_task)
-        loop.close()
-        logger.info("Authentication complete, fetching token...")
-        if _log_tokens:
-            logger.debug(f"Received authorization code: {auth_code}")
-        self._callback_server.shutdown()
-
-        _ = self._oauth_session.fetch_token(
-            self._well_known_parameters["token_endpoint"],
-            authorization_response=auth_code,
-            include_client_id=True,
-            **self._idp_session_configuration,
-        )
-        if _log_tokens:
-            logger.debug(f"Access token: {self._oauth_session.token}")
-            if self._oauth_session.auto_refresh_url is not None:
-                # noinspection PyProtectedMember
-                logger.debug(
-                    f"Refresh token: {self._oauth_session._client.refresh_token}"
-                )
-        logger.info("Tokens retrieved successfully. Authentication complete.")
-        return self._oauth_session
-
-    def _configure_token_refresh(self) -> None:
-        """Configure automatic token refresh, if available.
-
-        This method only supports Authorization Code Flow currently.
-        """
-
-        def token_updater(token: Dict[str, str]) -> None:
-            self.token = token
-            self.access_token = token["access_token"]
-
-        logger.info("Refresh tokens supported, configuring...")
-        self._oauth_session.auto_refresh_url = self._well_known_parameters[
-            "token_endpoint"
-        ]
-        self._oauth_session.auto_refresh_kwargs = {
-            "client_id": self._authenticate_parameters["clientid"]
-        }
-        self._oauth_session.token_updater = token_updater
+        self._auth.timeout = login_timeout
+        self._authorized_session.auth = self._auth
+        self._authorized_session.get(self._api_url)
+        return self._authorized_session
 
     @staticmethod
     def _parse_unauthorized_header(
@@ -343,7 +290,7 @@ class OIDCSessionFactory:
         requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
         """Override user-provided ``Accept`` and ``Content-Type`` headers to ensure correct
-        response from the OpenID identity povider.
+        response from the OpenID identity provider.
 
         Parameters
         ----------

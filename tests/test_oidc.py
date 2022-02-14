@@ -3,7 +3,8 @@ import json
 import pytest
 import requests
 import requests_mock
-from unittest.mock import Mock
+from requests_auth.authentication import OAuth2
+from unittest.mock import Mock, MagicMock
 from covertable import make
 
 from ansys.openapi.common import ApiClientFactory
@@ -169,17 +170,16 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     assert response == configuration
 
 
-@pytest.mark.parametrize("access_token", [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"])
-def test_setting_tokens_sets_tokens(access_token):
+def test_setting_refresh_token_sets_refresh_token():
     mock_factory = Mock()
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
+    mock_factory._auth = Mock()
+    mock_factory._auth.refresh_token = MagicMock(return_value=(0, "token", 1, refresh_token))
     session = OIDCSessionFactory.get_session_with_provided_token(
-        mock_factory, refresh_token, access_token
+        mock_factory, refresh_token
     )
-    if access_token:
-        assert "access_token" in session.token
-        assert session.token["access_token"] == access_token
-    assert session._client.refresh_token == refresh_token
+    session.auth.refresh_token.assert_called_once_with(refresh_token)
+    assert OAuth2.token_cache.tokens[0][2] == refresh_token
 
 
 def test_endpoint_with_refresh_configures_correctly():
@@ -211,7 +211,7 @@ def test_endpoint_with_refresh_configures_correctly():
         )
 
         session = ApiClientFactory(secure_servicelayer_url).with_oidc()
-        oidc_factory = session._session_factory._oauth_session
-        assert oidc_factory.auto_refresh_url == f"{authority_url}token"
-        assert oidc_factory.auto_refresh_kwargs["client_id"] == client_id
-        session._session_factory._callback_server.server_close()
+        auth = session._session_factory._auth
+
+        assert auth.token_url == f"{authority_url}token"
+        assert auth.refresh_data['client_id'] == client_id
