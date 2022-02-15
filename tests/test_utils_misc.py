@@ -97,7 +97,7 @@ def run_server():
 
 @pytest.fixture(scope="function")
 def oidc_callback_server_process():
-    # Run the OIDC callback server in a process, and return the process
+    # Run the OpenID Connect callback server in a process and return the process
     # Doesn't perform any cleanup, so p.terminate() must be called by the test
     p = Process(target=run_server, daemon=True)
     p.start()
@@ -108,7 +108,7 @@ def oidc_callback_server_process():
 
 @pytest.fixture(scope="function")
 def oidc_callback_server():
-    # Run the OIDC callback server in a thread, and return the server
+    # Run the OpenID Connect callback server in a thread and return the server
     # Clean up when finished
     callback_server = OIDCCallbackHTTPServer()
     thread = threading.Thread(target=callback_server.handle_request)
@@ -139,14 +139,14 @@ class TestOIDCHTTPServer:
 def test_oidc_callback_server_port_acquisition_and_release(
     oidc_callback_server_process,
 ):
-    # Check that the process is bound to the OIDC callback port
+    # Check that the process is bound to the OpenID Connect callback port
     proc = psutil.Process(oidc_callback_server_process.pid)
     assert any([conn.laddr.port == 32284 for conn in proc.connections()])
 
-    # Send the request that will cause the server to close
+    # Send a request that will cause the server to close
     requests.get("http://localhost:32284?code=1234567890")
 
-    # Check that the process is no longer bound to the OIDC callback port
+    # Check that the process is no longer bound to the OpenID Connect callback port
     connections = proc.connections(kind="tcp")
     for conn in connections:
         print(conn.laddr)

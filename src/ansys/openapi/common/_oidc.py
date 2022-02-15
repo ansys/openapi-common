@@ -208,7 +208,7 @@ class OIDCSessionFactory:
         return self._oauth_session
 
     def _get_auth_code(self, login_timeout: int) -> str:
-        """Receive the callback request from the OIDC identity provider.
+        """Receive the callback request from the OpenID Connect identity provider.
 
         Parameters
         ----------
@@ -225,10 +225,10 @@ class OIDCSessionFactory:
         self._callback_server.handle_request()
         auth_code = self._callback_server.auth_code
         if not auth_code:
-            raise ValueError("No authorization code returned by OIDC server.")
-        del (
+            raise ValueError("No authorization code returned by OpenID Connect identity provider.")
+        del (  # Ensures bound port is released for subsequent OpenID Connect authentication sessions
             self._callback_server
-        )  # Ensures bound port is released for subsequent OIDC connections
+        )
         return auth_code
 
     def _configure_token_refresh(self) -> None:
