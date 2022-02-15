@@ -174,7 +174,9 @@ def test_setting_refresh_token_sets_refresh_token():
     mock_factory = Mock()
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
     mock_factory._auth = Mock()
-    mock_factory._auth.refresh_token = MagicMock(return_value=(0, "token", 1, refresh_token))
+    mock_factory._auth.refresh_token = MagicMock(
+        return_value=(0, "token", 1, refresh_token)
+    )
     session = OIDCSessionFactory.get_session_with_provided_token(
         mock_factory, refresh_token
     )
@@ -214,4 +216,4 @@ def test_endpoint_with_refresh_configures_correctly():
         auth = session._session_factory._auth
 
         assert auth.token_url == f"{authority_url}token"
-        assert auth.refresh_data['client_id'] == client_id
+        assert auth.refresh_data["client_id"] == client_id

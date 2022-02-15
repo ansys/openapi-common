@@ -243,7 +243,7 @@ def test_can_connect_with_oidc_using_token():
         {
             "access_token": ACCESS_TOKEN,
             "expires_in": 3600,
-            "refresh_token": refresh_token
+            "refresh_token": refresh_token,
         }
     )
 
@@ -252,9 +252,9 @@ def test_can_connect_with_oidc_using_token():
             return False
         data = parse_qs(request.text)
         return (
-                data.get("client_id", "") == [client_id]
-                and data.get("grant_type", "") == ["refresh_token"]
-                and data.get("refresh_token", "") == [refresh_token]
+            data.get("client_id", "") == [client_id]
+            and data.get("grant_type", "") == ["refresh_token"]
+            and data.get("refresh_token", "") == [refresh_token]
         )
 
     with requests_mock.Mocker() as m:
@@ -267,7 +267,7 @@ def test_can_connect_with_oidc_using_token():
             f"{authority_url}token",
             status_code=200,
             additional_matcher=match_token_request,
-            text=token_response
+            text=token_response,
         )
         m.get(
             SECURE_SERVICELAYER_URL,

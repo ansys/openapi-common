@@ -3,10 +3,10 @@ import warnings
 from typing import Tuple, Union, Container, Optional, Mapping, TypeVar, Any
 
 import requests
-from urllib3.util.retry import Retry
+from urllib3.util.retry import Retry  # type: ignore[import]
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-from requests_ntlm import HttpNtlmAuth  # type: ignore
+from requests_ntlm import HttpNtlmAuth  # type: ignore[import]
 
 from . import __version__
 from ._api_client import ApiClient
@@ -29,7 +29,7 @@ _platform_windows = False
 
 try:
     # noinspection PyUnresolvedReferences
-    import requests_auth
+    import requests_auth  # type: ignore[import]
     import keyring
     from ._oidc import OIDCSessionFactory
 except ImportError:
@@ -429,9 +429,7 @@ class OIDCSessionBuilder:
 
         return self.with_token(refresh_token=refresh_token)
 
-    def with_token(
-        self, refresh_token: str
-    ) -> ApiClientFactory:
+    def with_token(self, refresh_token: str) -> ApiClientFactory:
         """Use a provided refresh token to authenticate the session.
 
         The refresh token will be used to request a new access token from the Identity Provider,

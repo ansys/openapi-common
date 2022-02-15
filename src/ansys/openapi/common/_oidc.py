@@ -4,8 +4,8 @@ from typing import Optional
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import OAuth2AuthorizationCodePKCE, InvalidGrantRequest
-from requests_auth.authentication import OAuth2
+from requests_auth import OAuth2AuthorizationCodePKCE, InvalidGrantRequest  # type: ignore[import]
+from requests_auth.authentication import OAuth2  # type: ignore[import]
 
 from ._util import (
     parse_authenticate,
@@ -96,25 +96,25 @@ class OIDCSessionFactory:
             authorization_url=self._well_known_parameters["authorization_endpoint"],
             token_url=self._well_known_parameters["token_endpoint"],
             redirect_uri_port=32284,
-            audience=self._authenticate_parameters["apiAudience"] if "apiAudience" in self._authenticate_parameters else None,
+            audience=self._authenticate_parameters["apiAudience"]
+            if "apiAudience" in self._authenticate_parameters
+            else None,
             client_id=self._authenticate_parameters["clientid"],
             scope=scopes,
-            session=self._initial_session
+            session=self._initial_session,
         )
 
         # If using Auth0 we cannot provide an audience with requests
         # to the token endpoint with grant_type=refresh_token. This
         # causes the token to be returned without the audience
         # required to access the user_info endpoint.
-        self._auth.refresh_data.pop('audience', None)
+        self._auth.refresh_data.pop("audience", None)
 
         self._authorized_session = requests.Session()
         set_session_kwargs(self._authorized_session, self._api_session_configuration)
         logger.info("Configuration complete.")
 
-    def get_session_with_provided_token(
-        self, refresh_token: str
-    ) -> requests.Session:
+    def get_session_with_provided_token(self, refresh_token: str) -> requests.Session:
         """Create a :class:`OAuth2Session` object with provided tokens.
 
         This method configures a session to request an access token with the provided refresh token,
@@ -131,10 +131,14 @@ class OIDCSessionFactory:
         if _log_tokens:
             logger.debug(f"Setting refresh token: {refresh_token}")
         try:
-            state, token, expires_in, new_refresh_token = self._auth.refresh_token(refresh_token)
+            state, token, expires_in, new_refresh_token = self._auth.refresh_token(
+                refresh_token
+            )
         except InvalidGrantRequest as excinfo:
             logger.debug(str(excinfo))
-            raise ValueError("The provided refresh token was invalid, please request a new token.")
+            raise ValueError(
+                "The provided refresh token was invalid, please request a new token."
+            )
         with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
             # If we were provided with a new refresh token it's likely that the Identity
             # Provider is configured to rotate refresh tokens. Store the new one and
@@ -142,7 +146,9 @@ class OIDCSessionFactory:
             if new_refresh_token is not None:
                 refresh_token = new_refresh_token
             # noinspection PyProtectedMember
-            OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
+            OAuth2.token_cache._add_access_token(
+                state, token, expires_in, refresh_token
+            )
         self._authorized_session.auth = self._auth
         return self._authorized_session
 
