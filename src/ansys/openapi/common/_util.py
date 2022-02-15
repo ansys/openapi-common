@@ -181,68 +181,6 @@ def set_session_kwargs(
         session.__dict__[k] = v
 
 
-class ResponseHandler(BaseHTTPRequestHandler):
-    """Provides an OpenID Connect callback handler. This class returns a page indicating authentication
-    completion when the authentication flow completes.
-
-    Attributes
-    ----------
-    _response_html : str
-        User-facing HTML to render when redirected after successful authentication with the identity provider.
-    """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self._response_html = (
-            r"<!DOCTYPE html>"
-            r'    <html lang="en">'
-            r"        <head>"
-            r'            <meta charset="UTF-8">'
-            r"        <title>{title}</title>"
-            r"    </head>"
-            r"    <body>"
-            r"        <h1>{title}</h1>"
-            r"        <p>{paragraph}</p>"
-            r"    </body>"
-            r"</html>".format(
-                title="Login successful", paragraph="You can now close this tab."
-            ).encode("utf-8")
-        )
-        super().__init__(*args, **kwargs)
-
-    # noinspection PyPep8Naming
-    def do_GET(self) -> None:
-        """Handle GET requests to the callback URL."""
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.end_headers()
-
-        self.wfile.write(self._response_html)
-        # noinspection PyProtectedMember
-        self.server._auth_code.put("https://localhost{}".format(self.path))  # type: ignore[attr-defined]
-
-
-class OIDCCallbackHTTPServer(HTTPServer):
-    """Provides the HTTP Server that is to handle callback requests on successful OpenID Connect authentication.
-
-    Attributes
-    ----------
-    _auth_code : Queue
-        Store for authentication code received from the user's browser when authentication completes.
-    """
-
-    def __init__(self) -> None:
-        from queue import Queue
-
-        super().__init__(("", 32284), ResponseHandler)
-        self._auth_code: Queue = Queue()
-
-    async def get_auth_code(self) -> Any:
-        return self._auth_code.get(block=True)
-
-    def __del__(self) -> None:
-        self.server_close()
-
-
 class RequestsConfiguration(TypedDict):
     cert: Union[None, str, Tuple[str, str]]
     verify: Union[None, str, bool]

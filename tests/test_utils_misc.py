@@ -1,13 +1,7 @@
-import asyncio
-import secrets
-import threading
-
 import pytest
-import requests
 
 from ansys.openapi.common._util import (
     CaseInsensitiveOrderedDict,
-    OIDCCallbackHTTPServer,
 )
 
 
@@ -86,44 +80,3 @@ class TestCaseInsensitiveOrderedDict:
         repr = self.example_dict.__repr__()
         dict_from_repr = eval(repr)
         assert dict_from_repr == self.example_dict
-
-
-class TestOIDCHTTPServer:
-    def test_authorize_returns_200(self):
-        callback_server = OIDCCallbackHTTPServer()
-        session = requests.Session()
-
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-
-        resp = session.get("http://localhost:32284")
-
-        callback_server.shutdown()
-        del callback_server
-        del thread
-
-        assert resp.status_code == 200
-        assert "Login successful" in resp.text
-        assert "Content-Type" in resp.headers
-        assert "text/html" in resp.headers["Content-Type"]
-
-    def test_authorize_with_code_parses_code(self):
-        callback_server = OIDCCallbackHTTPServer()
-        session = requests.Session()
-
-        test_code = secrets.token_hex(32)
-
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-
-        resp = session.get(f"http://localhost:32284?code={test_code}")
-
-        loop = asyncio.get_event_loop()
-        code = loop.run_until_complete(callback_server.get_auth_code())
-        callback_server.shutdown()
-        del callback_server
-
-        assert resp.status_code == 200
-        assert test_code in code
