@@ -226,7 +226,7 @@ class OIDCCallbackHTTPServer(HTTPServer):
     ----------
     auth_code : str, optional
         Authentication code received from the user's browser when authentication completes.
-        The default is ``None`` when the auth_code has not yet been received.
+        The default is ``None`` when the ``auth_code`` has not yet been received.
     """
 
     def __init__(self) -> None:

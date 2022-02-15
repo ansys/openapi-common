@@ -218,14 +218,16 @@ class OIDCSessionFactory:
         Returns
         -------
         str
-            The url of the callback request, which contains the authentication code.
+            The url of the callback request. The url contains the authentication code as a parameter.
         """
 
         self._callback_server.timeout = login_timeout
         self._callback_server.handle_request()
         auth_code = self._callback_server.auth_code
         if not auth_code:
-            raise ValueError("No authorization code returned by OpenID Connect identity provider.")
+            raise ValueError(
+                "No authorization code returned by OpenID Connect identity provider."
+            )
         del (  # Ensures bound port is released for subsequent OpenID Connect authentication sessions
             self._callback_server
         )
