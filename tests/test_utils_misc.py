@@ -101,8 +101,17 @@ def oidc_callback_server_process():
     # Doesn't perform any cleanup, so p.terminate() must be called by the test
     p = Process(target=run_server, daemon=True)
     p.start()
-    # Wait for the process to start up
-    time.sleep(5)
+
+    # Wait for the process to start up and bind to the port before returning
+    port_bound = False
+    attempts = 0
+    proc = psutil.Process(p.pid)
+    while not port_bound:
+        time.sleep(5)
+        port_bound = any([conn.laddr.port == 32284 for conn in proc.connections()])
+        attempts = attempts + 1
+        if attempts == 5:
+            raise RuntimeError("OIDCCallbackHTTPServer failed to bind to port 32284")
     return p
 
 
@@ -139,14 +148,11 @@ class TestOIDCHTTPServer:
 def test_oidc_callback_server_port_acquisition_and_release(
     oidc_callback_server_process,
 ):
-    # Check that the process is bound to the OpenID Connect callback port
-    proc = psutil.Process(oidc_callback_server_process.pid)
-    assert any([conn.laddr.port == 32284 for conn in proc.connections()])
-
     # Send a request that will cause the server to close
     requests.get("http://localhost:32284?code=1234567890")
 
     # Check that the process is no longer bound to the OpenID Connect callback port
+    proc = psutil.Process(oidc_callback_server_process.pid)
     connections = proc.connections(kind="tcp")
     for conn in connections:
         print(conn.laddr)
