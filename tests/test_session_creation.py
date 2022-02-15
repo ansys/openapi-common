@@ -1,6 +1,7 @@
 import json
 import os
 from functools import wraps
+from urllib.parse import parse_qs
 
 import pytest
 import requests_mock
@@ -230,6 +231,7 @@ def test_can_connect_with_oidc_using_token():
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
+    refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
     authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
     well_known_response = json.dumps(
         {
@@ -237,11 +239,35 @@ def test_can_connect_with_oidc_using_token():
             "authorization_endpoint": f"{authority_url}authorization",
         }
     )
+    token_response = json.dumps(
+        {
+            "access_token": ACCESS_TOKEN,
+            "expires_in": 3600,
+            "refresh_token": refresh_token
+        }
+    )
+
+    def match_token_request(request):
+        if request.text is None:
+            return False
+        data = parse_qs(request.text)
+        return (
+                data.get("client_id", "") == [client_id]
+                and data.get("grant_type", "") == ["refresh_token"]
+                and data.get("refresh_token", "") == [refresh_token]
+        )
+
     with requests_mock.Mocker() as m:
         m.get(
             f"{authority_url}.well-known/openid-configuration",
             status_code=200,
             text=well_known_response,
+        )
+        m.post(
+            f"{authority_url}token",
+            status_code=200,
+            additional_matcher=match_token_request,
+            text=token_response
         )
         m.get(
             SECURE_SERVICELAYER_URL,
@@ -256,7 +282,7 @@ def test_can_connect_with_oidc_using_token():
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
             .with_oidc()
-            .with_token(refresh_token="")
+            .with_token(refresh_token=refresh_token)
             .connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
