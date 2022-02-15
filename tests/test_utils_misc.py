@@ -1,6 +1,8 @@
-import asyncio
 import secrets
 import threading
+import psutil
+import time
+from multiprocessing import Process
 
 import pytest
 import requests
@@ -88,42 +90,66 @@ class TestCaseInsensitiveOrderedDict:
         assert dict_from_repr == self.example_dict
 
 
+def run_server():
+    callback_server = OIDCCallbackHTTPServer()
+    callback_server.handle_request()
+
+
+@pytest.fixture(scope="function")
+def oidc_callback_server_process():
+    # Run the OpenID Connect callback server in a process and return the process
+    # Doesn't perform any cleanup, so p.terminate() must be called by the test
+    p = Process(target=run_server, daemon=True)
+    p.start()
+    # Wait for the process to start up
+    time.sleep(5)
+    return p
+
+
+@pytest.fixture(scope="function")
+def oidc_callback_server():
+    # Run the OpenID Connect callback server in a thread and return the server
+    # Clean up when finished
+    callback_server = OIDCCallbackHTTPServer()
+    thread = threading.Thread(target=callback_server.handle_request)
+    thread.daemon = True
+    thread.start()
+    yield callback_server
+    del callback_server
+    del thread
+
+
 class TestOIDCHTTPServer:
-    def test_authorize_returns_200(self):
-        callback_server = OIDCCallbackHTTPServer()
-        session = requests.Session()
-
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-
-        resp = session.get("http://localhost:32284")
-
-        callback_server.shutdown()
-        del callback_server
-        del thread
+    def test_authorize_returns_200(self, oidc_callback_server_process):
+        resp = requests.get("http://localhost:32284")
+        oidc_callback_server_process.terminate()
 
         assert resp.status_code == 200
         assert "Login successful" in resp.text
         assert "Content-Type" in resp.headers
         assert "text/html" in resp.headers["Content-Type"]
 
-    def test_authorize_with_code_parses_code(self):
-        callback_server = OIDCCallbackHTTPServer()
-        session = requests.Session()
-
+    def test_authorize_with_code_parses_code(self, oidc_callback_server):
         test_code = secrets.token_hex(32)
-
-        thread = threading.Thread(target=callback_server.serve_forever)
-        thread.daemon = True
-        thread.start()
-
-        resp = session.get(f"http://localhost:32284?code={test_code}")
-
-        loop = asyncio.get_event_loop()
-        code = loop.run_until_complete(callback_server.get_auth_code())
-        callback_server.shutdown()
-        del callback_server
-
+        resp = requests.get(f"http://localhost:32284?code={test_code}")
         assert resp.status_code == 200
-        assert test_code in code
+        assert test_code in oidc_callback_server.auth_code
+
+
+def test_oidc_callback_server_port_acquisition_and_release(
+    oidc_callback_server_process,
+):
+    # Check that the process is bound to the OpenID Connect callback port
+    proc = psutil.Process(oidc_callback_server_process.pid)
+    assert any([conn.laddr.port == 32284 for conn in proc.connections()])
+
+    # Send a request that will cause the server to close
+    requests.get("http://localhost:32284?code=1234567890")
+
+    # Check that the process is no longer bound to the OpenID Connect callback port
+    connections = proc.connections(kind="tcp")
+    for conn in connections:
+        print(conn.laddr)
+    assert all([conn.laddr.port != 32284 for conn in connections])
+
+    oidc_callback_server_process.terminate()

@@ -212,13 +212,11 @@ class ResponseHandler(BaseHTTPRequestHandler):
     # noinspection PyPep8Naming
     def do_GET(self) -> None:
         """Handle GET requests to the callback URL."""
+        self.server.auth_code = "https://localhost{}".format(self.path)  # type: ignore[attr-defined]
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.end_headers()
-
         self.wfile.write(self._response_html)
-        # noinspection PyProtectedMember
-        self.server._auth_code.put("https://localhost{}".format(self.path))  # type: ignore[attr-defined]
 
 
 class OIDCCallbackHTTPServer(HTTPServer):
@@ -226,21 +224,14 @@ class OIDCCallbackHTTPServer(HTTPServer):
 
     Attributes
     ----------
-    _auth_code : Queue
-        Store for authentication code received from the user's browser when authentication completes.
+    auth_code : str, optional
+        Authentication code received from the user's browser when authentication completes.
+        The default is ``None`` when the ``auth_code`` has not yet been received.
     """
 
     def __init__(self) -> None:
-        from queue import Queue
-
         super().__init__(("", 32284), ResponseHandler)
-        self._auth_code: Queue = Queue()
-
-    async def get_auth_code(self) -> Any:
-        return self._auth_code.get(block=True)
-
-    def __del__(self) -> None:
-        self.server_close()
+        self.auth_code: Optional[str] = None
 
 
 class RequestsConfiguration(TypedDict):

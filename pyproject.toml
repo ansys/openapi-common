@@ -63,6 +63,7 @@ requests-mock = { version = "*", optional = true }
 pytest-mock = { version = "*", optional = true }
 covertable = { version = "*", optional = true }
 asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'", optional = true }
+psutil = {version = "*", optional = true}
 
 # Doc packages
 pyansys-sphinx-theme = { version = "0.2.2", optional = true }
@@ -91,7 +92,8 @@ test = [
   "requests-mock",
   "pytest-mock",
   "covertable",
-  "asgi_gssapi"
+  "asgi_gssapi",
+  "psutil",
 ]
 
 doc = [
