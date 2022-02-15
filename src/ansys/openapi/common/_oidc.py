@@ -102,17 +102,19 @@ class OIDCSessionFactory:
             session=self._initial_session
         )
 
+        # If using Auth0 we cannot provide an audience with requests
+        # to the token endpoint with grant_type=refresh_token. This
+        # causes the token to be returned without the audience
+        # required to access the user_info endpoint.
         self._auth.refresh_data.pop('audience', None)
 
         self._authorized_session = requests.Session()
-
         set_session_kwargs(self._authorized_session, self._api_session_configuration)
-
         logger.info("Configuration complete.")
 
     def get_session_with_provided_token(
         self, refresh_token: str
-    ):
+    ) -> requests.Session:
         """Create a :class:`OAuth2Session` object with provided tokens.
 
         This method configures a session to request an access token with the provided refresh token,
@@ -124,25 +126,29 @@ class OIDCSessionFactory:
             Refresh token for the API server, typically a Base64-encoded JSON Web Token.
         """
         logger.info("Setting tokens...")
-        if refresh_token is not None:
-            if _log_tokens:
-                logger.debug(f"Setting refresh token: {refresh_token}")
-            try:
-                state, token, expires_in, new_refresh_token = self._auth.refresh_token(refresh_token)
-            except InvalidGrantRequest as excinfo:
-                logger.debug(str(excinfo))
-                raise ValueError("The provided refresh token was invalid, please request a new token.")
-            with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
-                # noinspection PyProtectedMember
-                if new_refresh_token is None:
-                    new_refresh_token = refresh_token
-                OAuth2.token_cache._add_access_token(state, token, expires_in, new_refresh_token)
+        if refresh_token is None:
+            raise ValueError("Must provide a value for 'refresh_token', not None")
+        if _log_tokens:
+            logger.debug(f"Setting refresh token: {refresh_token}")
+        try:
+            state, token, expires_in, new_refresh_token = self._auth.refresh_token(refresh_token)
+        except InvalidGrantRequest as excinfo:
+            logger.debug(str(excinfo))
+            raise ValueError("The provided refresh token was invalid, please request a new token.")
+        with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
+            # If we were provided with a new refresh token it's likely that the Identity
+            # Provider is configured to rotate refresh tokens. Store the new one and
+            # discard the old one. Otherwise use the existing refresh token.
+            if new_refresh_token is not None:
+                refresh_token = new_refresh_token
+            # noinspection PyProtectedMember
+            OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
         self._authorized_session.auth = self._auth
         return self._authorized_session
 
     def get_session_with_stored_token(
         self, token_name: str = "ansys-openapi-common-oidc"
-    ):
+    ) -> requests.Session:
         """Create a :class:`OAuth2Session` object with a stored token.
 
         This method uses a token stored in the system keyring to authenticate the session. It requires a correctly
@@ -166,7 +172,7 @@ class OIDCSessionFactory:
 
     def get_session_with_interactive_authorization(
         self, login_timeout: int = 60
-    ):
+    ) -> requests.Session:
         """Create a :class:`OAuth2Session` object, authorizing the user via the system web browser.
 
         Parameters
