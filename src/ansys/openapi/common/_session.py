@@ -434,9 +434,8 @@ class OIDCSessionBuilder:
     ) -> ApiClientFactory:
         """Use a provided refresh token to authenticate the session.
 
-        If an access token is provided, it will be used immediately. When it expires, the token will
-        be refreshed. If no access token is provided, the refresh token is used immediately to fetch an
-        access token.
+        The refresh token will be used to request a new access token from the Identity Provider,
+        this will be automatically refreshed shortly before expiration.
 
         Parameters
         ----------

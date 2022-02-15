@@ -30,10 +30,6 @@ class OIDCSessionFactory:
     Creates an OpenID Connect session with the configuration fetched from the API server. This class uses either
     the provided token credentials or authorizes a user with a browser-based interactive prompt.
 
-    If your identity provider does not provide the exact scopes requested by your API server, you will be unable to
-    connect for security reasons. To force the client to proceed with non-matching scopes, set the environment variable
-    ``OAUTHLIB_RELAX_TOKEN_SCOPE`` to ``TRUE``.
-
     Parameters
     ----------
     initial_session : requests.Session
