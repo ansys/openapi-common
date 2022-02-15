@@ -224,6 +224,8 @@ class OIDCSessionFactory:
         self._callback_server.timeout = login_timeout
         self._callback_server.handle_request()
         auth_code = self._callback_server.auth_code
+        if not auth_code:
+            raise ValueError("No authorization code returned by OIDC server.")
         del (
             self._callback_server
         )  # Ensures bound port is released for subsequent OIDC connections
