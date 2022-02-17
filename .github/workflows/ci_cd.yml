@@ -180,10 +180,12 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: ansys-grantami-common-wheel
+          path: ~/dist
 
       - uses: actions/download-artifact@v2
         with:
           name: Documentation-pdf
+          path: ~/pdf
 
       - uses: actions/download-artifact@v2
         with:
