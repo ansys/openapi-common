@@ -161,12 +161,15 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
       - uses: actions/download-artifact@v2
         with:
           name: ansys-grantami-common-wheel
       - name: List directory contents
         run: |
           ls -la
+          ls ./*.whl
+          ls ./**/*.whl
 
   Release:
     if: contains(github.ref, 'refs/tags')
