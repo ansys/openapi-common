@@ -123,7 +123,7 @@ deps =
     .[oidc]
     .[linux-kerberos]
     .[test]
-commands = pytest --cov=ansys.openapi.common --cov-report=xml ./tests {posargs}
+commands = pytest --cov=ansys.openapi.common --cov-report=xml {posargs}
 
 [testenv:lint]
 deps =
@@ -153,4 +153,9 @@ show_error_codes = true
 [tool.coverage.run]
 omit = [
   "**/_base/*"
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "tests",
 ]

@@ -3,6 +3,7 @@ import threading
 import psutil
 import time
 from multiprocessing import Process
+import os
 
 import pytest
 import requests
@@ -95,14 +96,30 @@ def run_server():
     callback_server.handle_request()
 
 
+def check_port_binding(pid):
+    # Wait for the process to start up and bind to the port before returning
+    port_bound = False
+    attempts = 0
+    while not port_bound:
+        time.sleep(5)
+        proc = psutil.Process(pid)
+        port_bound = any([conn.laddr.port == 32284 for conn in proc.connections()])
+        attempts = attempts + 1
+        if attempts == 5:
+            pid.terminate()
+            # Additional debugging
+            netstat_output = os.popen("netstat -p -at").readlines()
+            print("".join(netstat_output))
+            raise RuntimeError("OIDCCallbackHTTPServer failed to bind to port 32284")
+
+
 @pytest.fixture(scope="function")
 def oidc_callback_server_process():
     # Run the OpenID Connect callback server in a process and return the process
     # Doesn't perform any cleanup, so p.terminate() must be called by the test
     p = Process(target=run_server, daemon=True)
     p.start()
-    # Wait for the process to start up
-    time.sleep(5)
+    check_port_binding(p.pid)
     return p
 
 
@@ -114,6 +131,7 @@ def oidc_callback_server():
     thread = threading.Thread(target=callback_server.handle_request)
     thread.daemon = True
     thread.start()
+    check_port_binding(os.getpid())
     yield callback_server
     del callback_server
     del thread
@@ -139,14 +157,11 @@ class TestOIDCHTTPServer:
 def test_oidc_callback_server_port_acquisition_and_release(
     oidc_callback_server_process,
 ):
-    # Check that the process is bound to the OpenID Connect callback port
-    proc = psutil.Process(oidc_callback_server_process.pid)
-    assert any([conn.laddr.port == 32284 for conn in proc.connections()])
-
     # Send a request that will cause the server to close
     requests.get("http://localhost:32284?code=1234567890")
 
     # Check that the process is no longer bound to the OpenID Connect callback port
+    proc = psutil.Process(oidc_callback_server_process.pid)
     connections = proc.connections(kind="tcp")
     for conn in connections:
         print(conn.laddr)
