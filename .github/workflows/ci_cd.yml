@@ -156,6 +156,17 @@ jobs:
           name: Documentation-pdf
           path: doc/build/latex/*.pdf
           retention-days: 7
+          
+  TestArtifact:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: ansys-grantami-common-wheel
+      - name: List directory contents
+        run: |
+          ls -la
 
   Release:
     if: contains(github.ref, 'refs/tags')
