@@ -165,10 +165,10 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: ansys-grantami-common-wheel
+          path: dist
       - name: List directory contents
         run: |
           ls -la
-          ls ./*.whl
           ls ./**/*.whl
 
   Release:
