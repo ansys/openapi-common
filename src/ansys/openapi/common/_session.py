@@ -283,7 +283,7 @@ class ApiClientFactory:
         """
         if not _oidc_enabled:
             raise ImportError(
-                "OpenID Connect features are not enabled. To use them, run `pip install openapi-client-common[oidc]`."
+                "OpenID Connect features are not enabled. To use them, run `pip install ansys-openapi-common[oidc]`."
             )
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
