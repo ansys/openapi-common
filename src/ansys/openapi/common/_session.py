@@ -241,7 +241,7 @@ class ApiClientFactory:
         """
         if not (_platform_windows or _linux_kerberos_enabled):
             raise ImportError(
-                "Kerberos is not enabled. To use it, run `pip install openapi-client-common[linux-kerberos]`."
+                "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
             )
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
