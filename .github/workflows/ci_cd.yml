@@ -79,6 +79,9 @@ jobs:
 
     - name: Test with tox
       run: tox -- --with-kerberos
+      
+    - name: Append python version to coverage data
+      run: mv ./.coverage ./.coverage.${{ matrix.python-version }}
 
     - name: Store coverage data
       uses: actions/upload-artifact@v2
