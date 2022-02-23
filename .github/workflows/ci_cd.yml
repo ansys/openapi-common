@@ -114,7 +114,7 @@ jobs:
         cp ./**/.coverage* ./
         pip install coverage
         coverage combine
-        coverage xml 
+        coverage xml -i
         
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
