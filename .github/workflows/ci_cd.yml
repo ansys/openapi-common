@@ -101,8 +101,8 @@ jobs:
         
     - name: List coverage reports
       run: |
-        apt update
-        apt install tree
+        sudo apt update
+        sudo apt install tree
         tree ~/coverage-reports
         
     - name: SonarCloud Scan
