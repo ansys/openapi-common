@@ -98,7 +98,13 @@ jobs:
     - uses: actions/download-artifact@v2
       with:
         path: ~/coverage-reports
-
+        
+    - name: List coverage reports
+      run: |
+        apt update
+        apt install tree
+        tree ~/coverage-reports
+        
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
