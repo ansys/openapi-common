@@ -62,8 +62,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with:
-        fetch-depth: 0
         
     - name: Configure host kerberos
       run: |
@@ -80,12 +78,6 @@ jobs:
 
     - name: Test with tox
       run: tox -- --with-kerberos
-    
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     - name: Store coverage data
       uses: actions/upload-artifact@v2
@@ -93,8 +85,6 @@ jobs:
         name: coverage-${{ matrix.python-version }}
         path: .coverage*
         retention-days: 1
-      
-
 
   sonarcloud:
     name: SonarCloud scan
@@ -107,7 +97,6 @@ jobs:
     
     - uses: actions/download-artifact@v2
       with:
-        name: coverage-*
         path: ~/coverage-reports
 
     - name: SonarCloud Scan
