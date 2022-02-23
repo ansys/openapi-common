@@ -112,7 +112,7 @@ jobs:
       run: |
         cd ~/coverage-reports
         cp ./**/.coverage* ./
-        pip install coverage
+        pip install coverage ./ansys-grantami-common-wheel/*.whl
         coverage combine
         coverage xml -i
         cat ~/coverage-reports/coverage.xml
