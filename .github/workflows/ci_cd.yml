@@ -113,6 +113,7 @@ jobs:
         cd ~/coverage-reports
         cp ./**/coverage*.xml ./
         ls
+        cat ./coverage.3.9.xml
         
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
