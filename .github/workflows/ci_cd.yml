@@ -81,13 +81,13 @@ jobs:
       run: tox -- --with-kerberos
       
     - name: Append python version to coverage data
-      run: mv ./.coverage ./.coverage.${{ matrix.python-version }}
+      run: mv ./coverage.xml ./coverage.${{ matrix.python-version }}.xml
 
     - name: Store coverage data
       uses: actions/upload-artifact@v2
       with:
         name: coverage-${{ matrix.python-version }}
-        path: .coverage*
+        path: ./coverage*.xml
         retention-days: 1
 
   sonarcloud:
@@ -111,11 +111,7 @@ jobs:
     - name: List coverage reports
       run: |
         cd ~/coverage-reports
-        cp ./**/.coverage* ./
-        pip install coverage ./ansys-grantami-common-wheel/*.whl
-        coverage combine
-        coverage xml -i
-        cat ~/coverage-reports/coverage.xml
+        cp ./**/coverage*.xml ./
         
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
@@ -126,7 +122,7 @@ jobs:
         args: >
           -Dsonar.organization=pyansys-test
           -Dsonar.projectKey=pyansys-test-openapi-common
-          -Dsonar.python.coverage.reportPaths=~/coverage-reports/coverage.xml
+          -Dsonar.python.coverage.reportPaths=~/coverage-reports/coverage*.xml
           -Dsonar.sources=src/
           -Dsonar.test.exclusions=tests/**
           -Dsonar.tests=tests/
