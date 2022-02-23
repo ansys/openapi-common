@@ -83,7 +83,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: coverage-${{ matrix.python-version }}
-        path: .coverage*
+        path: coverage.xml
         retention-days: 1
 
   sonarcloud:
