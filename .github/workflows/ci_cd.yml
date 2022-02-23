@@ -123,6 +123,9 @@ jobs:
           -Dsonar.organization=pyansys-test
           -Dsonar.projectKey=pyansys-test-openapi-common
           -Dsonar.python.version=3.7,3.8,3.9,3.10
+          -Dsonar.sources=src/
+          -Dsonar.test.exclusions=tests/**
+          -Dsonar.tests=tests/
 
   build:
     name: Build
