@@ -112,8 +112,6 @@ jobs:
       run: |
         cd ~/coverage-reports
         cp ./**/coverage*.xml ./
-        ls
-        cat ./coverage.3.9.xml
         
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
@@ -124,10 +122,6 @@ jobs:
         args: >
           -Dsonar.organization=pyansys-test
           -Dsonar.projectKey=pyansys-test-openapi-common
-          -Dsonar.python.coverage.reportPaths=~/coverage-reports/coverage*.xml
-          -Dsonar.sources=src/
-          -Dsonar.test.exclusions=tests/**
-          -Dsonar.tests=tests/
           -Dsonar.python.version=3.7,3.8,3.9,3.10
 
   build:
