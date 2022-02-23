@@ -112,6 +112,7 @@ jobs:
       run: |
         cd ~/coverage-reports
         cp ./**/coverage*.xml ./
+        ls
         
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
