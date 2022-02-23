@@ -17,6 +17,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
@@ -62,8 +63,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-      with:
-        fetch-depth: 0
         
     - name: Configure host kerberos
       run: |
@@ -80,19 +79,50 @@ jobs:
 
     - name: Test with tox
       run: tox -- --with-kerberos
+      
+    - name: Append python version to coverage data
+      run: mv ./coverage.xml ./coverage.${{ matrix.python-version }}.xml
+
+    - name: Store coverage data
+      uses: actions/upload-artifact@v2
+      with:
+        name: coverage-${{ matrix.python-version }}
+        path: ./coverage*.xml
+        retention-days: 1
+
+  sonarcloud:
+    name: SonarCloud scan
+    runs-on: ubuntu-latest
+    needs: [test]
+    steps:
+    - uses: actions/checkout@v1
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10'
     
+    - uses: actions/download-artifact@v2
+      with:
+        path: ~/coverage-reports
+        
+    - name: List coverage reports
+      run: |
+        cd ~/coverage-reports
+        cp ./**/coverage*.xml ./
+        
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
-    - name: Upload coverage report
-      uses: codecov/codecov-action@v2
-      if: ${{ github.actor != 'dependabot[bot]' }}
       with:
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+        args: >
+          -Dsonar.organization=pyansys-test
+          -Dsonar.projectKey=pyansys-test-openapi-common
+          -Dsonar.python.version=3.7,3.8,3.9,3.10
 
   build:
     name: Build
