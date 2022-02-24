@@ -80,7 +80,7 @@ jobs:
     - name: Test with tox
       run: tox -- --with-kerberos
       
-    - name: Append python version to coverage data
+    - name: Remove platform-specific paths and append platform to coverage file name
       run: |
         sed -i 's/\.tox\/py[0-9]\+\/lib\/python3\.[0-9]\+\/site-packages/src/g' coverage.xml
         sed -i 's/\.tox\.py3[0-9]\+\.lib\.python3\.[0-9]\+\.site-packages\.//g' coverage.xml
@@ -114,12 +114,11 @@ jobs:
     - name: List coverage reports
       run: |
         cp coverage-reports/**/coverage*.xml ./
-        ls
         
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
