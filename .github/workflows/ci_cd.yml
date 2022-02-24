@@ -109,11 +109,11 @@ jobs:
     
     - uses: actions/download-artifact@v2
       with:
-        path: ~/coverage-reports
+        path: coverage-reports
         
     - name: List coverage reports
       run: |
-        cp ~/coverage-reports/**/coverage*.xml ~/
+        cp coverage-reports/**/coverage*.xml ./
         ls
         
     - name: SonarCloud Scan
