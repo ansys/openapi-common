@@ -82,7 +82,7 @@ jobs:
       
     - name: Append python version to coverage data
       run: |
-        sed -i 's/\.tox\/py[0-9]\+\/lib\/python3\.[0-9]\+\/site-packages/g' coverage.xml
+        sed -i 's/\.tox\/py[0-9]\+\/lib\/python3\.[0-9]\+\/site-packages/src/g' coverage.xml
         cat coverage.xml
         mv ./coverage.xml ./coverage.${{ matrix.python-version }}.xml
 
