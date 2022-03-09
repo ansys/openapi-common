@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: '3.10'
           
@@ -62,7 +62,7 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
         
     - name: Configure host kerberos
       run: |
@@ -80,64 +80,21 @@ jobs:
     - name: Test with tox
       run: tox -- --with-kerberos
       
-    - name: Remove platform-specific paths and append platform to coverage file name
-      run: |
-        sed -i 's/\.tox\/py[0-9]\+\/lib\/python3\.[0-9]\+\/site-packages/src/g' coverage.xml
-        sed -i 's/\.tox\.py3[0-9]\+\.lib\.python3\.[0-9]\+\.site-packages\.//g' coverage.xml
-        mv ./coverage.xml ./coverage.${{ matrix.python-version }}.xml
-
-    - name: Store coverage data
-      uses: actions/upload-artifact@v2
+    - name: Upload coverage report
+      uses: codecov/codecov-action@v2
+      if: ${{ github.actor != 'dependabot[bot]' }}
       with:
-        name: coverage-${{ matrix.python-version }}
-        path: ./coverage*.xml
-        retention-days: 1
-
-  sonarcloud:
-    name: SonarCloud scan
-    runs-on: ubuntu-latest
-    needs: [test]
-    steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 0
-        
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
-    
-    - uses: actions/download-artifact@v2
-      with:
-        path: coverage-reports
-        
-    - name: List coverage reports
-      run: |
-        cp coverage-reports/**/coverage*.xml ./
-        
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=pyansys-test
-          -Dsonar.projectKey=pyansys-test-openapi-common
-          -Dsonar.python.version=3
-          -Dsonar.sources=src
-          -Dsonar.python.coverage.reportPaths=coverage*.xml
-          -Dsonar.core.codeCoveragePlugin=cobertura
-          -Dsonar.dynamicAnalysis=reuseReports
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
 
   build:
     name: Build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: '3.10'
  
@@ -166,9 +123,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v3
         with:
           python-version: '3.10'
           
@@ -207,11 +164,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v3
         with:
           python-version: '3.10'
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
       # used for documentation deployment
       - name: Get Bot Application Token

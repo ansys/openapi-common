@@ -206,7 +206,7 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
 name = "fastapi"
-version = "0.74.1"
+version = "0.75.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 category = "main"
 optional = true
@@ -1148,8 +1148,8 @@ docutils = [
     {file = "docutils-0.17.1.tar.gz", hash = "sha256:686577d2e4c32380bb50cbb22f575ed742d58168cee37e99117a854bcd88f125"},
 ]
 fastapi = [
-    {file = "fastapi-0.74.1-py3-none-any.whl", hash = "sha256:b8ec8400623ef0b2ff558ebe06753b349f8e3a5dd38afea650800f2644ddba34"},
-    {file = "fastapi-0.74.1.tar.gz", hash = "sha256:b58a2c46df14f62ebe6f24a9439927539ba1959b9be55ba0e2f516a683e5b9d4"},
+    {file = "fastapi-0.75.0-py3-none-any.whl", hash = "sha256:43d12891b78fc497a50623e9c7c24640c569489f060acd9ce2c4902080487a93"},
+    {file = "fastapi-0.75.0.tar.gz", hash = "sha256:124774ce4cb3322841965f559669b233a0b8d343ea24fdd8b293253c077220d7"},
 ]
 gssapi = [
     {file = "gssapi-1.7.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:c02a563d7e8b4005ccfc1f6080eaf0805c052876397ea9fb03b7ee725bbbbccc"},
