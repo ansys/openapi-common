@@ -57,7 +57,7 @@ class TestAnonymous:
             bool_property=False,
         )
 
-        resource_path = "/models/ID"
+        resource_path = "/models/{ID}"
         method = "PATCH"
         path_params = {"ID": TEST_MODEL_ID}
 

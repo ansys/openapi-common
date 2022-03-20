@@ -655,7 +655,7 @@ class TestResponseHandling:
             json_obj = json.loads(json_body)
             return json_obj == expected_request
 
-        resource_path = "/models/ID"
+        resource_path = "/models/{ID}"
         method = "PATCH"
         record_id = str(uuid.uuid4())
         path_params = {"ID": record_id}
