@@ -36,6 +36,66 @@ def test_repr(blank_client):
     assert type(blank_client).__name__ in str(blank_client)
 
 
+class TestParameterHandling:
+    @pytest.fixture(autouse=True)
+    def _blank_client(self, blank_client):
+        self._client = blank_client
+
+    def test_simple_path_rewrite(self):
+        id_ = str(uuid.uuid4())
+        single_path = "/resource/{id}"
+        result = self._client._ApiClient__handle_path_params(
+            single_path, {"id": id_}, None
+        )
+        assert single_path.replace("{id}", id_) == result
+
+    def test_multiple_path_rewrites(self):
+        id_ = str(uuid.uuid4())
+        name = "TestResource"
+        multiple_path = "/resource/{id}/name/{name}"
+        result = self._client._ApiClient__handle_path_params(
+            multiple_path, {"id": id_, "name": name}, None
+        )
+        assert multiple_path.replace("{id}", id_).replace("{name}", name) == result
+
+    def test_path_with_naughty_characters(self):
+        name = '"Na,ughty!P,ath.'
+        naughty_path = "/resource/{name}"
+        result = self._client._ApiClient__handle_path_params(
+            naughty_path, {"name": name}, None
+        )
+        assert "/resource/%22Na%2Cughty%21P%2Cath." == result
+
+    def test_path_with_naughty_characters_allowed(self):
+        name = "<SpecialName>"
+        naughty_path = "/resource/{name}"
+        self._client.configuration.safe_chars_for_path_param = "<>"
+        result = self._client._ApiClient__handle_path_params(
+            naughty_path, {"name": name}, None
+        )
+        assert "/resource/<SpecialName>" == result
+
+    def test_single_query(self):
+        query = {"name": "Spamalot"}
+        result = self._client._ApiClient__handle_query_params(query, None)
+        assert "name=Spamalot" == result
+
+    def test_multiple_queries(self):
+        query = {"bird": "swallow", "type": "african"}
+        result = self._client._ApiClient__handle_query_params(query, None)
+        assert "bird=swallow&type=african" == result
+
+    def test_simple_query_with_collection(self):
+        query = {"bird": "swallow", "type": ("african", "european")}
+        result = self._client._ApiClient__handle_query_params(query, {"type": "pipes"})
+        assert "bird=swallow&type=african|european" == result
+
+    def test_query_with_naughty_characters(self):
+        query = {"search": '"A &Naughty#Qu,ery@100%'}
+        result = self._client._ApiClient__handle_query_params(query, None)
+        assert 'search="A &Naughty#Qu,ery@100%' == result
+
+
 class TestSerialization:
     _test_value_list = ["foo", int(2), 2.0, True]
     _test_value_types = [str, int, float, bool]
@@ -603,7 +663,7 @@ class TestResponseHandling:
             json_obj = json.loads(json_body)
             return json_obj == expected_request
 
-        resource_path = "/models/ID"
+        resource_path = "/models/{ID}"
         method = "PATCH"
         record_id = str(uuid.uuid4())
         path_params = {"ID": record_id}
