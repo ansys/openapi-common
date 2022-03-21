@@ -44,27 +44,35 @@ class TestParameterHandling:
     def test_simple_path_rewrite(self):
         id_ = str(uuid.uuid4())
         single_path = "/resource/{id}"
-        result = self._client._ApiClient__handle_path_params(single_path, {"id": id_}, None)
+        result = self._client._ApiClient__handle_path_params(
+            single_path, {"id": id_}, None
+        )
         assert single_path.replace("{id}", id_) == result
 
     def test_multiple_path_rewrites(self):
         id_ = str(uuid.uuid4())
         name = "TestResource"
         multiple_path = "/resource/{id}/name/{name}"
-        result = self._client._ApiClient__handle_path_params(multiple_path, {"id": id_, "name": name}, None)
+        result = self._client._ApiClient__handle_path_params(
+            multiple_path, {"id": id_, "name": name}, None
+        )
         assert multiple_path.replace("{id}", id_).replace("{name}", name) == result
 
     def test_path_with_naughty_characters(self):
-        name = "\"Na,ughty!P,ath."
+        name = '"Na,ughty!P,ath.'
         naughty_path = "/resource/{name}"
-        result = self._client._ApiClient__handle_path_params(naughty_path, {"name": name}, None)
+        result = self._client._ApiClient__handle_path_params(
+            naughty_path, {"name": name}, None
+        )
         assert "/resource/%22Na%2Cughty%21P%2Cath." == result
 
     def test_path_with_naughty_characters_allowed(self):
         name = "<SpecialName>"
         naughty_path = "/resource/{name}"
         self._client.configuration.safe_chars_for_path_param = "<>"
-        result = self._client._ApiClient__handle_path_params(naughty_path, {"name": name}, None)
+        result = self._client._ApiClient__handle_path_params(
+            naughty_path, {"name": name}, None
+        )
         assert "/resource/<SpecialName>" == result
 
     def test_single_query(self):
@@ -83,9 +91,9 @@ class TestParameterHandling:
         assert "bird=swallow&type=african|european" == result
 
     def test_query_with_naughty_characters(self):
-        query = {"search": "\"A &Naughty#Qu,ery@100%"}
+        query = {"search": '"A &Naughty#Qu,ery@100%'}
         result = self._client._ApiClient__handle_query_params(query, None)
-        assert "search=\"A &Naughty#Qu,ery@100%" == result
+        assert 'search="A &Naughty#Qu,ery@100%' == result
 
 
 class TestSerialization:
