@@ -319,15 +319,12 @@ class ApiClient(ApiClientBase):
         if response_type == "file":
             return self.__deserialize_file(response)
 
-        try:
-            data = response.json()
-        except ValueError:
-            content_type = response.headers.get(
-                "Content-Type", "application/octet-stream"
-            )
-            if content_type not in ["application/octet-stream"]:
-                data = response.text
-            else:
+        if response_type == "str":
+            data: SerializedType = response.text
+        else:
+            try:
+                data = response.json()
+            except ValueError:
                 data = response.content
 
         return self.__deserialize(data, response_type)
