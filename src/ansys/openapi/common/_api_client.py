@@ -320,7 +320,7 @@ class ApiClient(ApiClientBase):
             return self.__deserialize_file(response)
 
         if response_type == "str":
-            data = response.text
+            data: SerializedType = response.text
         else:
             try:
                 data = response.json()
