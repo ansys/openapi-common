@@ -82,22 +82,22 @@ Currently we support only the Authorization Code authentication flow.
    * - Basic
      - ✔️
      - ✔️
-     - ``with_credentials()``
+     - ``.with_credentials()``
      -
    * - NTLM
      - ✔️
      - ❌
-     - ``with_credentials()``
+     - ``.with_credentials()``
      -
    * - Kerberos
      - ✔️
      - ➕ with ``[linux-kerberos]`` extra
-     - ``with_autologon()``
+     - ``.with_autologon()``
      -
    * - OIDC
      - ➕ with ``[oidc]`` extra
      - ➕ with ``[oidc]`` extra
-     - ``with_oidc()``
+     - ``.with_oidc()``
      -
 
 Platform-specific Kerberos Configuration
