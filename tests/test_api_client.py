@@ -378,12 +378,21 @@ class TestResponseParsing:
         response = self.create_response(data)
         deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
         deserialize_mock.return_value = True
-        _ = self._client.deserialize(response, dict)
+        _ = self._client.deserialize(response, "dict")
         deserialize_mock.assert_called()
-        deserialize_mock.assert_called_once_with(data, dict)
+        deserialize_mock.assert_called_once_with(data, "dict")
 
     def test_text_parsed_as_text(self, mocker):
         data = "This is some data this is definitely not json, it should be rendered as a string"
+        response = self.create_response(text=data, content_type="text/plain")
+        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock.return_value = True
+        _ = self._client.deserialize(response, "str")
+        deserialize_mock.assert_called()
+        deserialize_mock.assert_called_once_with(data, "str")
+
+    def test_deserialize_json_as_string_returns_string(self, mocker):
+        data = json.dumps({"foo": "bar", "baz": [1, 2, 3]})
         response = self.create_response(text=data, content_type="text/plain")
         deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
         deserialize_mock.return_value = True
