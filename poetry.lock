@@ -299,11 +299,11 @@ trio = ["trio", "async-generator"]
 
 [[package]]
 name = "jinja2"
-version = "3.1.1"
+version = "3.0.3"
 description = "A very fast and expressive template engine."
 category = "main"
 optional = true
-python-versions = ">=3.7"
+python-versions = ">=3.6"
 
 [package.dependencies]
 MarkupSafe = ">=2.0"
@@ -358,14 +358,14 @@ cryptography = ["cryptography (<2.2)", "cryptography"]
 
 [[package]]
 name = "numpydoc"
-version = "1.2"
+version = "1.2.1"
 description = "Sphinx extension to support docstrings in Numpy format"
 category = "main"
 optional = true
 python-versions = ">=3.7"
 
 [package.dependencies]
-Jinja2 = ">=2.10"
+Jinja2 = ">=2.10,<3.1"
 sphinx = ">=1.8"
 
 [package.extras]
@@ -971,7 +971,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "a864741048503dc6986711ea4c387c2ba563ad5e8ad2fe735385dd06165f568b"
+content-hash = "0b9f9f232c2b16d442837c0bb9215c2fb67cb0d0235852e4914f2b6d90f7f253"
 
 [metadata.files]
 alabaster = [
@@ -1201,8 +1201,8 @@ jeepney = [
     {file = "jeepney-0.8.0.tar.gz", hash = "sha256:5efe48d255973902f6badc3ce55e2aa6c5c3b3bc642059ef3a91247bcfcc5806"},
 ]
 jinja2 = [
-    {file = "Jinja2-3.1.1-py3-none-any.whl", hash = "sha256:539835f51a74a69f41b848a9645dbdc35b4f20a3b601e2d9a7e22947b15ff119"},
-    {file = "Jinja2-3.1.1.tar.gz", hash = "sha256:640bed4bb501cbd17194b3cace1dc2126f5b619cf068a726b98192a0fde74ae9"},
+    {file = "Jinja2-3.0.3-py3-none-any.whl", hash = "sha256:077ce6014f7b40d03b47d1f1ca4b0fc8328a692bd284016f806ed0eaca390ad8"},
+    {file = "Jinja2-3.0.3.tar.gz", hash = "sha256:611bb273cd68f3b993fabdc4064fc858c5b47a973cb5aa7999ec1ba405c87cd7"},
 ]
 keyring = [
     {file = "keyring-22.4.0-py3-none-any.whl", hash = "sha256:d6c531f6d12f3304db6029af1d19894bd446ecbbadd22465fa0f096b3e12d258"},
@@ -1266,8 +1266,8 @@ ntlm-auth = [
     {file = "ntlm_auth-1.5.0-py2.py3-none-any.whl", hash = "sha256:f1527c581dbf149349134fc2d789d50af2a400e193206956fa0ab456ccc5a8ba"},
 ]
 numpydoc = [
-    {file = "numpydoc-1.2-py3-none-any.whl", hash = "sha256:3ecbb9feae080031714b63128912988ebdfd4c582a085d25b8d9f7ac23c2d9ef"},
-    {file = "numpydoc-1.2.tar.gz", hash = "sha256:0cec233740c6b125913005d16e8a9996e060528afcb8b7cad3f2706629dfd6f7"},
+    {file = "numpydoc-1.2.1-py3-none-any.whl", hash = "sha256:2d317df5fd9404a5199bb993c1b6627436b2804582d2775bf9ccf3c5912ebe99"},
+    {file = "numpydoc-1.2.1.tar.gz", hash = "sha256:7ce826ed0d54c3fdc9097992a8d73a4d459dc468611351c68e444fec44a45af6"},
 ]
 oauthlib = [
     {file = "oauthlib-3.2.0-py3-none-any.whl", hash = "sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe"},
