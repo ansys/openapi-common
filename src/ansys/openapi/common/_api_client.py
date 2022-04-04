@@ -284,7 +284,7 @@ class ApiClient(ApiClientBase):
         For responses that are in JSON format, this method processes the response and returns it:
 
         * If ``response_type`` is ``file``, save the content to a temporary file and return the file name.
-        * If ``response_type`` is ``datetime.date`` or ``datetime.datetime``, parse the string and return the
+        * If ``response_type`` is :class:`datetime.datetime` or :class:`datetime.date``, parse the string and return the
           ``datetime`` object.
         * If ``response_type`` is ``list``, recursively deserialize the list contents.
         * If ``response_type`` is ``dict``, recursively deserialize the dictionary keys and values.
