@@ -26,7 +26,7 @@ trio = ["trio (>=0.16)"]
 
 [[package]]
 name = "asgi-gssapi"
-version = "0.1.1"
+version = "0.1.2"
 description = "GSSAPI Kerberos authentication support in ASGI Middleware"
 category = "main"
 optional = true
@@ -971,7 +971,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "0b9f9f232c2b16d442837c0bb9215c2fb67cb0d0235852e4914f2b6d90f7f253"
+content-hash = "64117a959bc394a0bb65babdd032fa170e770264bdce90f21e998813c871a3e0"
 
 [metadata.files]
 alabaster = [
@@ -983,8 +983,8 @@ anyio = [
     {file = "anyio-3.5.0.tar.gz", hash = "sha256:a0aeffe2fb1fdf374a8e4b471444f0f3ac4fb9f5a5b542b48824475e0042a5a6"},
 ]
 asgi-gssapi = [
-    {file = "ASGI-GSSAPI-0.1.1.tar.gz", hash = "sha256:658a220fd90e5c4f2a3af5ef11f93c32628d5b8883097c43e145ad7e1c629bf8"},
-    {file = "ASGI_GSSAPI-0.1.1-py3-none-any.whl", hash = "sha256:adea2ed92f26d303f9fc59b296d56009deac19fcbf959c6bfe10316ee76da32a"},
+    {file = "ASGI-GSSAPI-0.1.2.tar.gz", hash = "sha256:8fc170a417976dbf1494a51d28be15576c36e6d4f5a32ad0cf906bed6c8ad6d9"},
+    {file = "ASGI_GSSAPI-0.1.2-py3-none-any.whl", hash = "sha256:1fe761858cea67a43330e71560370a6f4895207aac2c24b900c21c1baaf9f1b9"},
 ]
 asgiref = [
     {file = "asgiref-3.5.0-py3-none-any.whl", hash = "sha256:88d59c13d634dcffe0510be048210188edd79aeccb6a6c9028cdad6f31d730a9"},
