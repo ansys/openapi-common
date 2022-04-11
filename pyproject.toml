@@ -42,7 +42,7 @@ importlib_metadata = { version = ">=1.0", python  = "<3.8" }  # Granta MI STK re
 requests = "^2.26"
 requests-negotiate-sspi = { version = "^0.5.2", markers = "sys_platform == 'win32'"}
 requests-ntlm = "^1.1.0"
-pyparsing = "^3.0"
+pyparsing = "^3.0.8"
 python-dateutil ="^2.6.1"
 typing-extensions = { version = "^4.1", python = "<3.8" }
 
