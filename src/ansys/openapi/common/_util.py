@@ -1,10 +1,13 @@
 import http.cookiejar
 
-import pyparsing as pp  # type: ignore
+import pyparsing as pp
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from itertools import chain
 from typing import Dict, Union, List, Optional, Tuple, Any, Collection, cast
+
+from pyparsing import Word
+
 from ._exceptions import ApiException
 from ._logger import logger
 
@@ -105,7 +108,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         token68_char = "-._~+/" + pp.nums + pp.alphas
 
         token = pp.Word(token_char)
-        token68 = pp.Combine(pp.Word(token68_char) + pp.ZeroOrMore("="))
+        token68 = pp.Combine(pp.Word(token68_char) + pp.ZeroOrMore(Word("=")))
 
         name = pp.Word(pp.alphas, pp.alphanums)
         value = pp.quotedString.setParseAction(pp.removeQuotes)
