@@ -358,15 +358,15 @@ cryptography = ["cryptography (<2.2)", "cryptography"]
 
 [[package]]
 name = "numpydoc"
-version = "1.2.1"
+version = "1.3.1"
 description = "Sphinx extension to support docstrings in Numpy format"
 category = "main"
 optional = true
 python-versions = ">=3.7"
 
 [package.dependencies]
-Jinja2 = ">=2.10,<3.1"
-sphinx = ">=1.8"
+Jinja2 = ">=2.10"
+sphinx = ">=3.0"
 
 [package.extras]
 testing = ["pytest", "pytest-cov", "matplotlib"]
@@ -513,7 +513,7 @@ pywin32 = ">=223"
 
 [[package]]
 name = "pyspnego"
-version = "0.5.1"
+version = "0.5.2"
 description = "Windows Negotiate Authentication Client and Server"
 category = "main"
 optional = true
@@ -971,7 +971,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "ad9f7e3768373558323220bb0e8b1edcf09bbaf21bc4dc92ccd2f0b3dff22be5"
+content-hash = "280069ff10dff9f4e549d3354dd34a83506a8e1a0f15bd2b364f531734bb3de1"
 
 [metadata.files]
 alabaster = [
@@ -1266,8 +1266,8 @@ ntlm-auth = [
     {file = "ntlm_auth-1.5.0-py2.py3-none-any.whl", hash = "sha256:f1527c581dbf149349134fc2d789d50af2a400e193206956fa0ab456ccc5a8ba"},
 ]
 numpydoc = [
-    {file = "numpydoc-1.2.1-py3-none-any.whl", hash = "sha256:2d317df5fd9404a5199bb993c1b6627436b2804582d2775bf9ccf3c5912ebe99"},
-    {file = "numpydoc-1.2.1.tar.gz", hash = "sha256:7ce826ed0d54c3fdc9097992a8d73a4d459dc468611351c68e444fec44a45af6"},
+    {file = "numpydoc-1.3.1-py3-none-any.whl", hash = "sha256:a49822cb225e71b7ef7889dd42576b5aa14c56ce62e0bc030f97abc8a3ae240f"},
+    {file = "numpydoc-1.3.1.tar.gz", hash = "sha256:349ff29e00a5caf119141967e579f8f17b24d41c46740b13ea4e8dba9971b20f"},
 ]
 oauthlib = [
     {file = "oauthlib-3.2.0-py3-none-any.whl", hash = "sha256:6db33440354787f9b7f3a6dbd4febf5d0f93758354060e802f6c06cb493022fe"},
@@ -1380,18 +1380,18 @@ pypiwin32 = [
     {file = "pypiwin32-223.tar.gz", hash = "sha256:71be40c1fbd28594214ecaecb58e7aa8b708eabfa0125c8a109ebd51edbd776a"},
 ]
 pyspnego = [
-    {file = "pyspnego-0.5.1-cp310-cp310-win32.whl", hash = "sha256:77b7c75bed737f24989aab453b9b8cd1c1512dfc5bed7a303a1cb1156fd59959"},
-    {file = "pyspnego-0.5.1-cp310-cp310-win_amd64.whl", hash = "sha256:3361027e7e86de6b784791e09a7b2ba73d06c0be40f027a7be09e45fc92325a5"},
-    {file = "pyspnego-0.5.1-cp36-cp36m-win32.whl", hash = "sha256:adf2f3e09bc4751c06fab1fedfe734af7f232d79927c753d8981f75a25f791ec"},
-    {file = "pyspnego-0.5.1-cp36-cp36m-win_amd64.whl", hash = "sha256:e21fc7283caa16761d46bea54e78cbfe3177c21e3b2d17d9ef213edcd86e1250"},
-    {file = "pyspnego-0.5.1-cp37-cp37m-win32.whl", hash = "sha256:c6993ee6bcfe0036d6246324fcb7975daed858a476bfc7bf1d9334911d3dfca2"},
-    {file = "pyspnego-0.5.1-cp37-cp37m-win_amd64.whl", hash = "sha256:4971fb166dc9821c98d31d698722d48d0066f1bc63beff8bf3d2a2e60fe507d1"},
-    {file = "pyspnego-0.5.1-cp38-cp38-win32.whl", hash = "sha256:fe8b2a0d7468d904c61ae63275f8234eb055767aaaba66f6d58d86f47a25aa8e"},
-    {file = "pyspnego-0.5.1-cp38-cp38-win_amd64.whl", hash = "sha256:05438a4e3e1526134bc2d72213417a06a2c3010f5b7271f3122e635e523c3790"},
-    {file = "pyspnego-0.5.1-cp39-cp39-win32.whl", hash = "sha256:f05f1a6316a9baeaef243c9420d995c3dc34cfc91841f17db0c793e3fe557728"},
-    {file = "pyspnego-0.5.1-cp39-cp39-win_amd64.whl", hash = "sha256:12e4da1cbbbd645c0624699a1d99f734161cb9095e9f1fc1c1982ed1b7a44abe"},
-    {file = "pyspnego-0.5.1-py2.py3-none-any.whl", hash = "sha256:185e0c576cde30d8853d9ea1d69c32cb93e98423934263d6c067bec7adc7dc4f"},
-    {file = "pyspnego-0.5.1.tar.gz", hash = "sha256:58d352d901baab754f63cb0da790c1f798605eb634f7f922df9bb6822d3de3c5"},
+    {file = "pyspnego-0.5.2-cp310-cp310-win32.whl", hash = "sha256:9c5bdb9f0207e2ce9e5410ee2205bf016755712018534c711ae6c1daff7fa7db"},
+    {file = "pyspnego-0.5.2-cp310-cp310-win_amd64.whl", hash = "sha256:4b9bda51bd964f40322aa1b33dcfc5d68f23b0680b4b5158175f2e9a04119aa9"},
+    {file = "pyspnego-0.5.2-cp36-cp36m-win32.whl", hash = "sha256:bd95633e7dce69e267579bdbe992fc081a14310236b4e84c3d179b1cf6439ca5"},
+    {file = "pyspnego-0.5.2-cp36-cp36m-win_amd64.whl", hash = "sha256:7562bc640bf402bb2849f325b0bb41260bd2c0cb06e38b9a8c6f7021b452c873"},
+    {file = "pyspnego-0.5.2-cp37-cp37m-win32.whl", hash = "sha256:3b1ff3c1d5588b66f8e4ebafa3079a7bf0bdcc6fb144b944c5a101e688a5a280"},
+    {file = "pyspnego-0.5.2-cp37-cp37m-win_amd64.whl", hash = "sha256:25fbc90fc6bd16881480316739bab820cc91364765e46340da17f861f89691f1"},
+    {file = "pyspnego-0.5.2-cp38-cp38-win32.whl", hash = "sha256:274b3a2d37e45ad4567bc5754be04b5fefad3f7cdea7d205f739d8a26b5a9189"},
+    {file = "pyspnego-0.5.2-cp38-cp38-win_amd64.whl", hash = "sha256:5d6d91e35ee63a5de30eb70716bf25274bf16c2c472b046dd21fad60fe63b0b6"},
+    {file = "pyspnego-0.5.2-cp39-cp39-win32.whl", hash = "sha256:36db7ec38023a23a545114dfd23825639571f135c72fb4b13a1ed559a0a4d93c"},
+    {file = "pyspnego-0.5.2-cp39-cp39-win_amd64.whl", hash = "sha256:a5c135d20819db3c48f65054d648317f369a61b7b22dc17b9e5ec9c0169541a0"},
+    {file = "pyspnego-0.5.2-py2.py3-none-any.whl", hash = "sha256:eb41b970dbda0dfe07b1da6fc83fe9f534a66d8dea38c06c0155377697407d9a"},
+    {file = "pyspnego-0.5.2.tar.gz", hash = "sha256:1fed228edc4b1730844da8237b90489be28c55681cf3934cd04fceb2253e55bf"},
 ]
 pytest = [
     {file = "pytest-7.1.2-py3-none-any.whl", hash = "sha256:13d0e3ccfc2b6e26be000cb6568c832ba67ba32e719443bfe725814d3c42433c"},
