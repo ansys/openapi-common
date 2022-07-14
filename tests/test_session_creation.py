@@ -223,7 +223,7 @@ def test_only_called_once_with_oidc_when_anonymous_is_ok():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
 
-        _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
+        _ = ApiClientFactory(SERVICELAYER_URL).with_oidc_pkce().authorize()
         assert m.called_once
 
 
@@ -281,7 +281,7 @@ def test_can_connect_with_oidc_using_token():
         )
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
+            .with_oidc_pkce()
             .with_token(refresh_token=refresh_token)
             .connect()
         )
@@ -343,7 +343,7 @@ def test_can_connect_with_oidc_using_token():
         )
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
+            .with_oidc_pkce()
             .with_token(refresh_token=refresh_token)
             .connect()
         )
@@ -379,7 +379,7 @@ def test_no_oidc_throws():
         with pytest.raises(ConnectionError) as exception_info:
             _ = (
                 ApiClientFactory(SERVICELAYER_URL)
-                .with_oidc()
+                .with_oidc_pkce()
                 .with_token(access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
             )
         assert "Unable to connect with OpenID Connect" in str(exception_info.value)

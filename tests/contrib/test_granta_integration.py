@@ -62,7 +62,7 @@ def test_provided_token_session():
     builder.with_token.return_value = MagicMock()
 
     with patch.object(
-        ApiClientFactory, "with_oidc", return_value=builder
+        ApiClientFactory, "with_oidc_pkce", return_value=builder
     ) as mock_method:
         _ = create_session_from_granta_stk(stk_token_config)
     mock_method.assert_called_once_with(None)
@@ -79,7 +79,7 @@ def test_stored_token_session():
     builder.with_stored_token.return_value = MagicMock()
 
     with patch.object(
-        ApiClientFactory, "with_oidc", return_value=builder
+        ApiClientFactory, "with_oidc_pkce", return_value=builder
     ) as mock_method:
         _ = create_session_from_granta_stk(stk_token_config)
     mock_method.assert_called_once_with(None)

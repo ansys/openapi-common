@@ -233,7 +233,7 @@ def test_invalid_refresh_token_throws():
             headers={"WWW-Authenticate": "Bearer error=invalid_token"},
         )
         with pytest.raises(ValueError) as exception_info:
-            ApiClientFactory(api_url).with_oidc().with_token(
+            ApiClientFactory(api_url).with_oidc_pkce().with_token(
                 refresh_token=refresh_token
             )
         assert "refresh token was invalid" in str(exception_info)
@@ -267,7 +267,7 @@ def test_endpoint_with_refresh_configures_correctly():
             headers={"WWW-Authenticate": authenticate_header},
         )
 
-        session = ApiClientFactory(secure_servicelayer_url).with_oidc()
+        session = ApiClientFactory(secure_servicelayer_url).with_oidc_pkce()
         auth = session._session_factory._auth
 
         assert auth.token_url == f"{authority_url}token"
