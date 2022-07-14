@@ -38,6 +38,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         ...
 
     def get_real_child_model(self, data: Union[Dict, str]) -> str:
+        """Classes with discriminators will override this method and may change the method signature."""
         raise NotImplementedError()
 
 
