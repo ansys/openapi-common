@@ -42,7 +42,7 @@ class TestMissingExtras:
         from ansys.openapi.common import ApiClientFactory
 
         with pytest.raises(ImportError) as excinfo:
-            _ = ApiClientFactory("http://www.my-api.com/v1.svc").with_oidc()
+            _ = ApiClientFactory("http://www.my-api.com/v1.svc").with_oidc_pkce()
 
         package_name = get_package_name()
         assert f"`pip install {package_name}[oidc]`" in str(excinfo.value)
