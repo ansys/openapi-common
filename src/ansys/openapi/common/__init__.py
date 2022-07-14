@@ -5,7 +5,7 @@ try:
 
     __version__ = metadata.version("ansys-openapi-common")
 except ImportError:
-    from importlib_metadata import metadata as metadata_backport
+    from importlib_metadata import metadata as metadata_backport  # type: ignore[import]
 
     __version__ = metadata_backport("ansys-openapi-common")["version"]
 
