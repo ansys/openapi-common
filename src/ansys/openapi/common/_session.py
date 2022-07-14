@@ -241,7 +241,7 @@ class ApiClientFactory:
         """
         if not (_platform_windows or _linux_kerberos_enabled):
             raise ImportError(
-                "Kerberos is not enabled. To use it, run `pip install openapi-client-common[linux-kerberos]`."
+                "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
             )
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
@@ -283,7 +283,7 @@ class ApiClientFactory:
         """
         if not _oidc_enabled:
             raise ImportError(
-                "OpenID Connect features are not enabled. To use them, run `pip install openapi-client-common[oidc]`."
+                "OpenID Connect features are not enabled. To use them, run `pip install ansys-openapi-common[oidc]`."
             )
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
@@ -502,7 +502,9 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         stream: bool = False,
         timeout: Union[None, float, Tuple[float, float], Tuple[float, None]] = None,
         verify: Union[bool, str] = True,
-        cert: Union[None, bytes, str, Container[Union[bytes, str]]] = None,
+        cert: Union[
+            None, bytes, str, Tuple[Union[bytes, str], Union[bytes, str]]
+        ] = None,
         proxies: Optional[Mapping[str, str]] = None,
     ) -> requests.Response:
         """Method called when sending a request to the API.
@@ -521,7 +523,7 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         verify : Union[bool, str]
             Either a Boolean that controls whether we verify the server's TLS certificate or a string
             that must be a path to a CA bundle to use.
-        cert : Union[None, bytes, str, Container[Union[bytes, str]]]
+        cert : None, bytes, str, Tuple[Union[bytes, str], Union[bytes, str]]
             User-provided client certificate to send with the request, optionally with password.
         proxies : Mapping[str, str], optional
             Dictionary of proxies to apply to the request.

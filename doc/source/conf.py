@@ -34,7 +34,7 @@ typehints_document_rtype = False
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/dev", None),
-    "requests": ("https://docs.python-requests.org/en/master/", None),
+    "requests": ("https://requests.readthedocs.io/en/latest", None),
 }
 
 # numpydoc configuration

@@ -65,7 +65,7 @@ class ApiException(Exception):
     body : str, optional
         Content of the response provided by the server. The default is ``None``.
     headers : CaseInsensitiveDict, optional
-        Response headers provided by the server. The defeault is ``None``.
+        Response headers provided by the server. The default is ``None``.
     """
 
     status_code: int

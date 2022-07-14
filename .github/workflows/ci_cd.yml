@@ -16,9 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
           
@@ -27,7 +28,7 @@ jobs:
 
       - name: Install tox
         run: |
-          pip install tox --disable-pip-version-check
+          pip install tox poetry tox-poetry --disable-pip-version-check
 
       - name: Lint project
         run: |
@@ -61,7 +62,7 @@ jobs:
         python-version: ['3.7', '3.8', '3.9', '3.10']
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
         
     - name: Configure host kerberos
       run: |
@@ -74,13 +75,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox tox-gh-actions==2.8.1
+        pip install tox tox-gh-actions==2.8.1 poetry tox-poetry
 
     - name: Test with tox
       run: tox -- --with-kerberos
-
+      
     - name: Upload coverage report
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       if: ${{ github.actor != 'dependabot[bot]' }}
       with:
         fail_ci_if_error: true
@@ -91,9 +92,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
  
@@ -111,7 +112,7 @@ jobs:
           twine check dist/*
 
       - name: Upload wheel
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: ansys-grantami-common-wheel
           path: dist/
@@ -122,9 +123,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Setup Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
           
@@ -144,14 +145,14 @@ jobs:
           make -C doc latexpdf
 
       - name: Upload HTML Documentation
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Documentation-html
           path: doc/build/html
           retention-days: 7
 
       - name: Upload PDF Documentation
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Documentation-pdf
           path: doc/build/latex/*.pdf
@@ -163,11 +164,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
-        uses: actions/setup-python@v1
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       
       # used for documentation deployment
       - name: Get Bot Application Token
@@ -177,21 +178,23 @@ jobs:
           application_id: ${{ secrets.BOT_APPLICATION_ID }}
           application_private_key: ${{ secrets.BOT_APPLICATION_PRIVATE_KEY }}
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: ansys-grantami-common-wheel
+          path: ~/dist
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: Documentation-pdf
+          path: ~/pdf
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: Documentation-html
           path: ~/html
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.2.3
+        uses: JamesIves/github-pages-deploy-action@v4.3.4
         with:
           repository-name: pyansys/openapi-common-docs
           token: ${{ steps.get_workflow_token.outputs.token }}
@@ -203,7 +206,7 @@ jobs:
       - name: Upload to PyPi
         run: |
           pip install twine
-          twine upload --non-interactive --skip-existing ./**/*.whl
+          twine upload --non-interactive --skip-existing ~/**/*.whl
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
@@ -211,6 +214,7 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
+          generate_release_notes: true
           files: |
             ./**/*.whl
             ./**/*.zip

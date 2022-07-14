@@ -136,26 +136,15 @@ class ApiClient(ApiClientBase):
 
         # path parameters
         if path_params:
-            path_params_sanitized = self.sanitize_for_serialization(path_params)
-            path_params_tuples = self.parameters_to_tuples(
-                path_params_sanitized, collection_formats
+            resource_path = self.__handle_path_params(
+                resource_path, path_params, collection_formats
             )
-            for k, v in path_params_tuples:
-                # specified safe chars, encode everything
-                resource_path = resource_path.replace(
-                    f"{k}",
-                    quote(str(v), safe=self.configuration.safe_chars_for_path_param),
-                )
 
         # query parameters
         query_params_str = ""
         if query_params:
-            query_params_sanitized = self.sanitize_for_serialization(query_params)
-            query_params_tuples = self.parameters_to_tuples(
-                query_params_sanitized, collection_formats
-            )
-            query_params_str = "&".join(
-                ["=".join(param) for param in query_params_tuples]
+            query_params_str = self.__handle_query_params(
+                query_params, collection_formats
             )
 
         # post parameters
@@ -199,6 +188,35 @@ class ApiClient(ApiClientBase):
             return return_data
         else:
             return return_data, response_data.status_code, response_data.headers
+
+    def __handle_path_params(
+        self,
+        resource_path: str,
+        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None],
+        collection_formats: Optional[Dict[str, str]],
+    ) -> str:
+        path_params_sanitized = self.sanitize_for_serialization(path_params)
+        path_params_tuples = self.parameters_to_tuples(
+            path_params_sanitized, collection_formats
+        )
+        for k, v in path_params_tuples:
+            # specified safe chars, encode everything
+            resource_path = resource_path.replace(
+                f"{{{k}}}",
+                quote(str(v), safe=self.configuration.safe_chars_for_path_param),
+            )
+        return resource_path
+
+    def __handle_query_params(
+        self,
+        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None],
+        collection_formats: Optional[Dict[str, str]],
+    ) -> str:
+        query_params_sanitized = self.sanitize_for_serialization(query_params)
+        query_params_tuples = self.parameters_to_tuples(
+            query_params_sanitized, collection_formats
+        )
+        return "&".join(["=".join(param) for param in query_params_tuples])
 
     def sanitize_for_serialization(self, obj: Any) -> Any:
         """Build a JSON POST object.
@@ -266,7 +284,7 @@ class ApiClient(ApiClientBase):
         For responses that are in JSON format, this method processes the response and returns it:
 
         * If ``response_type`` is ``file``, save the content to a temporary file and return the file name.
-        * If ``response_type`` is ``datetime.date`` or ``datetime.datetime``, parse the string and return the
+        * If ``response_type`` is :class:`datetime.datetime` or :class:`datetime.date`, parse the string and return the
           ``datetime`` object.
         * If ``response_type`` is ``list``, recursively deserialize the list contents.
         * If ``response_type`` is ``dict``, recursively deserialize the dictionary keys and values.
@@ -301,15 +319,12 @@ class ApiClient(ApiClientBase):
         if response_type == "file":
             return self.__deserialize_file(response)
 
-        try:
-            data = response.json()
-        except ValueError:
-            content_type = response.headers.get(
-                "Content-Type", "application/octet-stream"
-            )
-            if content_type not in ["application/octet-stream"]:
-                data = response.text
-            else:
+        if response_type == "str":
+            data: SerializedType = response.text
+        else:
+            try:
+                data = response.json()
+            except ValueError:
                 data = response.content
 
         return self.__deserialize(data, response_type)

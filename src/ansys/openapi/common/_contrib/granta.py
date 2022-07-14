@@ -17,7 +17,7 @@ def create_session_from_granta_stk(
     api_session_configuration : SessionConfiguration, optional
         Additional configuration settings for the requests session when connected to the Granta MI Service Layer.
     idp_session_configuration : SessionConfiguration, optional
-        Additional configuration settings for the ""Requests`` session when connected to the OpenID identity provider.
+        Additional configuration settings for the ``Requests`` session when connected to the OpenID identity provider.
 
     Notes
     -----
