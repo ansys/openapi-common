@@ -373,7 +373,7 @@ class ApiClient(ApiClientBase):
             assert isinstance(data, str)
             return self.__deserialize_datetime(data)
         else:
-            assert isinstance(data, dict)
+            assert isinstance(data, (dict, str))
             return self.__deserialize_model(data, klass)
 
     def call_api(
@@ -794,19 +794,27 @@ class ApiClient(ApiClientBase):
             )
 
     def __deserialize_model(
-        self, data: Dict, klass: Type[ModelBase]
-    ) -> Union[ModelBase, Dict]:
-        """Deserialize ``dict`` to model.
+        self, data: Union[Dict, str], klass: Type[ModelBase]
+    ) -> Union[ModelBase, Dict, str]:
+        """Deserialize model representation to model.
 
         Given a model type and the serialized data, deserialize into an instance of the model class.
 
         Parameters
         ----------
-        data : Dict
+        data : Union[Dict, str]
             Serialized representation of the model object.
         klass : ModelType
             Type of the model to deserialize.
         """
+
+        if not klass.swagger_types:
+            try:
+                klass.get_real_child_model(klass(), {})
+            except NotImplementedError:
+                return data
+            except BaseException:
+                pass
 
         kwargs = {}
         if klass.swagger_types is not None:
