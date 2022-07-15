@@ -1,6 +1,8 @@
 import os
 import warnings
-from typing import Tuple, Union, Optional, Mapping, TypeVar, Any
+from typing import Tuple, Union, Optional, Mapping, TypeVar, Any, Callable
+from functools import wraps
+from copy import copy
 
 import requests
 from urllib3.util.retry import Retry
@@ -50,6 +52,29 @@ else:
         _linux_kerberos_enabled = False
 
     _platform_windows = False
+
+Return_Type = TypeVar("Return_Type")
+
+
+def require_oidc(func: Callable[..., Return_Type]) -> Callable[..., Return_Type]:
+    """Enforce that OIDC features are enabled before executing the wrapped function/method.
+
+    Raises
+    ------
+    ImportError
+        If the OIDC features have not been installed.
+    """
+
+    @wraps(func)
+    def wrapper(*args: Any, **kwargs: Any) -> Return_Type:
+        if not _oidc_enabled:
+            raise ImportError(
+                "OpenID Connect features are not enabled. To use them, run `pip install ansys-openapi-common[oidc]`."
+            )
+        return func(*args, **kwargs)
+
+    return wrapper
+
 
 # Required to allow the ApiClientFactory to be subclassed. This ensures that Pylance
 # understands that the subclass is returned by the builder methods instead of the base class
@@ -261,36 +286,51 @@ class ApiClientFactory:
                 return self
         raise ConnectionError("Unable to connect with autologon.")
 
+    @require_oidc
     def with_oidc_client_credentials(
-        self,
+        self: Api_Client_Factory,
         client_id: str,
         client_secret: str,
-        scope: str,
+        scope: Optional[str] = "",
     ) -> Api_Client_Factory:
-        if not _oidc_enabled:  # TODO: Pull this out into a decorator
-            raise ImportError(
-                "OpenID Connect features are not enabled. To use them, run `pip install ansys-openapi-common[oidc]`."
-            )
+        """Set up client authentication for use with OpenID Connect using the Client Credentials flow.
 
-        session = requests.session()
-        config_dict = self._session_configuration.get_configuration_for_requests()
-        set_session_kwargs(session, config_dict)
+        Parameters
+        ----------
+        client_id : :class:`str`
+            Resource owner username. Provided by the Identity provider.
+        client_secret : :class:`str`
+            Resource owner password. Provided by the Identity provider.
+        scope : :class:`str`, optional
+            Single scope or list of scopes required by the application.
 
-        self._session.auth = get_client_credential_auth(
+        Returns
+        -------
+        :class:`~ansys.openapi.common.ApiClientFactory`
+            Current client factory object.
+
+        Notes
+        -----
+        OIDC Authentication requires the ``[oidc]`` extra to be installed.
+        """
+
+        auth = get_client_credential_auth(
             token_url=self._api_url,
             client_id=client_id,
             client_secret=client_secret,
             scope=scope,
-            session=session
+            session=copy(self._session),
         )
+        self._session.auth = auth
         self._configured = True
         return self
 
+    @require_oidc
     def with_oidc_pkce(
         self,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> "OIDCPKCESessionBuilder":
-        """Set up client authentication for use with OpenID Connect.
+        """Set up client authentication for use with OpenID Connect using the authorization code flow with PKCE.
 
         Parameters
         ----------
@@ -306,10 +346,7 @@ class ApiClientFactory:
         -----
         OIDC Authentication requires the ``[oidc]`` extra to be installed.
         """
-        if not _oidc_enabled:  # TODO: Pull this out into a decorator
-            raise ImportError(
-                "OpenID Connect features are not enabled. To use them, run `pip install ansys-openapi-common[oidc]`."
-            )
+
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
             return OIDCPKCESessionBuilder(self)

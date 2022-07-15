@@ -4,7 +4,11 @@ from typing import Optional
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import OAuth2AuthorizationCodePKCE, OAuth2ClientCredentials, InvalidGrantRequest  # type: ignore[import]
+from requests_auth import (  # type: ignore[import]
+    OAuth2AuthorizationCodePKCE,
+    OAuth2ClientCredentials,
+    InvalidGrantRequest,
+)
 from requests_auth.authentication import OAuth2  # type: ignore[import]
 
 from ._util import (
@@ -26,17 +30,48 @@ else:
 
 
 def get_client_credential_auth(
-        token_url: str,
-        client_id: str,
-        client_secret: str,
-        scope: Optional[str],
-        session: Optional[requests.Session]) -> OAuth2ClientCredentials:
+    token_url: str,
+    client_id: str,
+    client_secret: str,
+    scope: Optional[str] = "",
+    session: Optional[requests.Session] = None,
+) -> OAuth2ClientCredentials:
+
+    """Get a requests auth object for the Client Credential OIDC flow.
+
+    Provides a wrapper around the requests_auth.OAuth2ClientCredentials class.
+
+    Parameters
+    ----------
+    token_url: :class:`str`
+        OAuth 2 token URL.
+    client_id : :class:`str`
+        Resource owner username. Provided by the Identity provider.
+    client_secret : :class:`str`
+        Resource owner password. Provided by the Identity provider.
+    scope : :class:`str`, optional
+        Single scope or list of scopes required by the application.
+    session: :class:`requests.Session`, optional
+        Session used to retrieve the token. Used if a specific configuration is required,
+        e.g. to disable SSL certificate verification.
+
+    Returns
+    -------
+    :class:`requests_auth.OAuth2ClientCredentials`
+        Requests Client Credentials auth object.
+
+    Notes
+    -----
+    OIDC Authentication requires the ``[oidc]`` extra to be installed.
+    """
+
     return OAuth2ClientCredentials(
-            token_url=token_url,
-            client_id=client_id,
-            client_secret=client_secret,
-            scope=scope,
-            session=session)
+        token_url=token_url,
+        client_id=client_id,
+        client_secret=client_secret,
+        scope=scope,
+        session=session,
+    )
 
 
 class OIDCSessionFactory:
