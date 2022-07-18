@@ -1,4 +1,5 @@
 import http.cookiejar
+import sys
 
 import pyparsing as pp
 from collections import OrderedDict
@@ -11,9 +12,9 @@ from pyparsing import Word
 from ._exceptions import ApiException
 from ._logger import logger
 
-try:
+if sys.version_info >= (3, 8):
     from typing import TypedDict
-except ImportError:
+else:
     from typing_extensions import TypedDict, Type
 
 import tempfile
