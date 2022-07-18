@@ -184,6 +184,15 @@ class TestSerialization:
         serialized_model = self._client.sanitize_for_serialization(model_instance)
         assert serialized_model == model_dict
 
+    def test_serialize_enum_model(self):
+        from . import models
+
+        self._client.setup_client(models)
+        model_instance = models.ExampleModelWithEnum().GOOD
+        model_value = "Good"
+        serialized_model = self._client.sanitize_for_serialization(model_instance)
+        assert serialized_model == model_value
+
 
 class TestDeserialization:
     _test_value_list = ["foo", int(2), 2.0, True]
@@ -308,6 +317,16 @@ class TestDeserialization:
         deserialized_model = self._client._ApiClient__deserialize(model_dict, type_ref)
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
+
+    def test_deserialize_enum_model(self):
+        from . import models
+
+        self._client.setup_client(models)
+        model_instance = models.ExampleModelWithEnum().GOOD
+        model_value = "Good"
+        type_ref = "ExampleModelWithEnum"
+        serialized_model = self._client._ApiClient__deserialize(model_value, type_ref)
+        assert serialized_model == model_instance
 
     @pytest.mark.parametrize(
         ("data", "target_type"),
