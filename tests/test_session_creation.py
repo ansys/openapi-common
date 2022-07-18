@@ -249,10 +249,16 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok():
 def test_can_connect_with_oidc_client_credential_flow(token_mock):
     with requests_mock.Mocker() as m:
         # eyJleHAiOiAxMDB9 == {"exp": 100} base64 encoded
-        m.post(SERVICELAYER_URL, status_code=200, text=r'{"access_token": "header.eyJleHAiOiAxMDB9.other"}')
+        m.post(
+            SERVICELAYER_URL,
+            status_code=200,
+            text=r'{"access_token": "header.eyJleHAiOiAxMDB9.other"}',
+        )
         m.get(SERVICELAYER_URL, status_code=200)
 
-        factory = ApiClientFactory(SERVICELAYER_URL).with_oidc_client_credentials_flow("client_id", "client_secret")
+        factory = ApiClientFactory(SERVICELAYER_URL).with_oidc_client_credentials_flow(
+            "client_id", "client_secret"
+        )
         factory._ApiClientFactory__test_connection()
         assert m.call_count == 2  # One POST, one GET
 
