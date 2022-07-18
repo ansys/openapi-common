@@ -284,7 +284,9 @@ def test_get_client_credential_auth():
     assert isinstance(result, OAuth2ClientCredentials)
 
 
-def test_get_client_credential_auth_succeeds_custom_session(token_cache_mock):
+def test_get_client_credential_auth_succeeds_custom_session():
     session = requests.session()
-    result = get_client_credential_auth(TOKEN_URL, CLIENT_ID, CLIENT_SECRET, session)
+    result = get_client_credential_auth(
+        TOKEN_URL, CLIENT_ID, CLIENT_SECRET, "scope", session
+    )
     assert isinstance(result, OAuth2ClientCredentials)

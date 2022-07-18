@@ -13,6 +13,7 @@ from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
 )
+from ansys.openapi.common import _session as session_mod
 from ansys.openapi.common._session import require_oidc
 
 SERVICELAYER_URL = "http://localhost/mi_servicelayer"
@@ -34,12 +35,10 @@ def oidc_noop():
 
 @contextmanager
 def oidc_status(status):
-    from ansys.openapi.common._session import _oidc_enabled as current_oidc_status
-
-    original_status = current_oidc_status
-    current_oidc_status = status
+    original_status = session_mod._oidc_enabled
+    session_mod._oidc_enabled = status
     yield
-    current_oidc_status = original_status
+    session_mod._oidc_enabled = original_status
 
 
 def test_oidc_decorator_oidc_enabled_no_exception():
