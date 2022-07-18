@@ -287,7 +287,7 @@ class ApiClientFactory:
         raise ConnectionError("Unable to connect with autologon.")
 
     @require_oidc
-    def with_oidc_client_credentials(
+    def with_oidc_client_credentials_flow(
         self: Api_Client_Factory,
         client_id: str,
         client_secret: str,
@@ -301,7 +301,7 @@ class ApiClientFactory:
             Resource owner username. Provided by the Identity provider.
         client_secret : :class:`str`
             Resource owner password. Provided by the Identity provider.
-        scope : :class:`str`, optional
+        scope : Union[:class:`str`, :class:`list`[:class:`str`]], optional
             Single scope or list of scopes required by the application.
 
         Returns
@@ -326,11 +326,12 @@ class ApiClientFactory:
         return self
 
     @require_oidc
-    def with_oidc_pkce(
+    def with_oidc_authorization_flow(
         self,
         idp_session_configuration: Optional[SessionConfiguration] = None,
-    ) -> "OIDCPKCESessionBuilder":
-        """Set up client authentication for use with OpenID Connect using the authorization code flow with PKCE.
+    ) -> "AuthorizationSessionBuilder":
+        """Set up client authentication for use with OpenID Connect using the authorization flow. Currently
+        only authorization flow with PKCE is supported.
 
         Parameters
         ----------
@@ -339,7 +340,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`~ansys.openapi.common.OIDCPKCESessionBuilder`
+        :class:`~ansys.openapi.common.AuthorizationSessionBuilder`
             Builder object to authenticate via OIDC.
 
         Notes
@@ -349,7 +350,7 @@ class ApiClientFactory:
 
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
-            return OIDCPKCESessionBuilder(self)
+            return AuthorizationSessionBuilder(self)
 
         session_factory = OIDCSessionFactory(
             self._session,
@@ -358,7 +359,7 @@ class ApiClientFactory:
             idp_session_configuration,
         )
 
-        return OIDCPKCESessionBuilder(self, session_factory)
+        return AuthorizationSessionBuilder(self, session_factory)
 
     def __test_connection(self) -> bool:
         """Attempt to connect to the API server. If this returns a 2XX status code, the method returns
@@ -442,9 +443,9 @@ class ApiClientFactory:
         return parse_authenticate(response.headers["www-authenticate"])
 
 
-class OIDCPKCESessionBuilder:
-    """Helps create OpenID Connect sessions from different types of input and provides OIDC-specific
-    configuration options.
+class AuthorizationSessionBuilder:
+    """Helps create OpenID Connect Authorize Flow sessions from different types of input and provides
+    configuration options specific to the Authorization Flow.
 
     Parameters
     ----------

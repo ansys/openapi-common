@@ -2,6 +2,7 @@ import json
 import os
 from functools import wraps
 from urllib.parse import parse_qs
+from contextlib import contextmanager
 
 import pytest
 import requests_mock
@@ -12,6 +13,7 @@ from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
 )
+from ansys.openapi.common._session import require_oidc
 
 SERVICELAYER_URL = "http://localhost/mi_servicelayer"
 SECURE_SERVICELAYER_URL = "https://localhost/mi_servicelayer"
@@ -23,6 +25,35 @@ REFRESH_TOKEN = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMzQ1Njc4OTAxIiwibmFtZSI6IkphbmUgU21pdGgiLCJpYXQiOjE"
     "1MTYyMzkwMjJ9.Gm9bqy4CL4_mXKPYrnt2nHGxGM_WaLGpGHrYE_U9uJQ"
 )
+
+
+@require_oidc
+def oidc_noop():
+    return "noop"
+
+
+@contextmanager
+def oidc_status(status):
+    from ansys.openapi.common._session import _oidc_enabled as current_oidc_status
+
+    original_status = current_oidc_status
+    current_oidc_status = status
+    yield
+    current_oidc_status = original_status
+
+
+def test_oidc_decorator_oidc_enabled_no_exception():
+    with oidc_status(True):
+        assert oidc_noop() == "noop"
+
+
+def test_oidc_decorator_oidc_not_enabled_exception():
+    with oidc_status(False), pytest.raises(
+        ImportError,
+        match="OpenID Connect features are not enabled. "
+        r"To use them, run `pip install ansys-openapi-common\[oidc\]`",
+    ):
+        oidc_noop()
 
 
 def test_anonymous():
@@ -219,15 +250,19 @@ def test_can_connect_with_oidc():
     pass
 
 
-def test_only_called_once_with_oidc_when_anonymous_is_ok():
+def test_only_called_once_with_oidc_auth_flow_when_anonymous_is_ok():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
 
-        _ = ApiClientFactory(SERVICELAYER_URL).with_oidc_pkce().authorize()
+        _ = (
+            ApiClientFactory(SERVICELAYER_URL)
+            .with_oidc_authorization_flow()
+            .authorize()
+        )
         assert m.called_once
 
 
-def test_can_connect_with_oidc_using_token():
+def test_can_connect_with_oidc_auth_flow_using_token():
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
@@ -281,7 +316,7 @@ def test_can_connect_with_oidc_using_token():
         )
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc_pkce()
+            .with_oidc_authorization_flow()
             .with_token(refresh_token=refresh_token)
             .connect()
         )
@@ -289,7 +324,7 @@ def test_can_connect_with_oidc_using_token():
         assert resp.status_code == 200
 
 
-def test_can_connect_with_oidc_using_token():
+def test_can_connect_with_oidc_auth_flow_using_token():
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
@@ -343,7 +378,7 @@ def test_can_connect_with_oidc_using_token():
         )
         session = (
             ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc_pkce()
+            .with_oidc_authorization_flow()
             .with_token(refresh_token=refresh_token)
             .connect()
         )
@@ -369,20 +404,21 @@ def test_no_autologon_throws():
         assert "Unable to connect with autologon" in str(exception_info.value)
 
 
-def test_no_oidc_throws():
+def test_no_oidc_auth_flow_throws():
     with requests_mock.Mocker() as m:
         m.get(
             SERVICELAYER_URL,
             status_code=401,
             headers={"WWW-Authenticate": 'Basic realm="localhost"'},
         )
-        with pytest.raises(ConnectionError) as exception_info:
+        with pytest.raises(
+            ConnectionError, match="Unable to connect with OpenID Connect"
+        ):
             _ = (
                 ApiClientFactory(SERVICELAYER_URL)
-                .with_oidc_pkce()
+                .with_oidc_authorization_flow()
                 .with_token(access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
             )
-        assert "Unable to connect with OpenID Connect" in str(exception_info.value)
 
 
 def test_self_signed_throws():

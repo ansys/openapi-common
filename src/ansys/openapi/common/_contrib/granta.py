@@ -46,7 +46,7 @@ def create_session_from_granta_stk(
         cached_token_key = auth_settings["token_key"]
         return (
             ApiClientFactory(sl_url, api_session_configuration)
-            .with_oidc_pkce(idp_session_configuration)
+            .with_oidc_authorization_flow(idp_session_configuration)
             .with_stored_token(cached_token_key)
             .connect()
         )
@@ -54,7 +54,7 @@ def create_session_from_granta_stk(
         refresh_token = auth_settings["refresh_token"]
         return (
             ApiClientFactory(sl_url, api_session_configuration)
-            .with_oidc_pkce(idp_session_configuration)
+            .with_oidc_authorization_flow(idp_session_configuration)
             .with_token(refresh_token)
             .connect()
         )

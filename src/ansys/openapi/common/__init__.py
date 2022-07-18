@@ -10,7 +10,7 @@ else:
 
     __version__ = metadata_backport("ansys-openapi-common")["version"]
 
-from ._session import ApiClientFactory, OIDCPKCESessionBuilder
+from ._session import ApiClientFactory, AuthorizationSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._api_client import ApiClient
@@ -26,7 +26,7 @@ __all__ = [
     "AuthenticationWarning",
     "create_session_from_granta_stk",
     "generate_user_agent",
-    "OIDCPKCESessionBuilder",
+    "AuthorizationSessionBuilder",
     "ApiBase",
     "ApiClientBase",
     "ModelBase",

@@ -15,7 +15,7 @@ classes, functions, and attributes.
 
    ApiClient
    ApiClientFactory
-   OIDCPKCESessionBuilder
+   AuthorizationSessionBuilder
    SessionConfiguration
 
 

@@ -4,21 +4,24 @@ from urllib.parse import parse_qs
 import pytest
 import requests
 import requests_mock
-from requests_auth.authentication import OAuth2
+from requests_auth.authentication import OAuth2, OAuth2ClientCredentials
 from unittest.mock import Mock, MagicMock
 from covertable import make
 
 from ansys.openapi.common import ApiClientFactory
-from ansys.openapi.common._oidc import OIDCSessionFactory
+from ansys.openapi.common._oidc import OIDCSessionFactory, get_client_credential_auth
 
+TOKEN_URL = "https://www.example.com/token"
+CLIENT_ID = "3acde603-9bb9-48e7-9eaa-c624c4fd40ca"
+CLIENT_SECRET = "000a5e5ecdd7e2dbb2d61b4a7291e0b44b719c786ed1d677587e83ab60bf8bbf"
 REQUIRED_HEADERS = {
-    "clientid": "3acde603-9bb9-48e7-9eaa-c624c4fd40ca",
+    "clientid": CLIENT_ID,
     "authority": "authority.com",
     "redirecturi": "http://localhost:1729",
 }
 
 WELL_KNOWN_PARAMETERS = {
-    "token_endpoint": "www.example.com/token",
+    "token_endpoint": TOKEN_URL,
     "authorization_endpoint": "www.example.com/authorization",
 }
 
@@ -233,7 +236,7 @@ def test_invalid_refresh_token_throws():
             headers={"WWW-Authenticate": "Bearer error=invalid_token"},
         )
         with pytest.raises(ValueError) as exception_info:
-            ApiClientFactory(api_url).with_oidc_pkce().with_token(
+            ApiClientFactory(api_url).with_oidc_authorization_flow().with_token(
                 refresh_token=refresh_token
             )
         assert "refresh token was invalid" in str(exception_info)
@@ -267,8 +270,21 @@ def test_endpoint_with_refresh_configures_correctly():
             headers={"WWW-Authenticate": authenticate_header},
         )
 
-        session = ApiClientFactory(secure_servicelayer_url).with_oidc_pkce()
+        session = ApiClientFactory(
+            secure_servicelayer_url
+        ).with_oidc_authorization_flow()
         auth = session._session_factory._auth
 
         assert auth.token_url == f"{authority_url}token"
         assert auth.refresh_data["client_id"] == client_id
+
+
+def test_get_client_credential_auth():
+    result = get_client_credential_auth(TOKEN_URL, CLIENT_ID, CLIENT_SECRET, "scope")
+    assert isinstance(result, OAuth2ClientCredentials)
+
+
+def test_get_client_credential_auth_succeeds_custom_session(token_cache_mock):
+    session = requests.session()
+    result = get_client_credential_auth(TOKEN_URL, CLIENT_ID, CLIENT_SECRET, session)
+    assert isinstance(result, OAuth2ClientCredentials)
