@@ -6,7 +6,7 @@ import requests
 from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-from requests_ntlm import HttpNtlmAuth  # type: ignore
+from requests_ntlm import HttpNtlmAuth  # type: ignore[import]
 
 from . import __version__
 from ._api_client import ApiClient
@@ -29,7 +29,7 @@ _platform_windows = False
 
 try:
     # noinspection PyUnresolvedReferences
-    import requests_oauthlib  # type: ignore
+    import requests_auth  # type: ignore[import]
     import keyring
     from ._oidc import OIDCSessionFactory
 except ImportError:
@@ -429,21 +429,16 @@ class OIDCSessionBuilder:
 
         return self.with_token(refresh_token=refresh_token)
 
-    def with_token(
-        self, refresh_token: str, access_token: Optional[str] = None
-    ) -> ApiClientFactory:
-        """Use a provided access token or refresh token to authenticate the session.
+    def with_token(self, refresh_token: str) -> ApiClientFactory:
+        """Use a provided refresh token to authenticate the session.
 
-        If an access token is provided, it will be used immediately. When it expires, the token will
-        be refreshed. If no access token is provided, the refresh token is used immediately to fetch an
-        access token.
+        The refresh token will be used to request a new access token from the Identity Provider,
+        this will be automatically refreshed shortly before expiration.
 
         Parameters
         ----------
         refresh_token : str
             Refresh token.
-        access_token : str
-            Access token.
 
         Returns
         -------
@@ -454,7 +449,7 @@ class OIDCSessionBuilder:
             return self._client_factory
         self._client_factory._session = (
             self._session_factory.get_session_with_provided_token(
-                access_token=access_token, refresh_token=refresh_token
+                refresh_token=refresh_token
             )
         )
         self._client_factory._configured = True

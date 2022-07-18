@@ -185,59 +185,6 @@ def set_session_kwargs(
         session.__dict__[k] = v
 
 
-class ResponseHandler(BaseHTTPRequestHandler):
-    """Provides an OpenID Connect callback handler. This class returns a page indicating authentication
-    completion when the authentication flow completes.
-
-    Attributes
-    ----------
-    _response_html : str
-        User-facing HTML to render when redirected after successful authentication with the identity provider.
-    """
-
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self._response_html = (
-            r"<!DOCTYPE html>"
-            r'    <html lang="en">'
-            r"        <head>"
-            r'            <meta charset="UTF-8">'
-            r"        <title>{title}</title>"
-            r"    </head>"
-            r"    <body>"
-            r"        <h1>{title}</h1>"
-            r"        <p>{paragraph}</p>"
-            r"    </body>"
-            r"</html>".format(
-                title="Login successful", paragraph="You can now close this tab."
-            ).encode("utf-8")
-        )
-        super().__init__(*args, **kwargs)
-
-    # noinspection PyPep8Naming
-    def do_GET(self) -> None:
-        """Handle GET requests to the callback URL."""
-        self.server.auth_code = "https://localhost{}".format(self.path)  # type: ignore[attr-defined]
-        self.send_response(200)
-        self.send_header("Content-Type", "text/html; charset=utf-8")
-        self.end_headers()
-        self.wfile.write(self._response_html)
-
-
-class OIDCCallbackHTTPServer(HTTPServer):
-    """Provides the HTTP Server that is to handle callback requests on successful OpenID Connect authentication.
-
-    Attributes
-    ----------
-    auth_code : str, optional
-        Authentication code received from the user's browser when authentication completes.
-        The default is ``None`` when the ``auth_code`` has not yet been received.
-    """
-
-    def __init__(self) -> None:
-        super().__init__(("", 32284), ResponseHandler)
-        self.auth_code: Optional[str] = None
-
-
 class RequestsConfiguration(TypedDict):
     cert: Union[None, str, Tuple[str, str]]
     verify: Union[None, str, bool]
