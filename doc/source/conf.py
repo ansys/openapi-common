@@ -2,6 +2,8 @@ from ansys.openapi import common
 import os
 import sys
 
+from ansys_sphinx_theme import pyansys_logo_black
+
 # -- Project information -----------------------------------------------------
 
 project = "ansys.openapi.common"
@@ -96,8 +98,8 @@ copybutton_prompt_is_regexp = True
 
 
 # -- Options for HTML output -------------------------------------------------
-html_theme = "pyansys_sphinx_theme"
-html_logo = "./_static/pyansys-logo-black-cropped.png"
+html_theme = "ansys_sphinx_theme"
+html_logo = pyansys_logo_black
 html_theme_options = {
     "github_url": "https://github.com/pyansys/openapi-common",
     "show_prev_next": False,
