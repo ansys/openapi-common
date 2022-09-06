@@ -117,10 +117,11 @@ python =
     3.10: py310
 
 [testenv]
-deps =
-    .[oidc]
-    .[linux-kerberos]
-    .[test]
+deps = pytest
+extras = 
+    test
+    oidc
+    linux-kerberos
 commands = pytest --cov=ansys.openapi.common --cov-report=xml {posargs}
 
 [testenv:lint]
