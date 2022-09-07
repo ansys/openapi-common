@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "0.5.1"
+version = "0.5.2"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 category = "main"
 optional = true
@@ -627,7 +627,7 @@ requests = ">=1.1.0"
 
 [[package]]
 name = "requests-mock"
-version = "1.9.3"
+version = "1.10.0"
 description = "Mock out responses from the requests package"
 category = "main"
 optional = true
@@ -639,7 +639,7 @@ six = "*"
 
 [package.extras]
 fixture = ["fixtures"]
-test = ["fixtures", "mock", "purl", "pytest", "sphinx", "testrepository (>=0.0.18)", "testtools"]
+test = ["fixtures", "mock", "purl", "pytest", "requests-futures", "sphinx", "testrepository (>=0.0.18)", "testtools"]
 
 [[package]]
 name = "requests-negotiate-sspi"
@@ -942,7 +942,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "395be4ef52654aa7a97e3284278afd6ade219af8d7f65a7a2f8bf59e855d87df"
+content-hash = "3884dd4f02fe3129d6ffcc5d6016997b422edcd78e6f045d45924d4f43dc0928"
 
 [metadata.files]
 alabaster = [
@@ -950,8 +950,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 ansys-sphinx-theme = [
-    {file = "ansys-sphinx-theme-0.5.1.tar.gz", hash = "sha256:1a22524a6c429bbca5160ecb03254e8f145a5b89177c59d57c4ad2a2c0c619e7"},
-    {file = "ansys_sphinx_theme-0.5.1-py3-none-any.whl", hash = "sha256:e029af92f179a19d597b11fbdc5ccd804c64af328d34b874f7061de9bd1bb808"},
+    {file = "ansys-sphinx-theme-0.5.2.tar.gz", hash = "sha256:9485fd18915628ac18235fb4446ae000a7c6929b3d9517d93dee11efc8f531cf"},
+    {file = "ansys_sphinx_theme-0.5.2-py3-none-any.whl", hash = "sha256:dca44dceeef25cbd14f8b6b829bf27db171751309deca65072df3ba9e68c70f6"},
 ]
 anyio = [
     {file = "anyio-3.5.0-py3-none-any.whl", hash = "sha256:b5fa16c5ff93fa1046f2eeb5bbff2dad4d3514d6cda61d02816dba34fa8c3c2e"},
@@ -1381,8 +1381,8 @@ requests-kerberos = [
     {file = "requests_kerberos-0.13.0-py2.py3-none-any.whl", hash = "sha256:12766e209b975e081916b550b77b7a8b084c43f98beba1407182ef9a7bef88d5"},
 ]
 requests-mock = [
-    {file = "requests-mock-1.9.3.tar.gz", hash = "sha256:8d72abe54546c1fc9696fa1516672f1031d72a55a1d66c85184f972a24ba0eba"},
-    {file = "requests_mock-1.9.3-py2.py3-none-any.whl", hash = "sha256:0a2d38a117c08bb78939ec163522976ad59a6b7fdd82b709e23bb98004a44970"},
+    {file = "requests-mock-1.10.0.tar.gz", hash = "sha256:59c9c32419a9fb1ae83ec242d98e889c45bd7d7a65d48375cc243ec08441658b"},
+    {file = "requests_mock-1.10.0-py2.py3-none-any.whl", hash = "sha256:2fdbb637ad17ee15c06f33d31169e71bf9fe2bdb7bc9da26185be0dd8d842699"},
 ]
 requests-negotiate-sspi = [
     {file = "requests_negotiate_sspi-0.5.2-py2.py3-none-any.whl", hash = "sha256:84ca9e81cfd3f2bd5eede5f8eddec1d5b58d957efac5e7fc078a3b323d296b77"},
