@@ -36,7 +36,7 @@ class TestMissingExtras:
             return self.real_import(name, *args)
 
     def test_create_oidc_with_no_extra_throws(self, mocker):
-        self.blocked_import = "requests_oauthlib"
+        self.blocked_import = "requests_auth"
         mocker.patch("builtins.__import__", side_effect=self.mocked_import)
 
         from ansys.openapi.common import ApiClientFactory

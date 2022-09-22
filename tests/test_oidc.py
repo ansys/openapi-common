@@ -1,9 +1,11 @@
 import json
+from urllib.parse import parse_qs
 
 import pytest
 import requests
 import requests_mock
-from unittest.mock import Mock
+from requests_auth.authentication import OAuth2
+from unittest.mock import Mock, MagicMock
 from covertable import make
 
 from ansys.openapi.common import ApiClientFactory
@@ -169,17 +171,72 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     assert response == configuration
 
 
-@pytest.mark.parametrize("access_token", [None, "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"])
-def test_setting_tokens_sets_tokens(access_token):
+def test_setting_refresh_token_with_no_token_throws():
+    mock_factory = Mock()
+    with pytest.raises(ValueError):
+        OIDCSessionFactory.get_session_with_provided_token(mock_factory, None)
+
+
+def test_setting_refresh_token_sets_refresh_token():
     mock_factory = Mock()
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    session = OIDCSessionFactory.get_session_with_provided_token(
-        mock_factory, refresh_token, access_token
+    mock_factory._auth = Mock()
+    mock_factory._auth.refresh_token = MagicMock(
+        return_value=(0, "token", 1, refresh_token)
     )
-    if access_token:
-        assert "access_token" in session.token
-        assert session.token["access_token"] == access_token
-    assert session._client.refresh_token == refresh_token
+    session = OIDCSessionFactory.get_session_with_provided_token(
+        mock_factory, refresh_token
+    )
+    session.auth.refresh_token.assert_called_once_with(refresh_token)
+    assert OAuth2.token_cache.tokens[0][2] == refresh_token
+
+
+def test_invalid_refresh_token_throws():
+    api_url = "https://mi-api.com/api"
+    authority_url = "https://www.example.com/authority/"
+    client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
+    refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
+    redirect_uri = "https://www.example.com/login/"
+    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    well_known_response = json.dumps(
+        {
+            "token_endpoint": f"{authority_url}token",
+            "authorization_endpoint": f"{authority_url}authorization",
+        }
+    )
+
+    def match_token_request(request):
+        if request.text is None:
+            return False
+        data = parse_qs(request.text)
+        return (
+            data.get("client_id", "") == [client_id]
+            and data.get("grant_type", "") == ["refresh_token"]
+            and data.get("refresh_token", "") == [refresh_token]
+        )
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            api_url,
+            status_code=401,
+            headers={"WWW-Authenticate": authenticate_header},
+        )
+        m.get(
+            f"{authority_url}.well-known/openid-configuration",
+            status_code=200,
+            text=well_known_response,
+        )
+        m.post(
+            f"{authority_url}token",
+            status_code=401,
+            additional_matcher=match_token_request,
+            headers={"WWW-Authenticate": "Bearer error=invalid_token"},
+        )
+        with pytest.raises(ValueError) as exception_info:
+            ApiClientFactory(api_url).with_oidc().with_token(
+                refresh_token=refresh_token
+            )
+        assert "refresh token was invalid" in str(exception_info)
 
 
 def test_endpoint_with_refresh_configures_correctly():
@@ -211,7 +268,7 @@ def test_endpoint_with_refresh_configures_correctly():
         )
 
         session = ApiClientFactory(secure_servicelayer_url).with_oidc()
-        oidc_factory = session._session_factory._oauth_session
-        assert oidc_factory.auto_refresh_url == f"{authority_url}token"
-        assert oidc_factory.auto_refresh_kwargs["client_id"] == client_id
-        session._session_factory._callback_server.server_close()
+        auth = session._session_factory._auth
+
+        assert auth.token_url == f"{authority_url}token"
+        assert auth.refresh_data["client_id"] == client_id
