@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "0.5.2"
+version = "0.6.1"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 category = "main"
 optional = true
@@ -961,7 +961,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "c19021ae45582c6b5c8d1944df33440912f0504bdd3eb1a12bfa076e3387c523"
+content-hash = "633c6e3bed9049104a2b179356c807ba88b50d068b775c6f3dc01084dd312744"
 
 [metadata.files]
 alabaster = [
@@ -969,8 +969,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 ansys-sphinx-theme = [
-    {file = "ansys-sphinx-theme-0.5.2.tar.gz", hash = "sha256:9485fd18915628ac18235fb4446ae000a7c6929b3d9517d93dee11efc8f531cf"},
-    {file = "ansys_sphinx_theme-0.5.2-py3-none-any.whl", hash = "sha256:dca44dceeef25cbd14f8b6b829bf27db171751309deca65072df3ba9e68c70f6"},
+    {file = "ansys-sphinx-theme-0.6.1.tar.gz", hash = "sha256:a8ff77d2daf680e00fad60a64579501db317bb8bd887100857fc521bd6cfad31"},
+    {file = "ansys_sphinx_theme-0.6.1-py3-none-any.whl", hash = "sha256:05b0df3461a74b6ec43f4e826692926b61c0017621c4a6b2880048c4c5aaecb2"},
 ]
 anyio = [
     {file = "anyio-3.5.0-py3-none-any.whl", hash = "sha256:b5fa16c5ff93fa1046f2eeb5bbff2dad4d3514d6cda61d02816dba34fa8c3c2e"},
