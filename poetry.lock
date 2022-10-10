@@ -8,7 +8,7 @@ python-versions = "*"
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "0.5.2"
+version = "0.6.1"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 category = "main"
 optional = true
@@ -551,7 +551,7 @@ testing = ["fields", "hunter", "process-tests", "pytest-xdist", "six", "virtuale
 
 [[package]]
 name = "pytest-mock"
-version = "3.9.0"
+version = "3.10.0"
 description = "Thin-wrapper around the mock package for easier use with pytest"
 category = "main"
 optional = true
@@ -905,7 +905,7 @@ python-versions = ">=3.7"
 
 [[package]]
 name = "typing-extensions"
-version = "4.3.0"
+version = "4.4.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
 category = "main"
 optional = false
@@ -961,7 +961,7 @@ test = ["pytest", "pytest-cov", "uvicorn", "fastapi", "pydantic", "requests-mock
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "c19021ae45582c6b5c8d1944df33440912f0504bdd3eb1a12bfa076e3387c523"
+content-hash = "633c6e3bed9049104a2b179356c807ba88b50d068b775c6f3dc01084dd312744"
 
 [metadata.files]
 alabaster = [
@@ -969,8 +969,8 @@ alabaster = [
     {file = "alabaster-0.7.12.tar.gz", hash = "sha256:a661d72d58e6ea8a57f7a86e37d86716863ee5e92788398526d58b26a4e4dc02"},
 ]
 ansys-sphinx-theme = [
-    {file = "ansys-sphinx-theme-0.5.2.tar.gz", hash = "sha256:9485fd18915628ac18235fb4446ae000a7c6929b3d9517d93dee11efc8f531cf"},
-    {file = "ansys_sphinx_theme-0.5.2-py3-none-any.whl", hash = "sha256:dca44dceeef25cbd14f8b6b829bf27db171751309deca65072df3ba9e68c70f6"},
+    {file = "ansys-sphinx-theme-0.6.1.tar.gz", hash = "sha256:a8ff77d2daf680e00fad60a64579501db317bb8bd887100857fc521bd6cfad31"},
+    {file = "ansys_sphinx_theme-0.6.1-py3-none-any.whl", hash = "sha256:05b0df3461a74b6ec43f4e826692926b61c0017621c4a6b2880048c4c5aaecb2"},
 ]
 anyio = [
     {file = "anyio-3.5.0-py3-none-any.whl", hash = "sha256:b5fa16c5ff93fa1046f2eeb5bbff2dad4d3514d6cda61d02816dba34fa8c3c2e"},
@@ -1363,8 +1363,8 @@ pytest-cov = [
     {file = "pytest_cov-4.0.0-py3-none-any.whl", hash = "sha256:2feb1b751d66a8bd934e5edfa2e961d11309dc37b73b0eabe73b5945fee20f6b"},
 ]
 pytest-mock = [
-    {file = "pytest-mock-3.9.0.tar.gz", hash = "sha256:c899a0dcc8a5f22930acd020b500abd5f956911f326864a3b979e4866e14da82"},
-    {file = "pytest_mock-3.9.0-py3-none-any.whl", hash = "sha256:1a1b9264224d026932d6685a0f9cef3b61d91563c3e74af9fe5afb2767e13812"},
+    {file = "pytest-mock-3.10.0.tar.gz", hash = "sha256:fbbdb085ef7c252a326fd8cdcac0aa3b1333d8811f131bdcc701002e1be7ed4f"},
+    {file = "pytest_mock-3.10.0-py3-none-any.whl", hash = "sha256:f4c973eeae0282963eb293eb173ce91b091a79c1334455acfac9ddee8a1c784b"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
@@ -1484,8 +1484,8 @@ tomli = [
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
 ]
 typing-extensions = [
-    {file = "typing_extensions-4.3.0-py3-none-any.whl", hash = "sha256:25642c956049920a5aa49edcdd6ab1e06d7e5d467fc00e0506c44ac86fbfca02"},
-    {file = "typing_extensions-4.3.0.tar.gz", hash = "sha256:e6d2677a32f47fc7eb2795db1dd15c1f34eff616bcaf2cfb5e997f854fa1c4a6"},
+    {file = "typing_extensions-4.4.0-py3-none-any.whl", hash = "sha256:16fa4864408f655d35ec496218b85f79b3437c829e93320c7c9215ccfd92489e"},
+    {file = "typing_extensions-4.4.0.tar.gz", hash = "sha256:1511434bb92bf8dd198c12b1cc812e800d4181cfcb867674e0f8279cc93087aa"},
 ]
 urllib3 = [
     {file = "urllib3-1.26.9-py2.py3-none-any.whl", hash = "sha256:44ece4d53fb1706f667c9bd1c648f5469a2ec925fcf3a776667042d645472c14"},
