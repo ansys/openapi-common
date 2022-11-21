@@ -962,7 +962,7 @@ oidc = ["requests_auth", "keyring"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "6066b3ad25554e5be6267b993bb91da357dbbba3f815c7aa5b1b67dabf578be1"
+content-hash = "c01891b43e70c00fe07677040b49cdc03b47b17d2dcab64342ce7c72f7631b94"
 
 [metadata.files]
 alabaster = [

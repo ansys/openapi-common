@@ -53,10 +53,7 @@ keyring = { version = ">=22,<24", optional = true }
 # Packages for linux-kerberos extra
 requests-kerberos = {version = "^0.13", markers = "sys_platform == 'linux'", optional = true }
 
-[tool.poetry.group.test]
-optional = true
-
-[tool.poetry.group.test.dependencies]
+[tool.poetry.group.dev.dependencies]
 # Test packages
 pytest = { version = "*" }
 pytest-cov = { version = "*" }
