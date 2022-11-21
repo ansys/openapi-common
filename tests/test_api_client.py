@@ -80,10 +80,20 @@ class TestParameterHandling:
         result = self._client._ApiClient__handle_query_params(query, None)
         assert "name=Spamalot" == result
 
+    def test_single_query_with_int(self):
+        query = {"count": 0}
+        result = self._client._ApiClient__handle_query_params(query, None)
+        assert "count=0" == result
+
     def test_multiple_queries(self):
         query = {"bird": "swallow", "type": "african"}
         result = self._client._ApiClient__handle_query_params(query, None)
         assert "bird=swallow&type=african" == result
+
+    def test_multiple_queries_with_ints(self):
+        query = {"start": 0, "finish": 10}
+        result = self._client._ApiClient__handle_query_params(query, None)
+        assert "start=0&finish=10" == result
 
     def test_simple_query_with_collection(self):
         query = {"bird": "swallow", "type": ("african", "european")}
