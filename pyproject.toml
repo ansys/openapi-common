@@ -106,7 +106,7 @@ python =
 [testenv]
 whitelist_externals = poetry
 commands_pre =
-    poetry install --no-root
+    poetry install --no-root --extras "oidc linux-kerberos"
 extras = 
     oidc
     linux-kerberos
