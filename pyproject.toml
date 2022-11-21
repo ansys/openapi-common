@@ -113,9 +113,6 @@ extras =
 commands = poetry run pytest --cov=ansys.openapi.common --cov-report=xml {posargs}
 
 [testenv:lint]
-whitelist_externals = poetry
-commands_pre =
-    poetry install --no-root
 deps =
     black
     mypy==0.910

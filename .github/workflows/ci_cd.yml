@@ -135,8 +135,7 @@ jobs:
       - name: Install library
         run: |
           pip install poetry
-          pip install .[oidc,linux-kerberos]
-          poetry install --no-root --with docs
+          poetry install --with docs --extras "oidc linux-kerberos"
 
       - name: Build HTML
         run: make -C doc html SPHINXOPTS="-W"
