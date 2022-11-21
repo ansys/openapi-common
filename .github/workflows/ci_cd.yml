@@ -172,7 +172,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: openapi-common-doc-flatten-json.zip
-          path: openapi-common-doc-flatten-json.zip
+          path: openapi-common-doc-flatten-json
           retention-days: 7
 
       - name: Upload HTML Documentation
