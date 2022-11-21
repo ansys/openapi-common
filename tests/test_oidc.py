@@ -10,6 +10,8 @@ from covertable import make
 
 from ansys.openapi.common import ApiClientFactory
 from ansys.openapi.common._oidc import OIDCSessionFactory
+from ansys.openapi.common import _oidc
+
 
 REQUIRED_HEADERS = {
     "clientid": "3acde603-9bb9-48e7-9eaa-c624c4fd40ca",
@@ -38,6 +40,18 @@ def try_parse_and_assert_failed(response):
         _ = OIDCSessionFactory._parse_unauthorized_header(response)
     assert "Unable to connect with OpenID Connect" in str(exception_info.value)
     return exception_info
+
+
+def get_session_from_mock_factory_with_refresh_token(refresh_token: str):
+    mock_factory = Mock()
+    mock_factory._auth = Mock()
+    mock_factory._auth.refresh_token = MagicMock(
+        return_value=(0, "token", 1, refresh_token)
+    )
+    session = OIDCSessionFactory.get_session_with_provided_token(
+        mock_factory, refresh_token
+    )
+    return session
 
 
 def test_no_bearer_throws(authenticate_parsing_fixture):
@@ -178,15 +192,9 @@ def test_setting_refresh_token_with_no_token_throws():
 
 
 def test_setting_refresh_token_sets_refresh_token():
-    mock_factory = Mock()
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    mock_factory._auth = Mock()
-    mock_factory._auth.refresh_token = MagicMock(
-        return_value=(0, "token", 1, refresh_token)
-    )
-    session = OIDCSessionFactory.get_session_with_provided_token(
-        mock_factory, refresh_token
-    )
+    session = get_session_from_mock_factory_with_refresh_token(refresh_token)
+
     session.auth.refresh_token.assert_called_once_with(refresh_token)
     assert OAuth2.token_cache.tokens[0][2] == refresh_token
 
@@ -272,3 +280,21 @@ def test_endpoint_with_refresh_configures_correctly():
 
         assert auth.token_url == f"{authority_url}token"
         assert auth.refresh_data["client_id"] == client_id
+
+
+def test_token_logging_outputs_token_to_logs(caplog, monkeypatch):
+    monkeypatch.setattr(_oidc, "_log_tokens", True)
+
+    refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
+    session = get_session_from_mock_factory_with_refresh_token(refresh_token)
+
+    assert f"Setting refresh token: {refresh_token}" in caplog.text
+
+
+def test_disabled_token_logging(caplog, monkeypatch):
+    monkeypatch.setattr(_oidc, "_log_tokens", False)
+
+    refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
+    session = get_session_from_mock_factory_with_refresh_token(refresh_token)
+
+    assert refresh_token not in caplog.text
