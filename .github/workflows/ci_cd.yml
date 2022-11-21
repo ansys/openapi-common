@@ -147,7 +147,7 @@ jobs:
       - name: Build json documentation
         run: |
           # Export the documentation files to JSON files.
-          sphinx-build -M json doc/source doc-json -j auto -w build_errors.txt -N;
+          poetry run sphinx-build -M json doc/source doc-json -j auto -w build_errors.txt -N;
 
       - name: Flatten the generated nested files into a single directory
         run: |
@@ -157,8 +157,6 @@ jobs:
           find . -name "*.fjson" -exec mv "{}" --backup=numbered ./doc-flatten-json \;
           echo Make sure all the file has .json extensions instead of the .fjson
           for file in doc-flatten-json/*.fjson ; do mv -- "$file" "${file%.fjson}.json" ; done;
-          echo Move all static image files to the JSON flatten folder.
-          mv doc-json/json/_images doc-flatten-json/_images;
 
       - name: zip the flattened JSON directory
         run: |
