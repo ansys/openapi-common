@@ -216,7 +216,7 @@ class ApiClient(ApiClientBase):
         query_params_tuples = self.parameters_to_tuples(
             query_params_sanitized, collection_formats
         )
-        return "&".join(["=".join((str(k), str(v))) for k, v in query_params_tuples])
+        return "&".join([f"{k}={v}" for k, v in query_params_tuples])
 
     def sanitize_for_serialization(self, obj: Any) -> Any:
         """Build a JSON POST object.
