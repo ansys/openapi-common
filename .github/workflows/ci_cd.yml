@@ -28,7 +28,7 @@ jobs:
 
       - name: Install tox
         run: |
-          pip install tox poetry tox-poetry --disable-pip-version-check
+          pip install tox poetry --disable-pip-version-check
 
       - name: Lint project
         run: |
@@ -75,7 +75,7 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install tox tox-gh-actions==2.8.1 poetry tox-poetry
+        pip install tox poetry
 
     - name: Test with tox
       run: tox -- --with-kerberos
@@ -133,7 +133,9 @@ jobs:
         run: sudo apt install libkrb5-dev
 
       - name: Install library
-        run: pip install .[oidc,linux-kerberos,doc]
+        run: |
+          pip install poetry
+          poetry install --with docs --extras "oidc linux-kerberos"
 
       - name: Build HTML
         run: make -C doc html SPHINXOPTS="-W"
@@ -143,6 +145,35 @@ jobs:
           sudo apt update
           sudo apt-get install -y texlive-latex-extra latexmk texlive-xetex fonts-freefont-otf xindy
           make -C doc latexpdf
+
+      - name: Build json documentation
+        run: |
+          # Export the documentation files to JSON files.
+          poetry run sphinx-build -M json doc/source doc-json -j auto -w build_errors.txt -N;
+
+      - name: Flatten the generated nested files into a single directory
+        run: |
+          echo Flattening a nested directory
+          mkdir doc-flatten-json;
+          echo Move all the JSON file to the flatten directory.
+          find . -name "*.fjson" -exec mv "{}" --backup=numbered ./doc-flatten-json \;
+          echo Make sure all the file has .json extensions instead of the .fjson
+          for file in doc-flatten-json/*.fjson ; do mv -- "$file" "${file%.fjson}.json" ; done;
+
+      - name: zip the flattened JSON directory
+        run: |
+          zip -r openapi-common-doc-flatten-json.zip doc-flatten-json;
+          mkdir openapi-common-doc-flatten-json;
+          mv openapi-common-doc-flatten-json.zip openapi-common-doc-flatten-json;
+          echo "Clean up build directories after the process is completed."
+          rm -rf doc-json doc-flatten-json;
+
+      - name: Upload json Documentation
+        uses: actions/upload-artifact@v3
+        with:
+          name: openapi-common-doc-flatten-json.zip
+          path: openapi-common-doc-flatten-json
+          retention-days: 7
 
       - name: Upload HTML Documentation
         uses: actions/upload-artifact@v3
