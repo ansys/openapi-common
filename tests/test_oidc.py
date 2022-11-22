@@ -42,7 +42,9 @@ def try_parse_and_assert_failed(response):
     return exception_info
 
 
-def get_session_from_mock_factory_with_refresh_token(refresh_token: str, log_token: bool = None):
+def get_session_from_mock_factory_with_refresh_token(
+    refresh_token: str, log_token: bool = None
+):
     mock_factory = Mock()
     mock_factory._auth = Mock()
     mock_factory._auth.refresh_token = MagicMock(
@@ -286,14 +288,18 @@ def test_endpoint_with_refresh_configures_correctly():
 
 def test_token_logging_outputs_token_to_logs(caplog):
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    session = get_session_from_mock_factory_with_refresh_token(refresh_token, log_token=True)
+    session = get_session_from_mock_factory_with_refresh_token(
+        refresh_token, log_token=True
+    )
 
     assert f"Setting refresh token: {refresh_token}" in caplog.text
 
 
 def test_disabled_token_logging(caplog):
     refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    session = get_session_from_mock_factory_with_refresh_token(refresh_token, log_token=False)
+    session = get_session_from_mock_factory_with_refresh_token(
+        refresh_token, log_token=False
+    )
 
     assert refresh_token not in caplog.text
 
