@@ -40,3 +40,16 @@ Exceptions and Warnings
    ApiException
    ApiConnectionException
    AuthenticationWarning
+
+
+=======================
+Type aliases
+=======================
+.. currentmodule:: ansys.openapi.common._base
+
+.. autosummary::
+   :toctree: _autosummary
+
+   DeserializedType
+   SerializedType
+   PrimitiveType
