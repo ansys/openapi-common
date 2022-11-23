@@ -1,13 +1,13 @@
 from ansys.openapi import common
 import os
 import sys
-
+from datetime import datetime
 from ansys_sphinx_theme import pyansys_logo_black
 
 # -- Project information -----------------------------------------------------
 
 project = "ansys.openapi.common"
-copyright = "(c) 2021 ANSYS, Inc. All rights reserved"
+project_copyright = f"(c) {datetime.now().year} ANSYS, Inc. All rights reserved"
 author = "ANSYS Inc."
 html_title = f"OpenAPI Common {common.__version__}"
 
