@@ -233,7 +233,7 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        obj : DeserializedType
+        obj : :obj:`.DeserializedType`
             Data to sanitize and serialize.
 
         Examples
@@ -406,7 +406,7 @@ class ApiClient(ApiClientBase):
             Query parameters to pass in the URL.
         header_params : Union[Dict[str, Union[str, int]], List[Tuple]]
             Header parameters to place in the request header.
-        body : DeserializedType
+        body : :obj:`.DeserializedType`
             Request body.
         post_params : List[Tuple]
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
@@ -470,7 +470,7 @@ class ApiClient(ApiClientBase):
             Headers to attach to the request.
         post_params : List[Tuple]
             Request post form parameters for ``multipart/form-data``.
-        body : SerializedType
+        body : :obj:`.SerializedType`
             Request body.
         _preload_content : bool, optional
             Whether to return the underlying response without reading or decoding response data. The default

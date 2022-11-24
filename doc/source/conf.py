@@ -30,10 +30,14 @@ extensions = [
     "sphinx.ext.coverage",
 ]
 
+# Sphinx
 add_module_names = False
+
+# sphinx_autodoc_typehints
 typehints_fully_qualified = True
 typehints_document_rtype = False
 
+# sphinx.ext.intersphinx
 intersphinx_mapping = {
     "python": ("https://docs.python.org/dev", None),
     "requests": ("https://requests.readthedocs.io/en/latest", None),
@@ -43,6 +47,17 @@ intersphinx_mapping = {
 numpydoc_show_class_members = False
 numpydoc_xref_param_type = True
 
+numpydoc_xref_aliases = {
+    "Union": ":py:obj:`~typing.Union`",
+    "Tuple": ":py:obj:`~typing.Tuple`",
+    "Dict": ":py:obj:`~typing.Dict`",
+    "List": ":py:obj:`~typing.List`",
+}
+numpydoc_validation_exclude = {
+    "ansys.openapi.common._base.DeserializedType",
+    "ansys.openapi.common._base.SerializedType",
+    "ansys.openapi.common._base.PrimitiveType",
+}
 # Consider enabling numpydoc validation. See:
 # https://numpydoc.readthedocs.io/en/latest/validation.html#
 numpydoc_validate = True
