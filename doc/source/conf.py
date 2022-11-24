@@ -53,7 +53,11 @@ numpydoc_xref_aliases = {
     "Dict": ":py:obj:`~typing.Dict`",
     "List": ":py:obj:`~typing.List`",
 }
-
+numpydoc_validation_exclude = {
+    "ansys.openapi.common._base.DeserializedType",
+    "ansys.openapi.common._base.SerializedType",
+    "ansys.openapi.common._base.PrimitiveType",
+}
 # Consider enabling numpydoc validation. See:
 # https://numpydoc.readthedocs.io/en/latest/validation.html#
 numpydoc_validate = True
