@@ -32,7 +32,7 @@ jobs:
 
       - name: Lint project
         run: |
-          tox -e lint .
+          tox -e lint
           
   test:
     name: Unit test on supported platforms
