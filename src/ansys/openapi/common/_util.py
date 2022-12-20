@@ -365,7 +365,7 @@ def handle_response(response: requests.Response) -> requests.Response:
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:
-    """Generate a user-agent string in the form <package info> <python info> <os info>.
+    """Generate a user-agent string in the form ``*<package info>*`` ``*<python info>*`` ``*<os info>*``.
 
     Parameters
     ----------

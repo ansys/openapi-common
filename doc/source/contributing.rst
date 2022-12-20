@@ -1,22 +1,21 @@
 .. _contributing_openapi:
 
-============
-Contributing
-============
+==========
+Contribute
+==========
 Overall guidance on contributing to a PyAnsys library appears in the
 `Contributing <https://dev.docs.pyansys.com/overview/contributing.html>`_ topic
 in the *PyAnsys Developer's Guide*. Ensure that you are thoroughly familiar
-with it and all `Guidelines and Best Practices <https://dev.docs.pyansys.com/guidelines/index.html>`_
-before attempting to contribute to the OpenAPI Common library.
+with this guide before attempting to contribute to OpenAPI-Common.
  
-The following contribution information is specific to the OpenAPI Common library.
+The following contribution information is specific to OpenAPI-Common.
 
 
-Cloning the Source Repository
------------------------------
+Clone the repository
+--------------------
 
-Run this code to clone and install the latest version of the ``openapi-common``
-repository:
+To clone and install the latest version of OpenAPI-Common in *development* mode,
+run:
 
 .. code::
 
@@ -25,15 +24,15 @@ repository:
     pip install .
 
 
-Posting Issues
---------------
-Use the `OpenAPI Common Issues <https://github.com/pyansys/openapi-common/issues>`_ page
+Post issues
+-----------
+Use the `OpenAPI-Common Issues <https://github.com/pyansys/openapi-common/issues>`_ page
 to submit questions, report bugs, and request new features.
 
 To reach the support team, email `pyansys.support@ansys.com <pyansys.support@ansys.com>`_.
 
-Viewing OpenAPI Common Documentation
-------------------------------------
-Documentation for the latest stable release of the OpenAPI Common library
-is hosted at `OpenAPI Common Documentation <https://openapi.docs.pyansys.com>`_.  
+View OpenAPI-Common documentation
+---------------------------------
+Documentation for the latest stable release of OpenAPI-Common
+is hosted at `OpenAPI-Common Documentation <https://openapi.docs.pyansys.com>`_.  
 
