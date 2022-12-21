@@ -1,7 +1,7 @@
 # Contributing
 
-Code contributions are welcome. The objective of the documentation
-for the Open API-Common libary is to facilitate an understanding
+Code contributions are welcome. The objective of the OpenAPI-Common
+documentation is to facilitate an understanding
 of the PyAnsys ``openapi-common`` repository.
 
 It is important to note that this Python package is maintained
@@ -11,7 +11,7 @@ user questions and develop new features to make this package
 useful for all users.  Thus, both questions and submissions
 to this repository are welcomed and encouraged.
 
-For more information about contributting to this project and the build
+For more information about contributing to this project and the build
 and testing process, see the "Contribute" topic in the documentation.
 For information about PyAnsys development guidelines and the PyAnsys project
 as a whole, see the [PyAnsys Developer's Guide](https://github.com/pyansys/about).
