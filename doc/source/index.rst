@@ -1,4 +1,4 @@
-OpenAPI Common |version|
+OpenAPI-Common |version|
 ========================
 
 .. toctree::
@@ -9,25 +9,24 @@ OpenAPI Common |version|
    contributing
 
 
-Introduction and Purpose
-------------------------
-The OpenAPI Common library is part of the larger PyAnsys effort to
-facilitate the use of Ansys technologies directly from within Python.
+Introduction
+------------
+OpenAPI-Common is part of the larger `PyAnsys <https://docs.pyansys.com>`_
+effort to facilitate the use of Ansys technologies directly from Python.
 
 Because some Ansys products expose HTTP APIs rather than gRPC
-APIs, this library provides a common client to consume
+APIs, this Python library provides a common client to consume
 HTTP APIs, minimizing overhead and reducing code duplication.
 
 
 Background
 ----------
 A widely used standard for HTTP REST-style APIs is the OpenAPI standard,
-formerly known as Swagger. The OpenAPI Common library is designed to be
-used alongside code generation tools to produce client libraries for HTTP
-APIs.
+formerly known as Swagger. OpenAPI-Common is designed to be used alongside
+code generation tools to produce client libraries for HTTP APIs.
 
 
-Brief Example
+Brief example
 -------------
 This brief example demonstrates how the client works:
 
@@ -41,29 +40,30 @@ This brief example demonstrates how the client works:
 
     <ApiClient url: http://my-api.com>
 
+
 The client is now ready and available for use with an OpenAPI client.
 
-Supported Authentication Schemes
---------------------------------
-The OpenAPI Common library supports API servers configured with no authentication, API keys,
+Authentication schemes
+----------------------
+OpenAPI-Common supports API servers configured with no authentication, API keys,
 client certificates, and basic authentication. 
 
 Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
 APIs with their Windows credentials and to NTLM where it is supported.
 
 Linux users can make use of Kerberos authentication via the ``[linux-kerberos]`` extra. This
-will require a working installation of either MIT Kerberos or Heimdal, as well as some
+requires a working installation of either MIT Kerberos or Heimdal, as well as some
 platform-specific build steps. An additional requirement is a correctly configured ``krb5.keytab``
 file on your system.
 
 Windows and Linux users can authenticate with OIDC-enabled APIs by using the ``[oidc]`` extra.
-Currently we support only the Authorization Code authentication flow.
+Currently only the Authorization Code authentication flow is supported.
 
-.. list-table:: Authentication Methods by Platform
+.. list-table:: Authentication methods by platform
    :header-rows: 1
    :widths: 30 15 15 40
 
-   * - Authentication Method
+   * - Authentication method
      - Windows
      - Linux
      - Builder method
@@ -92,7 +92,7 @@ Currently we support only the Authorization Code authentication flow.
 .. [2] When installed as ``pip install ansys-openapi-common[linux-kerberos]``.
 .. [3] When installed as ``pip install ansys-openapi-common[oidc]``.
 
-Advanced Features
+Advanced features
 -----------------
 You can set all options that are available in Python library *requests* through
 the client. This enables you to configure custom SSL certificate validation, send
@@ -109,18 +109,19 @@ For example, to send a client certificate with every request:
    ... )
    >>> client.configuration = configuration
 
-Platform-specific Kerberos Configuration
+
+Platform-specific Kerberos configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client
-can be installed. The OpenAPI Common library has been tested on the platforms listed below.
+can be installed. OpenAPI-Common has been tested on the platforms that follow.
 If you manage to use it on another platform, consider contributing installation steps for
 your platform by making a pull request.
 
 Ubuntu 20.04
 ^^^^^^^^^^^^
 
-Ubuntu requires the Python module ``gssapi`` to be built from source. This requires the
+Ubuntu requires the ``gssapi`` Python module to be built from source. This requires the
 Kerberos headers, Python headers for the version of Python that you are using, and a
 supported compiler. (GCC works well.)
 
@@ -131,20 +132,21 @@ You should then be able to install this module with the ``[linux-kerberos]`` ext
    sudo apt install build-essentials python3.8-dev libkrb5-dev
    pip install ansys-openapi-common[linux-kerberos]
 
+
 Once the installation completes, ensure that your ``krb5.conf`` file is set up correctly
-for your Kerberos configuration and that you have a valid ``keytab file``, which is
+for your Kerberos configuration and that you have a valid ``keytab`` file, which is
 normally in ``/etc/krb5.keytab``.
 
-API Reference
+API reference
 -------------
 For comprehensive API documentation, see :doc:`API reference <api/index>`.
 
-Contributing
-------------
-We welcome contributions to this library. For more information, see
-:doc:`Contributing<contributing>`.
+Contributions
+-------------
+Contributions to this library are welcome. For more information, see
+:ref: `_contributing_openapi`.
 
-Project Index
+Project index
 -------------
 
 * :ref:`genindex`

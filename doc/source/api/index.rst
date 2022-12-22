@@ -1,14 +1,14 @@
 .. _ref_index_api:
 
 =============
-API Reference
+API reference
 =============
 
 .. currentmodule:: ansys.openapi.common
 
 
-This section summarizes the ``openapi-common`` public
-classes, functions, and attributes.
+This section summarizes OpenAPI-Common public
+classes.
 
 .. autosummary::
    :toctree: _autosummary
@@ -20,8 +20,10 @@ classes, functions, and attributes.
 
 
 ================
-Helper Functions
+Helper functions
 ================
+
+This section summarizes OpenAPI-Common helper functions.
 
 .. autosummary::
    :toctree: _autosummary
@@ -31,8 +33,10 @@ Helper Functions
 
 
 =======================
-Exceptions and Warnings
+Exceptions and warnings
 =======================
+
+This section summarizes OpenAPI-Common attributes.
 
 .. autosummary::
    :toctree: _autosummary
@@ -42,9 +46,9 @@ Exceptions and Warnings
    AuthenticationWarning
 
 
-=======================
+============
 Type aliases
-=======================
+============
 .. currentmodule:: ansys.openapi.common._base
 
 .. autosummary::
