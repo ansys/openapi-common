@@ -3,3 +3,5 @@ Ansys
 ansys
 OpenAPI
 OpenAPI-Common
+Kerberos
+Heimdal
