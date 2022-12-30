@@ -33,7 +33,16 @@ jobs:
       - name: Lint project
         run: |
           tox -e lint
-          
+
+  docs-style:
+    name: Documentation Style Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: PyAnsys documentation style checks
+        uses: pyansys/actions/doc-style@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   test:
     name: Unit test on supported platforms
     runs-on: ubuntu-latest
