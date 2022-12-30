@@ -12,7 +12,7 @@ on:
 
 jobs:
   style:
-    name: Code Style Check
+    name: Style Check
     runs-on: ubuntu-latest
 
     steps:
