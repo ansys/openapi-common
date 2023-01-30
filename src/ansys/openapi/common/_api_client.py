@@ -178,11 +178,14 @@ class ApiClient(ApiClientBase):
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
+            _response_type: Optional[str]
             if isinstance(response_type, dict):
-                response_type = response_type.get(return_data.status_code, None)
+                _response_type = response_type.get(response_data.status_code, None)
+            else:
+                _response_type = response_type
             # deserialize response data
-            if response_type:
-                return_data = self.deserialize(response_data, response_type)
+            if _response_type:
+                return_data = self.deserialize(response_data, _response_type)
             else:
                 return_data = None
 

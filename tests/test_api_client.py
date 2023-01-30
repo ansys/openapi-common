@@ -842,15 +842,16 @@ class TestMultipleResponseTypesHandling:
         self._model = example_model
 
     _serialized_data = {
-            "String": "new_model",
-            "Integer": 1,
-            "ListOfStrings": ["red", "green"],
-            "Boolean": False,
-        }
+        "String": "new_model",
+        "Integer": 1,
+        "ListOfStrings": ["red", "green"],
+        "Boolean": False,
+    }
 
     @property
     def _deserialized_data(self):
         from tests.models import ExampleModel
+
         return ExampleModel(
             string_property="new_model",
             int_property=1,
@@ -859,12 +860,18 @@ class TestMultipleResponseTypesHandling:
         )
 
     _configured_response_types = {
-            200: "ExampleModel",
-            201: "str",
-            202: None,
-        }
+        200: "ExampleModel",
+        201: "str",
+        202: None,
+    }
 
-    def _mock_response_and_process(self, response_code: int, response_json=None, response_text=None, response_types=None):
+    def _mock_response_and_process(
+        self,
+        response_code: int,
+        response_json=None,
+        response_text=None,
+        response_types=None,
+    ):
         resource_path = "/models"
         method = "POST"
 
@@ -887,19 +894,28 @@ class TestMultipleResponseTypesHandling:
                 text=response_text,
             )
             response, status_code, headers = self._client.call_api(
-                resource_path, method, body=upload_data,
-                response_type=self._configured_response_types if response_types is None else response_types
+                resource_path,
+                method,
+                body=upload_data,
+                response_type=self._configured_response_types
+                if response_types is None
+                else response_types,
             )
         return response, status_code, headers
 
     def test_expected_model_deserialized_from_json(self):
-        response, status_code, headers = self._mock_response_and_process(200, self._serialized_data)
+        response, status_code, headers = self._mock_response_and_process(
+            200, self._serialized_data
+        )
         from tests.models import ExampleModel
+
         assert isinstance(response, ExampleModel)
         assert response == self._deserialized_data
 
     def test_response_type_configured_and_text_response(self):
-        response, status_code, headers = self._mock_response_and_process(201, response_text="some_id")
+        response, status_code, headers = self._mock_response_and_process(
+            201, response_text="some_id"
+        )
         assert response == "some_id"
 
     def test_no_response_type_configured_and_empty_response(self):
@@ -907,19 +923,27 @@ class TestMultipleResponseTypesHandling:
         assert response is None
 
     def test_no_response_type_configured_and_json_response(self):
-        response, status_code, headers = self._mock_response_and_process(202, self._serialized_data)
+        response, status_code, headers = self._mock_response_and_process(
+            202, self._serialized_data
+        )
         assert response is None
 
     def test_no_response_type_configured_with_json_in_response(self):
-        response, status_code, headers = self._mock_response_and_process(200, self._serialized_data, response_types={})
+        response, status_code, headers = self._mock_response_and_process(
+            200, self._serialized_data, response_types={}
+        )
         assert response is None
 
     def test_no_response_type_configured_with_text_in_response(self):
-        response, status_code, headers = self._mock_response_and_process(200, response_text="Some text", response_types={})
+        response, status_code, headers = self._mock_response_and_process(
+            200, response_text="Some text", response_types={}
+        )
         assert response is None
 
     def test_no_response_type_configured_with_empty_response(self):
-        response, status_code, headers = self._mock_response_and_process(200, response_types={})
+        response, status_code, headers = self._mock_response_and_process(
+            200, response_types={}
+        )
         assert response is None
 
 
