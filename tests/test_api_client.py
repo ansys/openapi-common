@@ -827,6 +827,102 @@ class TestResponseHandling:
         assert excinfo.value.reason_phrase == "Payload Too Large"
 
 
+class TestMultipleResponseTypesHandling:
+    """Test handling of responses and initial parsing when multiple response types are possible"""
+
+    @pytest.fixture(autouse=True)
+    def _blank_client(self):
+        from .models import example_model
+
+        self._transport = requests.Session()
+        self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
+        self._client.setup_client(example_model)
+        self._adapter = requests_mock.Adapter()
+        self._transport.mount(TEST_URL, self._adapter)
+        self._model = example_model
+
+    _serialized_data = {
+            "String": "new_model",
+            "Integer": 1,
+            "ListOfStrings": ["red", "green"],
+            "Boolean": False,
+        }
+
+    @property
+    def _deserialized_data(self):
+        from tests.models import ExampleModel
+        return ExampleModel(
+            string_property="new_model",
+            int_property=1,
+            list_property=["red", "green"],
+            bool_property=False,
+        )
+
+    _configured_response_types = {
+            200: "ExampleModel",
+            201: "str",
+            202: None,
+        }
+
+    def _mock_response_and_process(self, response_code: int, response_json=None, response_text=None, response_types=None):
+        resource_path = "/models"
+        method = "POST"
+
+        expected_url = TEST_URL + resource_path
+
+        from tests.models import ExampleModel
+
+        upload_data = ExampleModel(
+            string_property="new_model",
+            int_property=1,
+            list_property=["red", "green"],
+            bool_property=False,
+        )
+
+        with requests_mock.Mocker() as m:
+            m.post(
+                expected_url,
+                status_code=response_code,
+                json=response_json,
+                text=response_text,
+            )
+            response, status_code, headers = self._client.call_api(
+                resource_path, method, body=upload_data,
+                response_type=self._configured_response_types if response_types is None else response_types
+            )
+        return response, status_code, headers
+
+    def test_expected_model_deserialized_from_json(self):
+        response, status_code, headers = self._mock_response_and_process(200, self._serialized_data)
+        from tests.models import ExampleModel
+        assert isinstance(response, ExampleModel)
+        assert response == self._deserialized_data
+
+    def test_response_type_configured_and_text_response(self):
+        response, status_code, headers = self._mock_response_and_process(201, response_text="some_id")
+        assert response == "some_id"
+
+    def test_no_response_type_configured_and_empty_response(self):
+        response, status_code, headers = self._mock_response_and_process(202)
+        assert response is None
+
+    def test_no_response_type_configured_and_json_response(self):
+        response, status_code, headers = self._mock_response_and_process(202, self._serialized_data)
+        assert response is None
+
+    def test_no_response_type_configured_with_json_in_response(self):
+        response, status_code, headers = self._mock_response_and_process(200, self._serialized_data, response_types={})
+        assert response is None
+
+    def test_no_response_type_configured_with_text_in_response(self):
+        response, status_code, headers = self._mock_response_and_process(200, response_text="Some text", response_types={})
+        assert response is None
+
+    def test_no_response_type_configured_with_empty_response(self):
+        response, status_code, headers = self._mock_response_and_process(200, response_types={})
+        assert response is None
+
+
 class TestStaticMethods:
     """Test miscellaneous static methods on the ApiClient class"""
 

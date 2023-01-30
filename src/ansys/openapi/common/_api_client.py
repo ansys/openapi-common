@@ -119,7 +119,7 @@ class ApiClient(ApiClientBase):
         body: Optional[Any] = None,
         post_params: Optional[Any] = None,
         files: Optional[Any] = None,
-        response_type: Optional[str] = None,
+        response_type: Union[str, Dict[int, str], None] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -178,6 +178,8 @@ class ApiClient(ApiClientBase):
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
+            if isinstance(response_type, dict):
+                response_type = response_type.get(return_data.status_code, None)
             # deserialize response data
             if response_type:
                 return_data = self.deserialize(response_data, response_type)
@@ -386,7 +388,7 @@ class ApiClient(ApiClientBase):
         body: Optional[DeserializedType] = None,
         post_params: Optional[List[Tuple]] = None,
         files: Optional[Dict[str, str]] = None,
-        response_type: Optional[str] = None,
+        response_type: Union[str, Dict[int, str], None] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
@@ -410,8 +412,8 @@ class ApiClient(ApiClientBase):
             Request body.
         post_params : List[Tuple]
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
-        response_type : str, optional
-            Expected response data type.
+        response_type : Union[str, Dict[int, str]], optional
+            Expected response data type or mapping between response status code and associated response data type.
         files : Dict[str, str]
             Dictionary of the file name and path for ``multipart/form-data``.
         _return_http_data_only : bool, optional
