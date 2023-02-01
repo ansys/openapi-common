@@ -126,7 +126,6 @@ class ApiClient(ApiClientBase):
         _request_timeout: Optional[Union[float, Tuple[float]]] = None,
         response_type_map: Optional[Dict[int, str]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
-
         # header parameters
         header_params = header_params or {}
         if header_params:

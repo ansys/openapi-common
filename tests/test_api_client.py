@@ -674,7 +674,8 @@ class TestResponseHandling:
 
     def test_patch_object(self):
         """This test represents updating a value on an existing record using a custom json payload. The new object
-        is returned. This questionable API accepts an ID as a query param and returns the updated object"""
+        is returned. This questionable API accepts an ID as a query param and returns the updated object
+        """
 
         expected_request = {
             "ListOfStrings": ["red", "yellow", "green"],
@@ -894,8 +895,9 @@ class TestMultipleResponseTypesHandling:
                 response_type_map=response_type_map,
             )
         if expected_type is not None:
-            assert deserialize_mock.call_count == 1
-            assert deserialize_mock.mock_calls[0].args[1] == expected_type
+            deserialize_mock.assert_called_once()
+            last_call_pos_args = deserialize_mock.call_args[0]
+            assert last_call_pos_args[1] == expected_type
         else:
             assert deserialize_mock.called is False
 
@@ -1025,7 +1027,8 @@ class TestStaticMethods:
     ):
         """This test needs a little explanation. The prepare_post_parameters method is odd, it returns the result
         in a return statement but also mutates the input argument. I suspect this is not intentional, but for the moment
-        the test works around this by copying the initial state of the parameter list."""
+        the test works around this by copying the initial state of the parameter list.
+        """
         # TODO - Can we remove this weirdness?
         if text_parameters is None:
             initial_text_parameters = []
