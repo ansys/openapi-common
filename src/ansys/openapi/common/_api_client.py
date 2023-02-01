@@ -119,11 +119,12 @@ class ApiClient(ApiClientBase):
         body: Optional[Any] = None,
         post_params: Optional[Any] = None,
         files: Optional[Any] = None,
-        response_type: Union[str, Dict[int, str], None] = None,
+        response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Optional[Union[float, Tuple[float]]] = None,
+        response_type_map: Optional[Dict[int, str]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
 
         # header parameters
@@ -179,8 +180,8 @@ class ApiClient(ApiClientBase):
         return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
             _response_type: Optional[str]
-            if isinstance(response_type, dict):
-                _response_type = response_type.get(response_data.status_code, None)
+            if response_type_map is not None:
+                _response_type = response_type_map.get(response_data.status_code, None)
             else:
                 _response_type = response_type
             # deserialize response data
@@ -391,11 +392,12 @@ class ApiClient(ApiClientBase):
         body: Optional[DeserializedType] = None,
         post_params: Optional[List[Tuple]] = None,
         files: Optional[Dict[str, str]] = None,
-        response_type: Union[str, Dict[int, str], None] = None,
+        response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
+        response_type_map: Optional[Dict[int, str]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
 
@@ -415,8 +417,8 @@ class ApiClient(ApiClientBase):
             Request body.
         post_params : List[Tuple]
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
-        response_type : Union[str, Dict[int, str]], optional
-            Expected response data type or mapping between response status code and associated response data type.
+        response_type : str, optional
+            Expected response data type.
         files : Dict[str, str]
             Dictionary of the file name and path for ``multipart/form-data``.
         _return_http_data_only : bool, optional
@@ -433,6 +435,9 @@ class ApiClient(ApiClientBase):
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
+        response_type_map : Dict[int, str]
+            Dictionary of response status codes and response types for response deserialization. If provided, has
+            precedence over response_type.
         """
         return self.__call_api(
             resource_path,
@@ -448,6 +453,7 @@ class ApiClient(ApiClientBase):
             collection_formats,
             _preload_content,
             _request_timeout,
+            response_type_map,
         )
 
     def request(

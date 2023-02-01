@@ -827,8 +827,15 @@ class TestResponseHandling:
         assert excinfo.value.reason_phrase == "Payload Too Large"
 
 
+_RESPONSE_TYPE_MAP = {
+    200: "ExampleModel",
+    201: "str",
+    202: None,
+}
+
+
 class TestMultipleResponseTypesHandling:
-    """Test handling of responses and initial parsing when multiple response types are possible"""
+    """Test deserialization is correctly called based on the different options available to configure response parsing"""
 
     @pytest.fixture(autouse=True)
     def _blank_client(self):
@@ -841,110 +848,56 @@ class TestMultipleResponseTypesHandling:
         self._transport.mount(TEST_URL, self._adapter)
         self._model = example_model
 
-    _serialized_data = {
-        "String": "new_model",
-        "Integer": 1,
-        "ListOfStrings": ["red", "green"],
-        "Boolean": False,
-    }
-
-    @property
-    def _deserialized_data(self):
-        from tests.models import ExampleModel
-
-        return ExampleModel(
-            string_property="new_model",
-            int_property=1,
-            list_property=["red", "green"],
-            bool_property=False,
-        )
-
-    _configured_response_types = {
-        200: "ExampleModel",
-        201: "str",
-        202: None,
-    }
-
-    def _mock_response_and_process(
+    @pytest.mark.parametrize(
+        ["response_code", "response_type_map", "response_type", "expected_type"],
+        [
+            # Check that the correct type is used for deserialization when a response type map is provided
+            (200, _RESPONSE_TYPE_MAP, None, "ExampleModel"),
+            (201, _RESPONSE_TYPE_MAP, None, "str"),
+            (202, _RESPONSE_TYPE_MAP, None, None),
+            # Check that response_type is used for deserialization if a response type map is not provided
+            (200, None, "ExampleModel", "ExampleModel"),
+            (200, None, "str", "str"),
+            # Check that if both the response_type and response_type_map are provided, the map takes precedence
+            (200, _RESPONSE_TYPE_MAP, "str", "ExampleModel"),
+            (201, _RESPONSE_TYPE_MAP, "ExampleModel", "str"),
+            (202, _RESPONSE_TYPE_MAP, "str", None),
+            # Even if the map is empty.
+            (200, {}, "str", None),
+            (200, {}, "ExampleModel", None),
+            # If neither are provided, check there is no attempt to deserialize
+            (200, None, None, None),
+        ],
+    )
+    def test_response_type_handling(
         self,
+        mocker,
         response_code: int,
-        response_json=None,
-        response_text=None,
-        response_types=None,
+        response_type_map,
+        response_type,
+        expected_type,
     ):
         resource_path = "/models"
         method = "POST"
 
         expected_url = TEST_URL + resource_path
-
-        from tests.models import ExampleModel
-
-        upload_data = ExampleModel(
-            string_property="new_model",
-            int_property=1,
-            list_property=["red", "green"],
-            bool_property=False,
-        )
-
+        deserialize_mock = mocker.patch.object(ApiClient, "deserialize")
         with requests_mock.Mocker() as m:
             m.post(
                 expected_url,
                 status_code=response_code,
-                json=response_json,
-                text=response_text,
             )
-            response, status_code, headers = self._client.call_api(
+            _ = self._client.call_api(
                 resource_path,
                 method,
-                body=upload_data,
-                response_type=self._configured_response_types
-                if response_types is None
-                else response_types,
+                response_type=response_type,
+                response_type_map=response_type_map,
             )
-        return response, status_code, headers
-
-    def test_expected_model_deserialized_from_json(self):
-        response, status_code, headers = self._mock_response_and_process(
-            200, self._serialized_data
-        )
-        from tests.models import ExampleModel
-
-        assert isinstance(response, ExampleModel)
-        assert response == self._deserialized_data
-
-    def test_response_type_configured_and_text_response(self):
-        response, status_code, headers = self._mock_response_and_process(
-            201, response_text="some_id"
-        )
-        assert response == "some_id"
-
-    def test_no_response_type_configured_and_empty_response(self):
-        response, status_code, headers = self._mock_response_and_process(202)
-        assert response is None
-
-    def test_no_response_type_configured_and_json_response(self):
-        response, status_code, headers = self._mock_response_and_process(
-            202, self._serialized_data
-        )
-        assert response is None
-
-    def test_no_response_type_configured_with_json_in_response(self):
-        response, status_code, headers = self._mock_response_and_process(
-            200, self._serialized_data, response_types={}
-        )
-        assert response is None
-
-    def test_no_response_type_configured_with_text_in_response(self):
-        response, status_code, headers = self._mock_response_and_process(
-            200, response_text="Some text", response_types={}
-        )
-        assert response is None
-
-    def test_no_response_type_configured_with_empty_response(self):
-        response, status_code, headers = self._mock_response_and_process(
-            200, response_types={}
-        )
-        assert response is None
+        if expected_type is not None:
+            assert deserialize_mock.call_count == 1
+            assert deserialize_mock.mock_calls[0].args[1] == expected_type
+        else:
+            assert deserialize_mock.called is False
 
 
 class TestStaticMethods:
