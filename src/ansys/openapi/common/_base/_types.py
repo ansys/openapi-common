@@ -79,5 +79,6 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
+        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         ...

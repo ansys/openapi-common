@@ -402,6 +402,14 @@ class TestResponseParsing:
         response.connection = self._connection
         return response
 
+    def test_response_is_not_deserialized_if_type_is_none(self, mocker):
+        data = {"one": 1, "two": 2, "three": 3}
+        response = self.create_response(data)
+        _deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        result = self._client.deserialize(response, None)
+        assert result is None
+        _deserialize_mock.assert_not_called()
+
     def test_json_parsed_as_json(self, mocker):
         data = {"one": 1, "two": 2, "three": 3}
         response = self.create_response(data)
@@ -674,7 +682,8 @@ class TestResponseHandling:
 
     def test_patch_object(self):
         """This test represents updating a value on an existing record using a custom json payload. The new object
-        is returned. This questionable API accepts an ID as a query param and returns the updated object"""
+        is returned. This questionable API accepts an ID as a query param and returns the updated object
+        """
 
         expected_request = {
             "ListOfStrings": ["red", "yellow", "green"],
@@ -827,6 +836,78 @@ class TestResponseHandling:
         assert excinfo.value.reason_phrase == "Payload Too Large"
 
 
+_RESPONSE_TYPE_MAP = {
+    200: "ExampleModel",
+    201: "str",
+    202: None,
+}
+
+
+class TestMultipleResponseTypesHandling:
+    """Test deserialization is correctly called based on the different options available to configure response parsing"""
+
+    @pytest.fixture(autouse=True)
+    def _blank_client(self):
+        from .models import example_model
+
+        self._transport = requests.Session()
+        self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
+        self._client.setup_client(example_model)
+        self._adapter = requests_mock.Adapter()
+        self._transport.mount(TEST_URL, self._adapter)
+        self._model = example_model
+
+    @pytest.mark.parametrize(
+        ["response_code", "response_type_map", "response_type", "expected_type"],
+        [
+            # Check that the correct type is used for deserialization when a response type map is provided
+            (200, _RESPONSE_TYPE_MAP, None, "ExampleModel"),
+            (201, _RESPONSE_TYPE_MAP, None, "str"),
+            (202, _RESPONSE_TYPE_MAP, None, None),
+            # Check that response_type is used for deserialization if a response type map is not provided
+            (200, None, "ExampleModel", "ExampleModel"),
+            (200, None, "str", "str"),
+            # Check that if both the response_type and response_type_map are provided, the map takes precedence
+            (200, _RESPONSE_TYPE_MAP, "str", "ExampleModel"),
+            (201, _RESPONSE_TYPE_MAP, "ExampleModel", "str"),
+            (202, _RESPONSE_TYPE_MAP, "str", None),
+            # Even if the map is empty.
+            (200, {}, "str", None),
+            (200, {}, "ExampleModel", None),
+            # If neither are provided, check there is no attempt to deserialize
+            (200, None, None, None),
+        ],
+    )
+    def test_response_type_handling(
+        self,
+        mocker,
+        response_code: int,
+        response_type_map,
+        response_type,
+        expected_type,
+    ):
+        resource_path = "/models"
+        method = "POST"
+
+        expected_url = TEST_URL + resource_path
+        deserialize_mock = mocker.patch.object(ApiClient, "deserialize")
+        with requests_mock.Mocker() as m:
+            m.post(
+                expected_url,
+                status_code=response_code,
+            )
+            _ = self._client.call_api(
+                resource_path,
+                method,
+                response_type=response_type,
+                response_type_map=response_type_map,
+            )
+
+        deserialize_mock.assert_called_once()
+        last_call_pos_args = deserialize_mock.call_args[0]
+        assert last_call_pos_args[1] == expected_type
+
+
 class TestStaticMethods:
     """Test miscellaneous static methods on the ApiClient class"""
 
@@ -952,7 +1033,8 @@ class TestStaticMethods:
     ):
         """This test needs a little explanation. The prepare_post_parameters method is odd, it returns the result
         in a return statement but also mutates the input argument. I suspect this is not intentional, but for the moment
-        the test works around this by copying the initial state of the parameter list."""
+        the test works around this by copying the initial state of the parameter list.
+        """
         # TODO - Can we remove this weirdness?
         if text_parameters is None:
             initial_text_parameters = []

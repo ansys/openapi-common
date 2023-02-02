@@ -124,8 +124,8 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Optional[Union[float, Tuple[float]]] = None,
+        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
-
         # header parameters
         header_params = header_params or {}
         if header_params:
@@ -178,11 +178,11 @@ class ApiClient(ApiClientBase):
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
-            # deserialize response data
-            if response_type:
-                return_data = self.deserialize(response_data, response_type)
-            else:
-                return_data = None
+            _response_type = response_type
+            if response_type_map is not None:
+                _response_type = response_type_map.get(response_data.status_code, None)
+
+            return_data = self.deserialize(response_data, _response_type)
 
         if _return_http_data_only:
             return return_data
@@ -275,7 +275,7 @@ class ApiClient(ApiClientBase):
         }
 
     def deserialize(
-        self, response: requests.Response, response_type: str
+        self, response: requests.Response, response_type: Optional[str]
     ) -> DeserializedType:
         """Deserialize the response into an object.
 
@@ -315,6 +315,9 @@ class ApiClient(ApiClientBase):
         ... client.deserialize(api_response, 'datetime.datetime')
         datetime.datetime(2015, 10, 21, 10, 5, 10)
         """
+
+        if response_type is None:
+            return None
 
         if response_type == "file":
             return self.__deserialize_file(response)
@@ -391,6 +394,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
+        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
 
@@ -428,6 +432,9 @@ class ApiClient(ApiClientBase):
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
+        response_type_map : Dict[int, Union[str, None]]
+            Dictionary of response status codes and response types for response deserialization. If provided, has
+            precedence over response_type.
         """
         return self.__call_api(
             resource_path,
@@ -443,6 +450,7 @@ class ApiClient(ApiClientBase):
             collection_formats,
             _preload_content,
             _request_timeout,
+            response_type_map,
         )
 
     def request(
