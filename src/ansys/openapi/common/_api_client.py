@@ -124,7 +124,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Optional[Union[float, Tuple[float]]] = None,
-        response_type_map: Optional[Dict[int, str]] = None,
+        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         # header parameters
         header_params = header_params or {}
@@ -394,7 +394,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float], None] = None,
-        response_type_map: Optional[Dict[int, str]] = None,
+        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
 
@@ -432,7 +432,7 @@ class ApiClient(ApiClientBase):
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
-        response_type_map : Dict[int, str]
+        response_type_map : Dict[int, Union[str, None]]
             Dictionary of response status codes and response types for response deserialization. If provided, has
             precedence over response_type.
         """
