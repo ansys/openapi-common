@@ -402,6 +402,14 @@ class TestResponseParsing:
         response.connection = self._connection
         return response
 
+    def test_response_is_not_deserialized_if_type_is_none(self, mocker):
+        data = {"one": 1, "two": 2, "three": 3}
+        response = self.create_response(data)
+        _deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        result = self._client.deserialize(response, None)
+        assert result is None
+        _deserialize_mock.assert_not_called()
+
     def test_json_parsed_as_json(self, mocker):
         data = {"one": 1, "two": 2, "three": 3}
         response = self.create_response(data)
@@ -894,12 +902,10 @@ class TestMultipleResponseTypesHandling:
                 response_type=response_type,
                 response_type_map=response_type_map,
             )
-        if expected_type is not None:
-            deserialize_mock.assert_called_once()
-            last_call_pos_args = deserialize_mock.call_args[0]
-            assert last_call_pos_args[1] == expected_type
-        else:
-            assert deserialize_mock.called is False
+
+        deserialize_mock.assert_called_once()
+        last_call_pos_args = deserialize_mock.call_args[0]
+        assert last_call_pos_args[1] == expected_type
 
 
 class TestStaticMethods:

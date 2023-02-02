@@ -178,16 +178,11 @@ class ApiClient(ApiClientBase):
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
-            _response_type: Optional[str]
+            _response_type = response_type
             if response_type_map is not None:
                 _response_type = response_type_map.get(response_data.status_code, None)
-            else:
-                _response_type = response_type
-            # deserialize response data
-            if _response_type:
-                return_data = self.deserialize(response_data, _response_type)
-            else:
-                return_data = None
+
+            return_data = self.deserialize(response_data, _response_type)
 
         if _return_http_data_only:
             return return_data
@@ -280,7 +275,7 @@ class ApiClient(ApiClientBase):
         }
 
     def deserialize(
-        self, response: requests.Response, response_type: str
+        self, response: requests.Response, response_type: Optional[str]
     ) -> DeserializedType:
         """Deserialize the response into an object.
 
@@ -320,6 +315,9 @@ class ApiClient(ApiClientBase):
         ... client.deserialize(api_response, 'datetime.datetime')
         datetime.datetime(2015, 10, 21, 10, 5, 10)
         """
+
+        if response_type is None:
+            return None
 
         if response_type == "file":
             return self.__deserialize_file(response)
