@@ -4,6 +4,7 @@ name: Build and Test Package
 # run only on main branch.  This avoids duplicated actions on PRs
 on:
   pull_request:
+  merge_group:
   push:
     tags:
       - "*"
