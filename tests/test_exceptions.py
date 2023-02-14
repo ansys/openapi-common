@@ -8,20 +8,28 @@ from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
 def test_api_connection_exception_repr():
+    url = "http://protected.url/path/to/resource"
     status_code = 403
     reason_phrase = "Forbidden"
     message = "You do not have permission to access this resource"
 
     api_connection_exception = ApiConnectionException(
-        status_code, reason_phrase, message
+        url, status_code, reason_phrase, message
     )
-    exception_repr = api_connection_exception.__repr__()
 
+    exception_text = str(api_connection_exception)
+
+    assert url in exception_text
+    assert str(status_code) in exception_text
+    assert reason_phrase in exception_text
+    assert message in exception_text
+
+    exception_repr = api_connection_exception.__repr__()
     exception_from_repr = eval(exception_repr)
     assert type(exception_from_repr) == type(api_connection_exception)
     assert exception_from_repr.status_code == api_connection_exception.status_code
     assert exception_from_repr.reason_phrase == api_connection_exception.reason_phrase
-    assert exception_from_repr.message == api_connection_exception.message
+    assert exception_from_repr.content == api_connection_exception.content
 
 
 def test_api_exception_repr():

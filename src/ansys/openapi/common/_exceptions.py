@@ -14,23 +14,30 @@ class ApiConnectionException(Exception):
 
     Attributes
     ----------
+    url : str
+        The URL for which the request failed.
     status_code : int
         HTTP status code associated with the response.
     reason_phrase : str
         Description of the response provided by the server.
-    message : str
+    content : str
         Content of the response provided by the server.
-
     """
 
-    def __init__(self, status_code: int, reason_phrase: str, message: str):
+    def __init__(self, url: str, status_code: int, reason_phrase: str, content: str):
+        message = (
+            f"Request url '{url}' failed with reason {status_code}: {reason_phrase}.\n"
+            f"The following was returned by the server:\n"
+            f"{content}"
+        )
+        super().__init__(message)
+        self.url = url
         self.status_code = status_code
         self.reason_phrase = reason_phrase
-        self.message = message
-        super().__init__(message)
+        self.content = content
 
     def __repr__(self) -> str:
-        return f"ApiConnectionException({self.status_code}, '{self.reason_phrase}','{self.message}')"
+        return f"ApiConnectionException('{self.url}', {self.status_code}, '{self.reason_phrase}','{self.content}')"
 
 
 class AuthenticationWarning(Warning):
