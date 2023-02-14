@@ -26,10 +26,10 @@ class ApiConnectionException(Exception):
 
     def __init__(self, url: str, status_code: int, reason_phrase: str, content: str):
         message = (
-            f"Request url '{url}' failed with reason {status_code}: {reason_phrase}.\n"
-            f"The following was returned by the server:\n"
-            f"{content}"
+            f"Request url '{url}' failed with reason {status_code}: {reason_phrase}."
         )
+        if content:
+            message += f"\nThe following was returned by the server:\n{content}"
         super().__init__(message)
         self.url = url
         self.status_code = status_code
