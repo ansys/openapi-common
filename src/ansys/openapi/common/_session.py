@@ -315,7 +315,7 @@ class ApiClientFactory:
             return True
         else:
             raise ApiConnectionException(
-                self._api_url, resp.status_code, resp.reason, resp.text
+                resp.status_code, resp.reason, resp.text, self._api_url
             )
 
     def __handle_initial_response(
@@ -352,10 +352,10 @@ class ApiClientFactory:
             return self
         elif initial_response.status_code != 401:
             raise ApiConnectionException(
-                initial_response.url,
                 initial_response.status_code,
                 initial_response.reason,
                 initial_response.text,
+                initial_response.url,
             )
         else:
             return None

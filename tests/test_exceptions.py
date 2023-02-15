@@ -14,7 +14,7 @@ def test_api_connection_exception_repr():
     message = "You do not have permission to access this resource"
 
     api_connection_exception = ApiConnectionException(
-        url, status_code, reason_phrase, message
+        status_code, reason_phrase, message, url
     )
 
     exception_text = str(api_connection_exception)
@@ -29,7 +29,7 @@ def test_api_connection_exception_repr():
     assert type(exception_from_repr) == type(api_connection_exception)
     assert exception_from_repr.status_code == api_connection_exception.status_code
     assert exception_from_repr.reason_phrase == api_connection_exception.reason_phrase
-    assert exception_from_repr.content == api_connection_exception.content
+    assert exception_from_repr.message == api_connection_exception.message
 
 
 def test_api_exception_repr():
