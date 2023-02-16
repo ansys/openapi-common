@@ -4,6 +4,7 @@ from functools import wraps
 from urllib.parse import parse_qs
 
 import pytest
+import requests
 import requests_mock
 import requests_ntlm
 
@@ -387,3 +388,15 @@ def test_no_oidc_throws():
 
 def test_self_signed_throws():
     pass
+
+
+def test_invalid_initial_response_raises_exception():
+    factory = ApiClientFactory(SERVICELAYER_URL)
+    with requests_mock.Mocker() as m:
+        m.get(
+            SERVICELAYER_URL,
+            status_code=404,
+        )
+        resp = requests.get(SERVICELAYER_URL)
+    with pytest.raises(ApiConnectionException, match=rf".*{SERVICELAYER_URL}.*404.*"):
+        factory._ApiClientFactory__handle_initial_response(resp)
