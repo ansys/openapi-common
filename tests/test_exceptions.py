@@ -25,6 +25,8 @@ def test_api_connection_exception_repr():
     api_connection_exception = ApiConnectionException(response)
     assert all([str(v) in str(api_connection_exception) for v in args.values()])
 
+    assert repr(response) in repr(api_connection_exception)
+
 
 def test_api_exception_repr():
     status_code = 404
