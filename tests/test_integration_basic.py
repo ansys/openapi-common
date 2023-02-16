@@ -71,8 +71,8 @@ class TestBasic:
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as exception_info:
             _ = client_factory.with_credentials("eve", "password").connect()
-        assert exception_info.value.status_code == 401
-        assert "Unauthorized" in exception_info.value.reason_phrase
+        assert exception_info.value.response.status_code == 401
+        assert "Unauthorized" in exception_info.value.response.reason
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
