@@ -137,5 +137,5 @@ class TestNegotiateFailures:
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
             _ = client_factory.with_autologon().connect()
-        assert excinfo.value.status_code == 403
-        assert excinfo.value.reason_phrase == "Forbidden"
+        assert excinfo.value.response.status_code == 403
+        assert excinfo.value.response.reason == "Forbidden"
