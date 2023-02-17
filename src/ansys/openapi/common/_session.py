@@ -314,7 +314,7 @@ class ApiClientFactory:
         if 200 <= resp.status_code < 300:
             return True
         else:
-            raise ApiConnectionException(resp.status_code, resp.reason, resp.text)
+            raise ApiConnectionException(resp)
 
     def __handle_initial_response(
         self, initial_response: requests.Response
@@ -349,11 +349,7 @@ class ApiClientFactory:
             self._configured = True
             return self
         elif initial_response.status_code != 401:
-            raise ApiConnectionException(
-                initial_response.status_code,
-                initial_response.reason,
-                initial_response.text,
-            )
+            raise ApiConnectionException(initial_response)
         else:
             return None
 

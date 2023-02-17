@@ -4,6 +4,7 @@ from functools import wraps
 from urllib.parse import parse_qs
 
 import pytest
+import requests
 import requests_mock
 import requests_ntlm
 
@@ -40,8 +41,8 @@ def test_other_status_codes_throw(status_code, reason_phrase):
         m.get(SERVICELAYER_URL, status_code=status_code, reason=reason_phrase)
         with pytest.raises(ApiConnectionException) as excinfo:
             _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
-        assert excinfo.value.status_code == status_code
-        assert excinfo.value.reason_phrase == reason_phrase
+        assert excinfo.value.response.status_code == status_code
+        assert excinfo.value.response.reason == reason_phrase
 
 
 def test_missing_www_authenticate_throws():
@@ -123,8 +124,8 @@ def test_throws_with_invalid_credentials():
             _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
                 username="NOT_A_TEST_USER", password="PASSWORD"
             )
-        assert exception_info.value.status_code == 401
-        assert exception_info.value.reason_phrase == UNAUTHORIZED
+        assert exception_info.value.response.status_code == 401
+        assert exception_info.value.response.reason == UNAUTHORIZED
 
 
 def wrap_with_workstation(func):
@@ -387,3 +388,15 @@ def test_no_oidc_throws():
 
 def test_self_signed_throws():
     pass
+
+
+def test_invalid_initial_response_raises_exception():
+    factory = ApiClientFactory(SERVICELAYER_URL)
+    with requests_mock.Mocker() as m:
+        m.get(
+            SERVICELAYER_URL,
+            status_code=404,
+        )
+        resp = requests.get(SERVICELAYER_URL)
+    with pytest.raises(ApiConnectionException, match=rf".*{SERVICELAYER_URL}.*404.*"):
+        factory._ApiClientFactory__handle_initial_response(resp)

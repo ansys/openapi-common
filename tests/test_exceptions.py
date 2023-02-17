@@ -1,6 +1,8 @@
 import uuid
 
 import pytest
+import requests
+from requests_mock import Mocker
 from requests.utils import CaseInsensitiveDict
 
 from ansys.openapi.common import ApiException, ApiConnectionException
@@ -8,20 +10,22 @@ from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
 def test_api_connection_exception_repr():
-    status_code = 403
-    reason_phrase = "Forbidden"
-    message = "You do not have permission to access this resource"
+    args = {
+        "url": "http://protected.url/path/to/resource",
+        "status_code": 403,
+        "reason": "Forbidden",
+        "text": "You do not have permission to access this resource",
+    }
 
-    api_connection_exception = ApiConnectionException(
-        status_code, reason_phrase, message
-    )
-    exception_repr = api_connection_exception.__repr__()
+    with Mocker() as m:
+        m.get(**args)
+        response = requests.get(args["url"])
 
-    exception_from_repr = eval(exception_repr)
-    assert type(exception_from_repr) == type(api_connection_exception)
-    assert exception_from_repr.status_code == api_connection_exception.status_code
-    assert exception_from_repr.reason_phrase == api_connection_exception.reason_phrase
-    assert exception_from_repr.message == api_connection_exception.message
+    assert response.status_code == args["status_code"]
+    api_connection_exception = ApiConnectionException(response)
+    assert all([str(v) in str(api_connection_exception) for v in args.values()])
+
+    assert repr(response) in repr(api_connection_exception)
 
 
 def test_api_exception_repr():
