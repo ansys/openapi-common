@@ -10,7 +10,7 @@ if MYPY:
 class ApiConnectionException(Exception):
     """
     Provides the exception to raise when connection to the API server fails. For more information
-    about the failure, inspect ``.status_code`` and ``.reason_phrase``.
+    about the failure, inspect ``.response``.
 
     Attributes
     ----------
