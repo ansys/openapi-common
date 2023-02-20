@@ -304,14 +304,14 @@ toml = ["tomli"]
 
 [[package]]
 name = "covertable"
-version = "2.0.1"
-description = "It makes combinations covering pairs for pairwise testing."
+version = "2.1.0"
+description = "A flexible pairwise tool written in Python."
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "covertable-2.0.1-py3-none-any.whl", hash = "sha256:594cb74c2bf0e2b3a6ef4d1f2ba8c51bac1b4c4132780a1f72e7b7ee82e5cd4f"},
-    {file = "covertable-2.0.1.tar.gz", hash = "sha256:81f3a239b13893cae2bda8c6bdb86794377f2ce17ae82d31936c997d38cfeb8d"},
+    {file = "covertable-2.1.0-py3-none-any.whl", hash = "sha256:44c986d000ea3c41789e876da29ac94d091a275c78b3a110edbdb38768631fe7"},
+    {file = "covertable-2.1.0.tar.gz", hash = "sha256:e123e2206fc02b8a7b997ec8922f13d8fa1ba436ff5e8de522a5fa9fc72f4d41"},
 ]
 
 [[package]]
