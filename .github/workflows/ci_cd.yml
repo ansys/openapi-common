@@ -145,6 +145,7 @@ jobs:
       - name: Install library
         run: |
           pip install poetry
+          poetry config installer.modern-installation false
           poetry install --with docs --extras "oidc linux-kerberos"
 
       - name: Build HTML
