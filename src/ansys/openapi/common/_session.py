@@ -1,23 +1,23 @@
 import os
 import warnings
-from typing import Tuple, Union, Container, Optional, Mapping, TypeVar, Any
+from typing import Any, Container, Mapping, Optional, Tuple, TypeVar, Union
 
 import requests
-from urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth  # type: ignore[import]
+from urllib3.util.retry import Retry
 
 from . import __version__
 from ._api_client import ApiClient
-from ._util import (
-    parse_authenticate,
-    SessionConfiguration,
-    set_session_kwargs,
-    generate_user_agent,
-)
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
+from ._util import (
+    SessionConfiguration,
+    generate_user_agent,
+    parse_authenticate,
+    set_session_kwargs,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -29,8 +29,9 @@ _platform_windows = False
 
 try:
     # noinspection PyUnresolvedReferences
-    import requests_auth  # type: ignore[import]
     import keyring
+    import requests_auth  # type: ignore[import]
+
     from ._oidc import OIDCSessionFactory
 except ImportError:
     _oidc_enabled = False

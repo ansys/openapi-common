@@ -29,7 +29,6 @@ This section summarizes OpenAPI-Common helper functions.
    :toctree: _autosummary
 
    generate_user_agent
-   create_session_from_granta_stk
 
 
 =======================

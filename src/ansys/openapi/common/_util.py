@@ -1,12 +1,11 @@
 import http.cookiejar
 import sys
-
-import pyparsing as pp
 from collections import OrderedDict
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from itertools import chain
-from typing import Dict, Union, List, Optional, Tuple, Any, Collection, cast
+from typing import Any, Collection, Dict, List, Optional, Tuple, Union, cast
 
+import pyparsing as pp
 from pyparsing import Word
 
 from ._exceptions import ApiException
