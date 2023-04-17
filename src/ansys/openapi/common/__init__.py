@@ -1,14 +1,7 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
-import sys
+from importlib import metadata as metadata
 
-if sys.version_info >= (3, 8):
-    from importlib import metadata as metadata
-
-    __version__ = metadata.version("ansys-openapi-common")
-else:
-    from importlib_metadata import metadata as metadata_backport
-
-    __version__ = metadata_backport("ansys-openapi-common")["version"]
+__version__ = metadata.version("ansys-openapi-common")
 
 from ._session import ApiClientFactory, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
