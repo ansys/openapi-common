@@ -11,10 +11,7 @@ from pyparsing import Word
 from ._exceptions import ApiException
 from ._logger import logger
 
-if sys.version_info >= (3, 8):
-    from typing import TypedDict
-else:
-    from typing_extensions import TypedDict, Type
+from typing import TypedDict
 
 import tempfile
 
