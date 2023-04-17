@@ -888,7 +888,7 @@ python-versions = ">=3.7"
 name = "typing-extensions"
 version = "4.5.0"
 description = "Backported and Experimental Type Hints for Python 3.7+"
-category = "main"
+category = "dev"
 optional = false
 python-versions = ">=3.7"
 
@@ -939,7 +939,7 @@ oidc = ["requests_auth", "keyring"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "f5c194eab3721514a23b45272885484224aaca7c5d64829d5c756674f6770f44"
+content-hash = "ae37a075ce691c2e31b09cdd705879f71784d8baca4daaa5f3b0fc07d451fa97"
 
 [metadata.files]
 accessible-pygments = [
