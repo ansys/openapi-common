@@ -1,30 +1,26 @@
 import datetime
-import mimetypes
 import json
+import mimetypes
 import os
 import re
 import tempfile
 from types import ModuleType
-
-from dateutil.parser import parse
-from typing import Dict, Union, List, Tuple, Type, Optional, Any, Callable
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 from urllib.parse import quote
 
 import requests
+from dateutil.parser import parse
 from requests.structures import CaseInsensitiveDict
 
-from ._util import (
-    SessionConfiguration,
-    handle_response,
-)
 from ._base import (
-    PrimitiveType,
-    DeserializedType,
-    SerializedType,
-    ModelBase,
     ApiClientBase,
+    DeserializedType,
+    ModelBase,
+    PrimitiveType,
+    SerializedType,
 )
 from ._exceptions import ApiException
+from ._util import SessionConfiguration, handle_response
 
 
 # noinspection DuplicatedCode

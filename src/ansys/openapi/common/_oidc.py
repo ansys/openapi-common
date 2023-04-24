@@ -4,16 +4,17 @@ from typing import Optional
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import OAuth2AuthorizationCodePKCE, InvalidGrantRequest  # type: ignore[import]
+from requests_auth import InvalidGrantRequest  # type: ignore[import]
+from requests_auth import OAuth2AuthorizationCodePKCE
 from requests_auth.authentication import OAuth2  # type: ignore[import]
 
-from ._util import (
-    parse_authenticate,
-    SessionConfiguration,
-    set_session_kwargs,
-    RequestsConfiguration,
-)
 from ._logger import logger
+from ._util import (
+    RequestsConfiguration,
+    SessionConfiguration,
+    parse_authenticate,
+    set_session_kwargs,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
