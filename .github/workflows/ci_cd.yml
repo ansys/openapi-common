@@ -51,7 +51,7 @@ jobs:
       # Label used to access the service container
       kdc-server:
         # Github container registry address
-        image: ghcr.io/pyansys/kdc-container:v0.2
+        image: ghcr.io/ansys/kdc-container:v0.2
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -207,7 +207,7 @@ jobs:
           path: ~/html
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@v4.4.1
+        uses: JamesIves/github-pages-deploy-action@v4.4.2
         with:
           repository-name: pyansys/openapi-common-docs
           token: ${{ steps.get_workflow_token.outputs.token }}
