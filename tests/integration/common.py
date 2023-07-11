@@ -37,10 +37,10 @@ def validate_user_basic(credentials: HTTPBasicCredentials) -> None:
 
 
 class ExampleModelPyd(BaseModel):
-    String: Optional[str]
-    Integer: Optional[int]
-    ListOfStrings: Optional[List[str]]
-    Boolean: Optional[bool]
+    String: Optional[str] = None
+    Integer: Optional[int] = None
+    ListOfStrings: Optional[List[str]] = None
+    Boolean: Optional[bool] = None
 
 
 fastapi_test_app = FastAPI()
