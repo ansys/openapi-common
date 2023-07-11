@@ -111,7 +111,9 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         value = pp.quotedString.setParseAction(pp.removeQuotes)
         name_value_pair = name + pp.Suppress("=") + value
 
-        params = pp.Dict(pp.delimitedList(pp.Group(name_value_pair)))
+        # MYPY issue https://github.com/python/mypy/issues/12563 seems to bite us here
+        # It confuses Typing.Dict with pyparsing.core.Dict which means mypy gets confused
+        params = pp.Dict(pp.delimitedList(pp.Group(name_value_pair)))  # type: ignore[call-overload]
 
         credentials = token + (params ^ token68) ^ token
 
