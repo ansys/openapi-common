@@ -71,6 +71,8 @@ class ApiClient(ApiClientBase):
         "date": datetime.date,
         "datetime": datetime.datetime,
     }
+    LIST_MATCH_REGEX = re.compile(r"list\[(.*)]")
+    DICT_MATCH_REGEX = re.compile(r"dict\(([^,]*), (.*)\)")
 
     def __init__(
         self,
@@ -345,13 +347,13 @@ class ApiClient(ApiClientBase):
         if data is None:
             return None
 
-        list_match = re.match(r"list\[(.*)]", klass_name)
+        list_match = self.LIST_MATCH_REGEX.match(klass_name)
         if list_match is not None:
             assert isinstance(data, list)
             sub_kls = list_match.group(1)
             return [self.__deserialize(sub_data, sub_kls) for sub_data in data]
 
-        dict_match = re.match(r"dict\(([^,]*), (.*)\)", klass_name)
+        dict_match = self.DICT_MATCH_REGEX.match(klass_name)
         if dict_match is not None:
             assert isinstance(data, dict)
             sub_kls = dict_match.group(2)
