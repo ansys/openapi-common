@@ -70,7 +70,7 @@ optional = true
 # Doc packages
 ansys-sphinx-theme = { version = "0.9.9" }
 numpydoc = { version = "1.5.0" }
-sphinx = { version = "7.0.1" }
+sphinx = { version = "7.1.1" }
 sphinx-notfound-page = { version = "0.8.3" }
 sphinx-copybutton = { version = "0.5.2" }
 
