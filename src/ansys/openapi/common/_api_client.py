@@ -17,7 +17,6 @@ from typing import (
     IO,
     Iterable,
     Mapping,
-    Sequence,
 )
 from urllib.parse import quote
 
