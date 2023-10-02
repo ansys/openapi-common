@@ -5,7 +5,20 @@ import os
 import re
 import tempfile
 from types import ModuleType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    IO,
+    Iterable,
+    Mapping,
+    Sequence,
+)
 from urllib.parse import quote
 
 import requests
@@ -115,13 +128,13 @@ class ApiClient(ApiClientBase):
         query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
         header_params: Union[Dict[str, Union[str, int]], None] = None,
         body: Optional[Any] = None,
-        post_params: Optional[Any] = None,
-        files: Optional[Any] = None,
+        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
+        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
-        _request_timeout: Optional[Union[float, Tuple[float]]] = None,
+        _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         # header parameters
@@ -147,9 +160,11 @@ class ApiClient(ApiClientBase):
 
         # post parameters
         if post_params or files:
-            post_params = self.prepare_post_parameters(post_params, files)
-            post_params = self.sanitize_for_serialization(post_params)
-            post_params = self.parameters_to_tuples(post_params, collection_formats)
+            post_param_tuples = self.prepare_post_parameters(post_params, files)
+            sanitized_post_params = self.sanitize_for_serialization(post_param_tuples)
+            post_params = self.parameters_to_tuples(
+                sanitized_post_params, collection_formats
+            )
 
         # body
         if body:
@@ -385,13 +400,13 @@ class ApiClient(ApiClientBase):
         query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
         header_params: Union[Dict[str, Union[str, int]], None] = None,
         body: Optional[DeserializedType] = None,
-        post_params: Optional[List[Tuple]] = None,
-        files: Optional[Dict[str, str]] = None,
+        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
+        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float], None] = None,
+        _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
@@ -410,11 +425,11 @@ class ApiClient(ApiClientBase):
             Header parameters to place in the request header.
         body : :obj:`.DeserializedType`
             Request body.
-        post_params : List[Tuple]
+        post_params : Optional[List[Tuple[str, Union[str, bytes, IO]]]]
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
         response_type : str, optional
             Expected response data type.
-        files : Dict[str, str]
+        files : Optional[Mapping[str, Union[str, bytes, IO]]]
             Dictionary of the file name and path for ``multipart/form-data``.
         _return_http_data_only : bool, optional
             Whether to return response data without head status code and headers. The default
@@ -426,7 +441,7 @@ class ApiClient(ApiClientBase):
             Whether to return the underlying response without reading or decoding response data. The default
             is ``True``, in which case response data is read or decoded. If ``False``, response data is not
             read or decoded.
-        _request_timeout : Union[float, Tuple[float]]
+        _request_timeout : Union[float, Tuple[float, float], None]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
@@ -457,10 +472,12 @@ class ApiClient(ApiClientBase):
         url: str,
         query_params: Optional[str] = None,
         headers: Optional[Dict] = None,
-        post_params: Optional[List[Tuple]] = None,
+        post_params: Optional[
+            Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]
+        ] = None,
         body: Optional[Any] = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float], None] = None,
+        _request_timeout: Union[float, Tuple[float, float], None] = None,
     ) -> requests.Response:
         """Make the HTTP request and return it directly.
 
@@ -474,7 +491,7 @@ class ApiClient(ApiClientBase):
             Query parameters to pass in the URL.
         headers : Dict
             Headers to attach to the request.
-        post_params : List[Tuple]
+        post_params : Optional[Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]]
             Request post form parameters for ``multipart/form-data``.
         body : :obj:`.SerializedType`
             Request body.
@@ -482,7 +499,7 @@ class ApiClient(ApiClientBase):
             Whether to return the underlying response without reading or decoding response data. The default
             is ``True``, in which case the response data is read or decoded.  If ``False``, the response
             data is not read or decoded.
-        _request_timeout : Union[float, Tuple[float]]
+        _request_timeout : Union[float, Tuple[float, float], None]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
@@ -612,24 +629,26 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def prepare_post_parameters(
-        post_params: Optional[List[Tuple]] = None,
-        files: Optional[Dict[str, Union[str, List[str]]]] = None,
-    ) -> List[Tuple]:
+        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
+        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
+    ) -> Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]:
         """Build form parameters.
 
         This method combines plain form parameters and file parameters into a structure suitable for transmission.
 
         Parameters
         ----------
-        post_params : List[Tuple]
+        post_params : Optional[List[Tuple[str, Union[str, bytes]]]]
             Plain form parameters.
-        files : Dict[str, Union[str, List[str]]]
+        files : Optional[Mapping[str, Union[str, bytes]]]
             File parameters.
         """
-        params = []
+        params: List[
+            Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]
+        ] = []
 
         if post_params:
-            params = post_params
+            params.extend(post_params)
 
         if files:
             for parameter, file_entry in files.items():
@@ -639,16 +658,22 @@ class ApiClient(ApiClientBase):
                     file_entry if isinstance(file_entry, list) else [file_entry]
                 )
                 for file_name in file_names:
-                    with open(file_name, "rb") as f:
-                        filename = os.path.basename(f.name)
-                        file_data = f.read()
-                        mimetype = (
-                            mimetypes.guess_type(filename)[0]
-                            or "application/octet-stream"
-                        )
-                        params.append((parameter, (filename, file_data, mimetype)))
+                    if isinstance(file_name, IO):
+                        param = ApiClient._process_file(file_name)
+                        params.append((parameter, param))
+                    else:
+                        with open(file_name, "rb") as f:
+                            param = ApiClient._process_file(f)
+                            params.append((parameter, param))
 
         return params
+
+    @staticmethod
+    def _process_file(fp: IO) -> Tuple[str, Union[str, bytes], str]:
+        filename = os.path.basename(fp.name)
+        file_data = fp.read()
+        mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        return filename, file_data, mimetype
 
     @staticmethod
     def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:

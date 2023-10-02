@@ -111,7 +111,7 @@ commands = poetry run pytest --cov=ansys.openapi.common --cov-report=xml {posarg
 [testenv:lint]
 deps =
     black
-    mypy==0.910
+    mypy==1.5.1
     types-requests
     types-python-dateutil
     codespell==2.1.0
