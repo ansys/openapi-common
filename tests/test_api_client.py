@@ -1075,7 +1075,7 @@ class TestStaticMethods:
     @staticmethod
     def _check_file_contents(
         output: Iterable[
-            tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]
+            Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]
         ],
         file_count: int,
         file_names: Iterable[str],
