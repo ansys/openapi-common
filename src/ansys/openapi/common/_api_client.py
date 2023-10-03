@@ -1,4 +1,5 @@
 import datetime
+import io
 import json
 import mimetypes
 import os
@@ -17,6 +18,7 @@ from typing import (
     IO,
     Iterable,
     Mapping,
+    cast,
 )
 from urllib.parse import quote
 
@@ -128,7 +130,9 @@ class ApiClient(ApiClientBase):
         header_params: Union[Dict[str, Union[str, int]], None] = None,
         body: Optional[Any] = None,
         post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
+        files: Optional[
+            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
+        ] = None,
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
@@ -629,7 +633,9 @@ class ApiClient(ApiClientBase):
     @staticmethod
     def prepare_post_parameters(
         post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
+        files: Optional[
+            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
+        ] = None,
     ) -> Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]:
         """Build form parameters.
 
@@ -657,8 +663,8 @@ class ApiClient(ApiClientBase):
                     file_entry if isinstance(file_entry, list) else [file_entry]
                 )
                 for file_name in file_names:
-                    if isinstance(file_name, IO):
-                        param = ApiClient._process_file(file_name)
+                    if hasattr(file_name, "read"):
+                        param = ApiClient._process_file(cast(IO, file_name))
                         params.append((parameter, param))
                     else:
                         with open(file_name, "rb") as f:

@@ -1,16 +1,20 @@
 import copy
 import datetime
+import itertools
 import json
 import os
+import sys
 import tempfile
 import uuid
-from typing import Dict, List, Tuple
+from pathlib import Path
+from typing import Dict, List, Tuple, IO, Iterable, Union
 
 import pytest
 import requests_mock
 import requests
 from requests.packages.urllib3.response import HTTPResponse
 from requests_mock.response import _IOReader, _FakeConnection
+from requests_mock.request import _RequestObjectProxy
 import secrets
 
 from ansys.openapi.common import ApiClient, SessionConfiguration, ApiException
@@ -528,8 +532,8 @@ class TestRequestDispatch:
 
     url = "https://my-api.com/api.svc"
     timeout = 22.0
-    query_params = [("foo", "bar"), ("baz", "qux")]
-    post_params = {"clientId": secrets.token_hex(32)}
+    query_params = "foo=bar&baz=qux"
+    post_params = [("clientId", secrets.token_hex(32))]
     header_params = {"Accept": "application/json"}
     stream = False
     body = {
@@ -642,7 +646,7 @@ class TestResponseHandling:
             "Boolean": False,
         }
 
-        def content_json_matcher(request: requests.Request):
+        def content_json_matcher(request: _RequestObjectProxy):
             json_body = request.text
             json_obj = json.loads(json_body)
             return json_obj == expected_request
@@ -705,7 +709,7 @@ class TestResponseHandling:
             bool_property=False,
         )
 
-        def content_json_matcher(request: requests.Request):
+        def content_json_matcher(request: _RequestObjectProxy):
             json_body = request.text
             json_obj = json.loads(json_body)
             return json_obj == expected_request
@@ -745,7 +749,7 @@ class TestResponseHandling:
 
         record_id = str(uuid.uuid4())
 
-        def content_json_matcher(request: requests.Request):
+        def content_json_matcher(request: _RequestObjectProxy):
             request_body = request.text
             return request_body == record_id
 
@@ -801,7 +805,7 @@ class TestResponseHandling:
     def test_file_upload(self, file_context):
         """This test represents an endpoint which accepts a file upload, the server will respond with 413"""
 
-        def content_json_matcher(request: requests.Request):
+        def content_json_matcher(request: _RequestObjectProxy):
             request_body = request.body
             return b"file_content" and file_content in request_body
 
@@ -1003,7 +1007,9 @@ class TestStaticMethods:
         file_name_list = []
         file_contents_list = []
 
-        def create_files_for_test(file_count: int) -> Tuple[List[str], List[bytes]]:
+        def create_files_for_test(
+            file_count: int,
+        ) -> Tuple[Iterable[str], Iterable[bytes]]:
             for file_index in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
@@ -1019,36 +1025,58 @@ class TestStaticMethods:
         for file_name in file_name_list:
             os.remove(file_name)
 
+    @pytest.fixture
+    def opened_file_context(self, file_context):
+        file_name_list: List[str] = []
+        file_handle_list: List[IO] = []
+        file_contents_list: List[bytes] = []
+
+        def create_files_for_test(
+            file_count: int,
+        ) -> Tuple[Iterable[IO], Iterable[str], Iterable[bytes]]:
+            for file_index in range(0, file_count):
+                fd, path = tempfile.mkstemp()
+                os.close(fd)
+                file_contents = secrets.token_bytes(32)
+                with open(path, "wb") as f:
+                    f.write(file_contents)
+                file_name_list.append(path)
+                file_contents_list.append(file_contents)
+                file_handle_list.append(open(path, "rb"))
+            return file_handle_list, file_name_list, file_contents_list
+
+        yield create_files_for_test
+
+        for file_handle in file_handle_list:
+            file_handle.close()
+
+        for file_name in file_name_list:
+            os.remove(file_name)
+
     @pytest.mark.parametrize(
         "text_parameters",
         (
             None,
             [("clientId", "224ae34c")],
             [("clientId", "224ae34c"), ("nonce", "8acf453e")],
+            [("clientId", b"224ae34c")],
+            [("clientId", "224ae34c"), ("nonce", b"8acf453e")],
+            [("clientId", b"224ae34c"), ("nonce", b"8acf453e")],
         ),
     )
-    @pytest.mark.parametrize("file_parameter_count", (0, 1, 2))
-    def test_prepare_post_parameters(
-        self, file_context, text_parameters, file_parameter_count
-    ):
-        """This test needs a little explanation. The prepare_post_parameters method is odd, it returns the result
-        in a return statement but also mutates the input argument. I suspect this is not intentional, but for the moment
-        the test works around this by copying the initial state of the parameter list.
-        """
-        # TODO - Can we remove this weirdness?
+    def test_prepare_post_parameters_with_text_parameters(self, text_parameters):
         if text_parameters is None:
-            initial_text_parameters = []
-        else:
-            initial_text_parameters = copy.deepcopy(text_parameters)
+            text_parameters = []
 
-        file_names, file_contents = file_context(file_parameter_count)
-        file_dict = {"post_body": file_names}
+        output = ApiClient.prepare_post_parameters(text_parameters, None)
 
-        output = ApiClient.prepare_post_parameters(text_parameters, file_dict)
-
-        assert len(output) == file_parameter_count + len(initial_text_parameters)
-        for text_parameter in initial_text_parameters:
+        assert len(list(output)) == len(text_parameters)
+        for text_parameter in text_parameters:
             assert text_parameter in output
+
+    def _check_file_contents(self, output: Iterable[tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]], file_count: int, file_names: Iterable[str], file_contents: Iterable[bytes]):
+        assert len(list(output)) == file_count
+
         file_tuples = [
             parameter[1] for parameter in output if parameter[0] == "post_body"
         ]
@@ -1061,3 +1089,40 @@ class TestStaticMethods:
             assert len(matched_parameter) == 1
             assert matched_parameter[0][1] == file_content
             assert matched_parameter[0][2] is not None
+
+
+    @pytest.mark.parametrize("file_parameter_count", (0, 1, 2))
+    def test_prepare_post_parameters_with_file_names(
+        self, file_context, file_parameter_count
+    ):
+        file_names, file_contents = file_context(file_parameter_count)
+        file_dict = {"post_body": file_names}
+
+        output = ApiClient.prepare_post_parameters(None, file_dict)
+
+        self._check_file_contents(output, file_parameter_count, file_names, file_contents)
+
+    @pytest.mark.parametrize("file_parameter_count", (1, 2, 3))
+    def test_prepare_post_parameters_with_file_names(
+        self, opened_file_context, file_parameter_count
+    ):
+        file_handles, file_names, file_contents = opened_file_context(
+            file_parameter_count
+        )
+        file_dict = {"post_body": file_handles}
+
+        output = ApiClient.prepare_post_parameters(None, file_dict)
+
+        self._check_file_contents(output, file_parameter_count, file_names, file_contents)
+
+
+    @pytest.mark.parametrize(("file_name", "mime_type"), [("door.jpg", "image/jpeg"), ("door.png", "image/png"), ("door.tiff", "image/tiff"), ("test.csv", "text/csv"), ("test.json", "application/json")])
+    def test_process_file(self, file_name: str, mime_type: str):
+        if sys.platform == "win32" and file_name == "test.csv":
+            pytest.skip("Excel interferes with CSV mime type detection on windows")
+        file_path = Path(__file__).parent / "files" / file_name
+        with open(file_path, "rb") as fp:
+            filename, file_data, mimetype = ApiClient._process_file(fp)
+            assert filename == file_name
+            assert mimetype == mime_type
+
