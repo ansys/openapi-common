@@ -1074,7 +1074,15 @@ class TestStaticMethods:
         for text_parameter in text_parameters:
             assert text_parameter in output
 
-    def _check_file_contents(self, output: Iterable[tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]], file_count: int, file_names: Iterable[str], file_contents: Iterable[bytes]):
+    def _check_file_contents(
+        self,
+        output: Iterable[
+            tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]
+        ],
+        file_count: int,
+        file_names: Iterable[str],
+        file_contents: Iterable[bytes],
+    ):
         assert len(list(output)) == file_count
 
         file_tuples = [
@@ -1090,7 +1098,6 @@ class TestStaticMethods:
             assert matched_parameter[0][1] == file_content
             assert matched_parameter[0][2] is not None
 
-
     @pytest.mark.parametrize("file_parameter_count", (0, 1, 2))
     def test_prepare_post_parameters_with_file_names(
         self, file_context, file_parameter_count
@@ -1100,7 +1107,9 @@ class TestStaticMethods:
 
         output = ApiClient.prepare_post_parameters(None, file_dict)
 
-        self._check_file_contents(output, file_parameter_count, file_names, file_contents)
+        self._check_file_contents(
+            output, file_parameter_count, file_names, file_contents
+        )
 
     @pytest.mark.parametrize("file_parameter_count", (1, 2, 3))
     def test_prepare_post_parameters_with_file_names(
@@ -1113,10 +1122,20 @@ class TestStaticMethods:
 
         output = ApiClient.prepare_post_parameters(None, file_dict)
 
-        self._check_file_contents(output, file_parameter_count, file_names, file_contents)
+        self._check_file_contents(
+            output, file_parameter_count, file_names, file_contents
+        )
 
-
-    @pytest.mark.parametrize(("file_name", "mime_type"), [("door.jpg", "image/jpeg"), ("door.png", "image/png"), ("door.tiff", "image/tiff"), ("test.csv", "text/csv"), ("test.json", "application/json")])
+    @pytest.mark.parametrize(
+        ("file_name", "mime_type"),
+        [
+            ("door.jpg", "image/jpeg"),
+            ("door.png", "image/png"),
+            ("door.tiff", "image/tiff"),
+            ("test.csv", "text/csv"),
+            ("test.json", "application/json"),
+        ],
+    )
     def test_process_file(self, file_name: str, mime_type: str):
         if sys.platform == "win32" and file_name == "test.csv":
             pytest.skip("Excel interferes with CSV mime type detection on windows")
@@ -1125,4 +1144,3 @@ class TestStaticMethods:
             filename, file_data, mimetype = ApiClient._process_file(fp)
             assert filename == file_name
             assert mimetype == mime_type
-
