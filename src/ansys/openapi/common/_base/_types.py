@@ -72,13 +72,13 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
         header_params: Union[Dict[str, Union[str, int]], None] = None,
         body: Optional[DeserializedType] = None,
-        post_params: Optional[List[Tuple]] = None,
+        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
         files: Optional[Dict[str, str]] = None,
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float], None] = None,
+        _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         ...
