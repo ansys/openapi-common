@@ -25,7 +25,9 @@ jobs:
           python-version: '3.10'
           
       - name: Install kerberos headers
-        run: sudo apt install libkrb5-dev
+        run: |
+          sudo apt-get update
+          sudo apt install libkrb5-dev
 
       - name: Install tox
         run: |
@@ -69,7 +71,7 @@ jobs:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.11']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
 
     steps:
     - uses: actions/checkout@v3
@@ -109,7 +111,9 @@ jobs:
           python-version: '3.10'
  
       - name: Install kerberos headers
-        run: sudo apt install libkrb5-dev
+        run: |
+          sudo apt-get update
+          sudo apt install libkrb5-dev
 
       - name: Create wheel
         run: |
@@ -140,7 +144,9 @@ jobs:
           python-version: '3.10'
           
       - name: Install kerberos headers
-        run: sudo apt install libkrb5-dev
+        run: |
+          sudo apt-get update
+          sudo apt install libkrb5-dev
 
       - name: Install library
         run: |
