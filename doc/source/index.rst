@@ -144,7 +144,7 @@ For comprehensive API documentation, see :doc:`API reference <api/index>`.
 Contributions
 -------------
 Contributions to this library are welcome. For more information, see
-:ref: `_contributing_openapi`.
+:ref:`contributing_openapi`.
 
 Project index
 -------------
