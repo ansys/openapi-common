@@ -1,5 +1,6 @@
 import abc
 import datetime
+from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
@@ -10,6 +11,7 @@ DeserializedType = Union[
     PrimitiveType,
     datetime.datetime,
     datetime.date,
+    Enum,
     List,
     Tuple,
     Dict,
