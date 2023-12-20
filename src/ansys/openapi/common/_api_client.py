@@ -4,7 +4,7 @@ import mimetypes
 import os
 import re
 import tempfile
-from enum import Enum, EnumType
+from enum import Enum
 from types import ModuleType
 from typing import (
     Any,
@@ -94,7 +94,7 @@ class ApiClient(ApiClientBase):
         api_url: str,
         configuration: SessionConfiguration,
     ):
-        self.models: Dict[str, Type[ModelBase]] = {}
+        self.models: Dict[str, Union[Type[ModelBase], Type[Enum]]] = {}
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
@@ -381,19 +381,18 @@ class ApiClient(ApiClientBase):
 
         if klass_name in self.NATIVE_TYPES_MAPPING:
             klass = self.NATIVE_TYPES_MAPPING[klass_name]
-        else:
-            klass = self.models[klass_name]
+            if klass in self.PRIMITIVE_TYPES:
+                assert isinstance(data, (str, int, float, bool, bytes))
+                return self.__deserialize_primitive(data, klass)
+            elif klass == datetime.date:
+                assert isinstance(data, str)
+                return self.__deserialize_date(data)
+            elif klass == datetime.datetime:
+                assert isinstance(data, str)
+                return self.__deserialize_datetime(data)
 
-        if klass in self.PRIMITIVE_TYPES:
-            assert isinstance(data, (str, int, float, bool, bytes))
-            return self.__deserialize_primitive(data, klass)
-        elif klass == datetime.date:
-            assert isinstance(data, str)
-            return self.__deserialize_date(data)
-        elif klass == datetime.datetime:
-            assert isinstance(data, str)
-            return self.__deserialize_datetime(data)
-        elif type(klass) == EnumType:
+        klass = self.models[klass_name]
+        if issubclass(klass, Enum):
             assert isinstance(data, str)
             return klass(data)
         else:
