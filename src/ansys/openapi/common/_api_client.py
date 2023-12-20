@@ -4,6 +4,7 @@ import mimetypes
 import os
 import re
 import tempfile
+from enum import Enum, EnumType
 from types import ModuleType
 from typing import (
     Any,
@@ -275,6 +276,8 @@ class ApiClient(ApiClientBase):
             return tuple(self.sanitize_for_serialization(sub_obj) for sub_obj in obj)
         elif isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
+        elif isinstance(obj, Enum):
+            return obj.value
 
         if isinstance(obj, dict):
             obj_dict = obj
@@ -390,6 +393,9 @@ class ApiClient(ApiClientBase):
         elif klass == datetime.datetime:
             assert isinstance(data, str)
             return self.__deserialize_datetime(data)
+        elif type(klass) == EnumType:
+            assert isinstance(data, str)
+            return klass(data)
         else:
             assert isinstance(data, (dict, str))
             return self.__deserialize_model(data, klass)
