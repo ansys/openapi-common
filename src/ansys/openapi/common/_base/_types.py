@@ -57,13 +57,13 @@ class ModelBase(metaclass=abc.ABCMeta):
                         if hasattr(item[1], "to_dict")
                         else item,
                         value.items(),
-                    )
+                    )  # type: ignore
                 )
             elif isinstance(value, Enum):
                 result[attr] = value.value
             else:
                 result[attr] = value
-        if issubclass(self.__class__, dict):
+        if isinstance(self, dict):
             for key, value in self.items():
                 result[key] = value
 
