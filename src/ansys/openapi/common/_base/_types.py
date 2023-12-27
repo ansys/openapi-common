@@ -1,5 +1,6 @@
 import abc
 import datetime
+import pprint
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -31,13 +32,50 @@ class ModelBase(metaclass=abc.ABCMeta):
     def __init__(self, *args: Any, **kwargs: Any) -> None:
         ...
 
-    @abc.abstractmethod
-    def to_dict(self) -> Dict[str, DeserializedType]:
-        ...
+    def to_dict(self) -> Dict:
+        """Returns the model properties as a dict
 
-    @abc.abstractmethod
+        Returns
+        -------
+        Dict
+            Dictionary indexed by property name containing all the model properties
+        """
+        result = {}
+
+        for attr in self.swagger_types.keys():
+            value = getattr(self, attr)
+            if isinstance(value, list):
+                result[attr] = list(map(
+                    lambda x: x.to_dict() if hasattr(x, "to_dict") else x,
+                    value
+                ))
+            elif hasattr(value, "to_dict"):
+                result[attr] = value.to_dict()
+            elif isinstance(value, dict):
+                result[attr] = dict(map(
+                    lambda item: (item[0], item[1].to_dict())
+                    if hasattr(item[1], "to_dict") else item,
+                    value.items()
+                ))
+            elif isinstance(value, Enum):
+                result[attr] = value.value
+            else:
+                result[attr] = value
+        if issubclass(self.__class__, dict):
+            for key, value in self.items():
+                result[key] = value
+
+        return result
+
     def to_str(self) -> str:
-        ...
+        """Returns the string representation of the model
+
+        Returns
+        -------
+        str
+            String representation of the model as a dictionary
+        """
+        return pprint.pformat(self.to_dict())
 
     def get_real_child_model(self, data: Union[Dict, str]) -> str:
         """Classes with discriminators will override this method and may change the method signature."""
