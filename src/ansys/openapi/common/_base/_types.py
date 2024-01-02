@@ -59,7 +59,7 @@ class ModelBase(metaclass=abc.ABCMeta):
                         else item_value
                     )
                     for item_key, item_value in value.items()
-                }
+                }  # type: ignore
             elif isinstance(value, Enum):
                 result[attr] = value.value
             else:
