@@ -41,9 +41,7 @@ def try_parse_and_assert_failed(response):
     return exception_info
 
 
-def get_session_from_mock_factory_with_refresh_token(
-    refresh_token: str
-):
+def get_session_from_mock_factory_with_refresh_token(refresh_token: str):
     mock_factory = Mock()
     mock_factory._auth = Mock()
     mock_factory._auth.refresh_token = MagicMock(
