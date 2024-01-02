@@ -1,4 +1,3 @@
-import os
 from typing import Optional
 
 import keyring
@@ -53,17 +52,7 @@ class OIDCSessionFactory:
         self._initial_session = initial_session
         self._api_url = initial_response.url
 
-        if os.getenv("VERBOSE_TOKEN_DEBUGGING"):
-            self._log_tokens = True
-        else:
-            self._log_tokens = False
-
         logger.debug("Creating OIDC session handler...")
-        if self._log_tokens:
-            logger.warning(
-                "Verbose token debugging is enabled. This will write sensitive information to the log. "
-                "Do not use this in production."
-            )
 
         self._authenticate_parameters = self._parse_unauthorized_header(
             initial_response
@@ -129,8 +118,6 @@ class OIDCSessionFactory:
         logger.info("Setting tokens...")
         if refresh_token is None:
             raise ValueError("Must provide a value for 'refresh_token', not None")
-        if self._log_tokens:
-            logger.debug(f"Setting refresh token: {refresh_token}")
         try:
             state, token, expires_in, new_refresh_token = self._auth.refresh_token(
                 refresh_token
