@@ -1,7 +1,7 @@
 (?i)ansys
 API
 APIs
-OpenAPI
-OpenAPI-Common
-Kerberos
+Common
 Heimdal
+Kerberos
+OpenAPI
