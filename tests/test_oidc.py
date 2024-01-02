@@ -1,5 +1,4 @@
 import json
-import logging
 from urllib.parse import parse_qs
 
 import pytest
@@ -42,16 +41,12 @@ def try_parse_and_assert_failed(response):
     return exception_info
 
 
-def get_session_from_mock_factory_with_refresh_token(
-    refresh_token: str, log_token: bool = None
-):
+def get_session_from_mock_factory_with_refresh_token(refresh_token: str):
     mock_factory = Mock()
     mock_factory._auth = Mock()
     mock_factory._auth.refresh_token = MagicMock(
         return_value=(0, "token", 1, refresh_token)
     )
-    if log_token is not None:
-        mock_factory._log_tokens = log_token
     session = OIDCSessionFactory.get_session_with_provided_token(
         mock_factory, refresh_token
     )
@@ -286,24 +281,6 @@ def test_endpoint_with_refresh_configures_correctly():
         assert auth.refresh_data["client_id"] == client_id
 
 
-def test_token_logging_outputs_token_to_logs(caplog):
-    refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    session = get_session_from_mock_factory_with_refresh_token(
-        refresh_token, log_token=True
-    )
-
-    assert f"Setting refresh token: {refresh_token}" in caplog.text
-
-
-def test_disabled_token_logging(caplog):
-    refresh_token = "dGhpcyBpcyBhIHRva2VuLCBob25lc3Qh"
-    session = get_session_from_mock_factory_with_refresh_token(
-        refresh_token, log_token=False
-    )
-
-    assert refresh_token not in caplog.text
-
-
 def mock_oidc_session_builder():
     secure_servicelayer_url = "https://localhost/mi_servicelayer"
     redirect_uri = "https://www.example.com/login/"
@@ -334,23 +311,3 @@ def mock_oidc_session_builder():
 
         session_builder = ApiClientFactory(secure_servicelayer_url).with_oidc()
     return session_builder
-
-
-def test_enabling_token_logging(caplog, monkeypatch):
-    monkeypatch.setenv("VERBOSE_TOKEN_DEBUGGING", "true")
-
-    with caplog.at_level(logging.WARNING):
-        session_builder = mock_oidc_session_builder()
-
-    assert "Verbose token debugging is enabled." in caplog.text
-    assert session_builder._session_factory._log_tokens is True
-
-
-def test_disabling_token_logging(caplog, monkeypatch):
-    monkeypatch.delenv("VERBOSE_TOKEN_DEBUGGING", raising=False)
-
-    with caplog.at_level(logging.WARNING):
-        session_builder = mock_oidc_session_builder()
-
-    assert "Verbose token debugging is enabled." not in caplog.text
-    assert session_builder._session_factory._log_tokens is False
