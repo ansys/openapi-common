@@ -123,7 +123,7 @@ You should then be able to install this module with the ``[linux-kerberos]`` ext
 
 .. code-block:: bash
 
-   sudo apt install build-essentials python3.8-dev libkrb5-dev
+   sudo apt install build-essentials python3.10-dev libkrb5-dev
    pip install ansys-openapi-common[linux-kerberos]
 
 
