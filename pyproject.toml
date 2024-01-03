@@ -5,10 +5,10 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "ansys-openapi-common"
 description = "Provides a helper to create sessions for use with Ansys OpenAPI clients."
-version = "1.3.0"
+version = "1.4.0"
 license = "MIT"
-authors = ["ANSYS, Inc."]
-maintainers = ["PyAnsys Maintainers <pyansys.maintainers@ansys.com>"]
+authors = ["ANSYS, Inc. <pyansys.core@ansys.com>"]
+maintainers = ["ANSYS, Inc. <pyansys.core@ansys.com>"]
 repository = "https://github.com/pyansys/openapi-common"
 documentation = "https://openapi.docs.pyansys.com"
 readme = "README.rst"

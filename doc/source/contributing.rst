@@ -30,9 +30,3 @@ Use the `OpenAPI-Common Issues <https://github.com/pyansys/openapi-common/issues
 to submit questions, report bugs, and request new features.
 
 To reach the support team, email `pyansys.support@ansys.com <pyansys.support@ansys.com>`_.
-
-View OpenAPI-Common documentation
----------------------------------
-Documentation for the latest stable release of OpenAPI-Common
-is hosted at `OpenAPI-Common Documentation <https://openapi.docs.pyansys.com>`_.  
-
