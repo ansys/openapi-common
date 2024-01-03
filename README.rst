@@ -116,14 +116,14 @@ Ubuntu 20.04
 ============
 
 Ubuntu requires the ``gssapi`` Python module to be built from source. This requires the
-Kerberos headers, Python headers for the version of Python that you are using, and a
-supported compiler. (GCC works well.)
+Kerberos headers, Python headers for the version of Python that you are using (here we have
+installed python3.10 from the deadsnakes ppa), and a supported compiler. (GCC works well.))
 
 You should then be able to install this module with the ``[linux-kerberos]`` extra.
 
 .. code-block:: bash
 
-   sudo apt install build-essentials python3.10-dev libkrb5-dev
+   sudo apt install build-essential python3.10-dev libkrb5-dev
    pip install ansys-openapi-common[linux-kerberos]
 
 
