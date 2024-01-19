@@ -1,0 +1,9 @@
+documentation:
+- changed-files:
+  - any-glob-to-any-file: ['doc/source/**/*']
+maintenance:
+- changed-files:
+  - any-glob-to-any-file: ['.github/**/*', 'pyproject.toml']
+dependencies:
+- changed-files:
+  - any-glob-to-any-file: ['poetry.lock']
