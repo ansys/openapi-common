@@ -38,13 +38,13 @@ files = [
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "0.13.1"
+version = "0.13.2"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 optional = false
 python-versions = ">=3.9,<4"
 files = [
-    {file = "ansys_sphinx_theme-0.13.1-py3-none-any.whl", hash = "sha256:d82c266cecc46cf535e929ce4354d6392a731fe623d05977d88b408b032dd867"},
-    {file = "ansys_sphinx_theme-0.13.1.tar.gz", hash = "sha256:863574c46ed51eb12b55472d085df04c48cd0a84db84d5e95594683aedfbf4a3"},
+    {file = "ansys_sphinx_theme-0.13.2-py3-none-any.whl", hash = "sha256:aff8c71cd988bfd4dabec418706f5cdc6e6bef01f0c258a4a6959d27a00ebb73"},
+    {file = "ansys_sphinx_theme-0.13.2.tar.gz", hash = "sha256:b57ef164a10d00e1fb3be0111c216047cee484549711d32de2ac96c1e15346a2"},
 ]
 
 [package.dependencies]
@@ -1588,4 +1588,4 @@ oidc = ["keyring", "requests_auth"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "c5ee7f01653f3f17c22de28998212737ba68632b2829adeb18c27c7555b70795"
+content-hash = "aac71528ed27a9a2b0afc4c3a1d6f57e2c925a9585debecaa754d09236740336"
