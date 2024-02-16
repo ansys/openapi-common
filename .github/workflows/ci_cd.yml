@@ -14,8 +14,20 @@ on:
 jobs:
   code-style:
     name: "Code style"
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+      volumes:
+        - /tmp/keytabs:/tmp/keytabs
     steps:
+      - name: Configure host kerberos
+        run: |
+          apt update
+          export DEBIAN_FRONTEND=noninteractive
+          apt install -yq krb5-user
+          cp ./tests/integration/krb5.conf /etc/krb5.conf
+          ./tests/integration/configure_keytab.sh
+
       - uses: ansys/actions/code-style@v5.1
         with:
           skip-install: false
