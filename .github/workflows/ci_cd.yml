@@ -14,11 +14,8 @@ on:
 jobs:
   code-style:
     name: "Code style"
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
-      - name: "Install krb5"
-        run: apt install -yq krb5-user
-
       - uses: ansys/actions/code-style@v5.1
         with:
           skip-install: false
