@@ -4,6 +4,7 @@ import mimetypes
 import os
 import re
 import tempfile
+import warnings
 from enum import Enum
 from types import ModuleType
 from typing import (
@@ -23,8 +24,9 @@ from typing import (
 from urllib.parse import quote
 
 import requests
-from dateutil.parser import parse
-from requests.structures import CaseInsensitiveDict
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=DeprecationWarning)
+    from dateutil.parser import parse
 
 from ._base import (
     ApiClientBase,
@@ -33,7 +35,7 @@ from ._base import (
     PrimitiveType,
     SerializedType,
 )
-from ._exceptions import ApiException
+from ._exceptions import ApiException, UndefinedObjectWarning
 from ._util import SessionConfiguration, handle_response
 
 
@@ -98,6 +100,7 @@ class ApiClient(ApiClientBase):
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
+        self.__deserialization_parent_key = None
 
     def __repr__(self) -> str:
         return f"<ApiClient url: {self.api_url}>"
@@ -362,10 +365,17 @@ class ApiClient(ApiClientBase):
 
             * String class name
             * String type definition for list or dictionary
+            * "object" literal, which returns the dictionary as-is
         """
 
         if data is None:
             return None
+
+        if klass_name == "object":
+            warnings.warn("Attempting to deserialize an object with no defined type. Returning "
+                          "the raw data as a dictionary. Check your OpenAPI definition and ensure "
+                          "all types are fully defined.", UndefinedObjectWarning)
+            return data
 
         list_match = self.LIST_MATCH_REGEX.match(klass_name)
         if list_match is not None:

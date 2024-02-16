@@ -103,3 +103,14 @@ class ApiException(Exception):
         return (
             f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
         )
+
+
+class UndefinedObjectWarning(UserWarning):
+    """
+    Provides a warning which is emitted when a model is incompletely described in the OpenAPI
+    definition.
+
+    The data received from the server cannot be fully deserialized, and so the response is provided
+    as an un-deserialized dictionary.
+    """
+    pass
