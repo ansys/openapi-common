@@ -16,6 +16,9 @@ jobs:
     name: "Code style"
     runs-on: ubuntu-latest
     steps:
+      - name: "Install krb5"
+        run: apt install -yq krb5-user
+
       - uses: ansys/actions/code-style@v5.1
         with:
           skip-install: false
@@ -162,7 +165,7 @@ jobs:
 
   Release:
     if: contains(github.ref, 'refs/tags')
-    needs: [build, test, docs]
+    needs: [build, test, code-style, docs]
     runs-on: ubuntu-latest
     steps:
       - name: Set up Python
