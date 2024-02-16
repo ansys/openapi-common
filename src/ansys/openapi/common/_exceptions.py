@@ -112,5 +112,8 @@ class UndefinedObjectWarning(UserWarning):
 
     The data received from the server cannot be fully deserialized, and so the response is provided
     as an un-deserialized dictionary.
+
+    This warning can be safely suppressed if the required detail cannot be added to the OpenAPI
+    definition, but in this case the deserialization must be defined manually.
     """
     pass
