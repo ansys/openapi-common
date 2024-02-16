@@ -12,30 +12,13 @@ on:
       - main
 
 jobs:
-  style:
-    name: Style Check
+  code-style:
+    name: "Code style"
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: ansys/actions/code-style@v5.1
         with:
-          python-version: '3.10'
-
-      - name: Install kerberos headers
-        run: |
-          sudo apt-get update
-          sudo apt install libkrb5-dev
-
-      - name: Install tox
-        run: |
-          pip install 'tox<4' poetry --disable-pip-version-check
-
-      - name: Lint project
-        run: |
-          tox -e lint
+          skip-install: false
 
   docs-style:
     name: Documentation Style Check
