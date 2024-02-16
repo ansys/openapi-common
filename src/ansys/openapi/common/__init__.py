@@ -5,7 +5,12 @@ __version__ = metadata.version("ansys-openapi-common")
 
 from ._api_client import ApiClient
 from ._base import ApiBase, ApiClientBase, ModelBase
-from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning, UndefinedObjectWarning
+from ._exceptions import (
+    ApiConnectionException,
+    ApiException,
+    AuthenticationWarning,
+    UndefinedObjectWarning,
+)
 from ._session import ApiClientFactory, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 

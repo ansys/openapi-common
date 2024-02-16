@@ -24,6 +24,7 @@ from typing import (
 from urllib.parse import quote
 
 import requests
+
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=DeprecationWarning)
     from dateutil.parser import parse
@@ -372,9 +373,12 @@ class ApiClient(ApiClientBase):
             return None
 
         if klass_name == "object":
-            warnings.warn("Attempting to deserialize an object with no defined type. Returning "
-                          "the raw data as a dictionary. Check your OpenAPI definition and ensure "
-                          "all types are fully defined.", UndefinedObjectWarning)
+            warnings.warn(
+                "Attempting to deserialize an object with no defined type. Returning "
+                "the raw data as a dictionary. Check your OpenAPI definition and ensure "
+                "all types are fully defined.",
+                UndefinedObjectWarning,
+            )
             return data
 
         list_match = self.LIST_MATCH_REGEX.match(klass_name)

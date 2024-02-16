@@ -116,4 +116,3 @@ class UndefinedObjectWarning(UserWarning):
     This warning can be safely suppressed if the required detail cannot be added to the OpenAPI
     definition, but in this case the deserialization must be defined manually.
     """
-    pass
