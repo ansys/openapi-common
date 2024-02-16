@@ -1,4 +1,5 @@
 """Provides a helper to create sessions for use with Ansys OpenAPI clients."""
+
 from importlib import metadata as metadata
 
 __version__ = metadata.version("ansys-openapi-common")
