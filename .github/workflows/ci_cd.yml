@@ -36,7 +36,6 @@ jobs:
           python -m venv .venv
 
       - name: "Install project (if required)"
-        if: inputs.skip-install == 'false'
         shell: bash
         run: |
           source .venv/bin/activate
