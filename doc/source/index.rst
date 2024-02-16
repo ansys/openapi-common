@@ -46,7 +46,7 @@ The client is now ready and available for use with an OpenAPI client.
 Authentication schemes
 ----------------------
 OpenAPI-Common supports API servers configured with no authentication, API keys,
-client certificates, and basic authentication. 
+client certificates, and basic authentication.
 
 Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
 APIs with their Windows credentials and to NTLM where it is supported.

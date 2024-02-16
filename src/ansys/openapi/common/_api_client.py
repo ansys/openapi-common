@@ -1,38 +1,31 @@
 import datetime
+from enum import Enum
 import json
 import mimetypes
 import os
 import re
 import tempfile
-from enum import Enum
 from types import ModuleType
 from typing import (
+    IO,
     Any,
     Callable,
     Dict,
+    Iterable,
     List,
+    Mapping,
     Optional,
     Tuple,
     Type,
     Union,
-    IO,
-    Iterable,
-    Mapping,
     cast,
 )
 from urllib.parse import quote
 
-import requests
 from dateutil.parser import parse
-from requests.structures import CaseInsensitiveDict
+import requests
 
-from ._base import (
-    ApiClientBase,
-    DeserializedType,
-    ModelBase,
-    PrimitiveType,
-    SerializedType,
-)
+from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
 from ._exceptions import ApiException
 from ._util import SessionConfiguration, handle_response
 
@@ -100,11 +93,13 @@ class ApiClient(ApiClientBase):
         self.configuration = configuration
 
     def __repr__(self) -> str:
+        """Printable representation of the object."""
         return f"<ApiClient url: {self.api_url}>"
 
     def setup_client(self, models: ModuleType) -> None:
-        """Set up the client for use and register models for serialization and deserialization. This step must be
-        completed prior to using the :class:`ApiClient` class.
+        """Set up the client for use and register models for serialization and deserialization.
+
+        This step must be completed prior to using the :class:`ApiClient` class.
 
         Parameters
         ----------
@@ -157,17 +152,13 @@ class ApiClient(ApiClientBase):
         # query parameters
         query_params_str = ""
         if query_params:
-            query_params_str = self.__handle_query_params(
-                query_params, collection_formats
-            )
+            query_params_str = self.__handle_query_params(query_params, collection_formats)
 
         # post parameters
         if post_params or files:
             post_param_tuples = self.prepare_post_parameters(post_params, files)
             sanitized_post_params = self.sanitize_for_serialization(post_param_tuples)
-            post_params = self.parameters_to_tuples(
-                sanitized_post_params, collection_formats
-            )
+            post_params = self.parameters_to_tuples(sanitized_post_params, collection_formats)
 
         # body
         if body:
@@ -212,9 +203,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]],
     ) -> str:
         path_params_sanitized = self.sanitize_for_serialization(path_params)
-        path_params_tuples = self.parameters_to_tuples(
-            path_params_sanitized, collection_formats
-        )
+        path_params_tuples = self.parameters_to_tuples(path_params_sanitized, collection_formats)
         for k, v in path_params_tuples:
             # specified safe chars, encode everything
             resource_path = resource_path.replace(
@@ -229,9 +218,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]],
     ) -> str:
         query_params_sanitized = self.sanitize_for_serialization(query_params)
-        query_params_tuples = self.parameters_to_tuples(
-            query_params_sanitized, collection_formats
-        )
+        query_params_tuples = self.parameters_to_tuples(query_params_sanitized, collection_formats)
         return "&".join([f"{k}={v}" for k, v in query_params_tuples])
 
     def sanitize_for_serialization(self, obj: Any) -> Any:
@@ -288,9 +275,7 @@ class ApiClient(ApiClientBase):
                 if getattr(obj, attr) is not None
             }
 
-        return {
-            key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()
-        }
+        return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
 
     def deserialize(
         self, response: requests.Response, response_type: Optional[str]
@@ -333,7 +318,6 @@ class ApiClient(ApiClientBase):
         ... client.deserialize(api_response, 'datetime.datetime')
         datetime.datetime(2015, 10, 21, 10, 5, 10)
         """
-
         if response_type is None:
             return None
 
@@ -363,7 +347,6 @@ class ApiClient(ApiClientBase):
             * String class name
             * String type definition for list or dictionary
         """
-
         if data is None:
             return None
 
@@ -511,7 +494,6 @@ class ApiClient(ApiClientBase):
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
         """
-
         if method == "GET":
             return handle_response(
                 self.rest_client.get(
@@ -611,7 +593,6 @@ class ApiClient(ApiClientBase):
         collection_formats : Dict[str, str]
             Dictionary with a parameter name and collection type specifier.
         """
-
         new_params: List[Tuple[Any, Any]] = []
         if collection_formats is None:
             collection_formats = {}
@@ -652,9 +633,7 @@ class ApiClient(ApiClientBase):
         files : Optional[Mapping[str, Union[str, bytes]]]
             File parameters.
         """
-        params: List[
-            Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]
-        ] = []
+        params: List[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]] = []
 
         if post_params:
             params.extend(post_params)
@@ -663,9 +642,7 @@ class ApiClient(ApiClientBase):
             for parameter, file_entry in files.items():
                 if not file_entry:
                     continue
-                file_names = (
-                    file_entry if isinstance(file_entry, list) else [file_entry]
-                )
+                file_names = file_entry if isinstance(file_entry, list) else [file_entry]
                 for file_name in file_names:
                     if hasattr(file_name, "read"):
                         param = ApiClient._process_file(cast(IO, file_name))
@@ -847,7 +824,6 @@ class ApiClient(ApiClientBase):
         klass : ModelType
             Type of the model to deserialize.
         """
-
         if not klass.swagger_types:
             try:
                 klass.get_real_child_model(klass(), {})

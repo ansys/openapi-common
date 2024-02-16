@@ -3,7 +3,7 @@
 {{ fullname | escape | underline}}
 
 .. automodule:: {{ fullname }}
-  
+
    {% block attributes %}
    {% if attributes %}
    .. rubric:: Module Attributes

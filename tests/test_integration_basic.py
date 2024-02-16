@@ -1,27 +1,23 @@
 from multiprocessing import Process
 from time import sleep
 
-import pytest
-import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+import pytest
+import uvicorn
 
-from ansys.openapi.common import (
-    ApiClientFactory,
-    SessionConfiguration,
-    ApiConnectionException,
-)
+from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
+
 from .integration.common import (
-    ExampleModelPyd,
-    validate_user_basic,
     TEST_MODEL_ID,
-    TEST_URL,
     TEST_PASS,
-    TEST_USER,
     TEST_PORT,
+    TEST_URL,
+    TEST_USER,
+    ExampleModelPyd,
     return_model,
+    validate_user_basic,
 )
-
 
 custom_test_app = FastAPI()
 security = HTTPBasic()

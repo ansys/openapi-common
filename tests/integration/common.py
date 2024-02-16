@@ -1,7 +1,7 @@
 import secrets
-from typing import Optional, List
+from typing import List, Optional
 
-from fastapi import HTTPException, status, FastAPI
+from fastapi import FastAPI, HTTPException, status
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
 from starlette.requests import Request

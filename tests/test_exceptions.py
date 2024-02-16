@@ -2,10 +2,10 @@ import uuid
 
 import pytest
 import requests
-from requests_mock import Mocker
 from requests.utils import CaseInsensitiveDict
+from requests_mock import Mocker
 
-from ansys.openapi.common import ApiException, ApiConnectionException
+from ansys.openapi.common import ApiConnectionException, ApiException
 from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
@@ -67,9 +67,7 @@ def test_api_exception_str(include_headers, include_body):
         body = f"Record with ID '{str(uuid.uuid4())}' not found"
     else:
         body = None
-    api_connection_exception = ApiException(
-        status_code, reason_phrase, body=body, headers=headers
-    )
+    api_connection_exception = ApiException(status_code, reason_phrase, body=body, headers=headers)
     exception_str = api_connection_exception.__str__()
 
     assert "ApiException" in exception_str

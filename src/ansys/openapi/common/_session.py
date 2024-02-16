@@ -1,23 +1,18 @@
 import os
+from typing import Any, Mapping, Optional, Tuple, TypeVar, Union
 import warnings
-from typing import Any, Container, Mapping, Optional, Tuple, TypeVar, Union
 
 import requests
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-from requests_ntlm import HttpNtlmAuth  # type: ignore[import]
+from requests_ntlm import HttpNtlmAuth  # type: ignore[import-untyped]
 from urllib3.util.retry import Retry
 
 from . import __version__
 from ._api_client import ApiClient
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
-from ._util import (
-    SessionConfiguration,
-    generate_user_agent,
-    parse_authenticate,
-    set_session_kwargs,
-)
+from ._util import SessionConfiguration, generate_user_agent, parse_authenticate, set_session_kwargs
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -30,7 +25,7 @@ _platform_windows = False
 try:
     # noinspection PyUnresolvedReferences
     import keyring
-    import requests_auth  # type: ignore[import]
+    import requests_auth  # type: ignore[import-untyped]  # noqa: F401
 
     from ._oidc import OIDCSessionFactory
 except ImportError:
@@ -118,9 +113,7 @@ class ApiClientFactory:
         config_dict = self._session_configuration.get_configuration_for_requests()
         for k, v in config_dict.items():
             if v is not None:
-                logger.debug(
-                    f"Setting requests session parameter '{k}' with value '{v}'"
-                )
+                logger.debug(f"Setting requests session parameter '{k}' with value '{v}'")
         set_session_kwargs(self._session, config_dict)
         logger.info("Base session created.")
 
@@ -147,11 +140,13 @@ class ApiClientFactory:
         return ApiClient(self._session, self._api_url, self._session_configuration)
 
     def with_anonymous(self: Api_Client_Factory) -> Api_Client_Factory:
-        """Set up client authentication for anonymous use. This does not configure any authentication or
-        authorization headers. Users must provide any authentication information required themselves.
+        """Set up client authentication for anonymous use.
 
-        Clients relying on custom authentication such as client certificates or non-standard tokens should use this
-        method.
+        This does not configure any authentication or authorization headers. Users must provide any
+        authentication information required themselves.
+
+        Clients relying on custom authentication such as client certificates or non-standard tokens
+        should use this method.
 
         Returns
         -------
@@ -204,8 +199,7 @@ class ApiClientFactory:
             return self
         headers = self.__get_authenticate_header(initial_response)
         logger.debug(
-            "Detected authentication methods: "
-            + ", ".join([method for method in headers.keys()])
+            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
         )
         if "Negotiate" in headers or "NTLM" in headers:
             if _platform_windows:
@@ -249,8 +243,7 @@ class ApiClientFactory:
             return self
         headers = self.__get_authenticate_header(initial_response)
         logger.debug(
-            "Detected authentication methods: "
-            + ", ".join([method for method in headers.keys()])
+            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
         )
         if "Negotiate" in headers:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
@@ -300,11 +293,13 @@ class ApiClientFactory:
         return OIDCSessionBuilder(self, session_factory)
 
     def __test_connection(self) -> bool:
-        """Attempt to connect to the API server. If this returns a 2XX status code, the method returns
-        ``True``. Otherwise, the method will throw an :obj:`APIConnectionError` object with the status
-        code and the reason phrase. If the underlying requests method returns an exception of its own,
-        it is left to propagate as-is (for example, a
-        :obj:`~requests.exceptions.SSLException` object if the remote certificate is untrusted).
+        """Attempt to connect to the API server.
+
+        If this returns a 2XX status code, the method returns ``True``. Otherwise, the method will
+        throw an :obj:`APIConnectionError` object with the status code and the reason phrase. If the
+        underlying requests method returns an exception of its own, it is left to propagate as-is
+        (for example, a :obj:`~requests.exceptions.SSLException` object if the remote certificate
+        is untrusted).
 
         Raises
         ------
@@ -320,9 +315,11 @@ class ApiClientFactory:
     def __handle_initial_response(
         self, initial_response: requests.Response
     ) -> "Optional[ApiClientFactory]":
-        """Verify that an initial 401 response is returned if we expect to require authentication. If a 2XX response
-        is returned, then all is well, but we will not use any authentication in future. Otherwise, something else has
-        gone awry: return an :obj:`ApiConnectionException` object with information about the response.
+        """Verify that an initial 401 response is returned if we expect to require authentication.
+
+        If a 2XX response is returned, then all is well, but we will not use any authentication in
+        future. Otherwise, something else has gone awry: return an :obj:`ApiConnectionException`
+        object with information about the response.
 
         Parameters
         ----------
@@ -371,15 +368,12 @@ class ApiClientFactory:
             If the response contains no ``WWW-Authenticate`` header to be parsed.
         """
         if "www-authenticate" not in response.headers:
-            raise ValueError(
-                "No www-authenticate header was provided. Cannot continue..."
-            )
+            raise ValueError("No www-authenticate header was provided. Cannot continue...")
         return parse_authenticate(response.headers["www-authenticate"])
 
 
 class OIDCSessionBuilder:
-    """Helps create OpenID Connect sessions from different types of input and provides OIDC-specific
-    configuration options.
+    """Helps create OpenID Connect sessions and provides OIDC-specific configuration options.
 
     Parameters
     ----------
@@ -397,11 +391,10 @@ class OIDCSessionBuilder:
         self._client_factory = client_factory
         self._session_factory = session_factory
 
-    def with_stored_token(
-        self, token_name: str = "ansys-openapi-common-oidc"
-    ) -> ApiClientFactory:
-        """Use a token stored in the system keyring to authenticate the session. This method requires a correctly
-        configured system keyring backend.
+    def with_stored_token(self, token_name: str = "ansys-openapi-common-oidc") -> ApiClientFactory:
+        """Use a token stored in the system keyring to authenticate the session.
+
+        This method requires a correctly configured system keyring backend.
 
         Parameters
         ----------
@@ -444,10 +437,8 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = (
-            self._session_factory.get_session_with_provided_token(
-                refresh_token=refresh_token
-            )
+        self._client_factory._session = self._session_factory.get_session_with_provided_token(
+            refresh_token=refresh_token
         )
         self._client_factory._configured = True
         return self._client_factory
@@ -468,9 +459,7 @@ class OIDCSessionBuilder:
         if self._session_factory is None:
             return self._client_factory
         self._client_factory._session = (
-            self._session_factory.get_session_with_interactive_authorization(
-                login_timeout
-            )
+            self._session_factory.get_session_with_interactive_authorization(login_timeout)
         )
         self._client_factory._configured = True
         return self._client_factory
@@ -499,12 +488,10 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         stream: bool = False,
         timeout: Union[None, float, Tuple[float, float], Tuple[float, None]] = None,
         verify: Union[bool, str] = True,
-        cert: Union[
-            None, bytes, str, Tuple[Union[bytes, str], Union[bytes, str]]
-        ] = None,
+        cert: Union[None, bytes, str, Tuple[Union[bytes, str], Union[bytes, str]]] = None,
         proxies: Optional[Mapping[str, str]] = None,
     ) -> requests.Response:
-        """Method called when sending a request to the API.
+        """Send a request to the API.
 
         If no timeout is specified on the request, it is set to the provided value.
 
@@ -525,6 +512,4 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         proxies : Mapping[str, str], optional
             Dictionary of proxies to apply to the request.
         """
-        return super().send(
-            request, stream, timeout or self.timeout, verify, cert, proxies
-        )
+        return super().send(request, stream, timeout or self.timeout, verify, cert, proxies)
