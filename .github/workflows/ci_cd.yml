@@ -16,7 +16,7 @@ jobs:
     name: "Code style"
     runs-on: ubuntu-latest
     container:
-      image: ubuntu:22.04
+      image: python:3.10
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     steps:
@@ -24,11 +24,12 @@ jobs:
         run: |
           apt update
           export DEBIAN_FRONTEND=noninteractive
-          apt install -yq krb5-user lsb-release
+          apt install -yq krb5-user
 
       - uses: ansys/actions/code-style@v5.1
         with:
           skip-install: false
+          python-version: "3.10"
 
   docs-style:
     name: Documentation Style Check
