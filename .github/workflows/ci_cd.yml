@@ -20,6 +20,9 @@ jobs:
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     steps:
+      - name: "Install Git and clone project"
+        uses: actions/checkout@v4
+
       - name: Configure host kerberos
         run: |
           apt update
