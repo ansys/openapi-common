@@ -32,7 +32,7 @@ jobs:
       - name: "Install project"
         run: |
           ./venv/scripts/activate
-          poetry install
+          poetry install --extras oidc
           pre-commit install
 
       - name: "Run pre-commit"
