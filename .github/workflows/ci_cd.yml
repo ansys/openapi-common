@@ -14,27 +14,40 @@ on:
 jobs:
   code-style:
     name: "Code style"
-    runs-on: ubuntu-latest
-    container:
-      image: python:3.10
-      volumes:
-        - /tmp/keytabs:/tmp/keytabs
+    runs-on: windows-latest
     steps:
       - name: "Install Git and clone project"
         uses: actions/checkout@v4
 
-      - name: "Configure host kerberos"
-        run: |
-          apt update
-          export DEBIAN_FRONTEND=noninteractive
-          apt install -yq krb5-user git
+      - name: "Set up Python"
+        uses: ansys/actions/_setup-python@main
+        with:
+          python-version: "3.10"
 
-      - name: "Install project and run pre-commit"
+      - name: "Create virtual environment"
+        run: |
+          python -m pip install --upgrade pip
+          python -m venv .venv
+
+      - name: "Install project"
+        if: inputs.skip-install == 'false'
+        run: |
+          .venv/scripts/activate
+          python -m pip install poetry
+          python -m poetry install
+
+      - name: "Install pre-commit"
         shell: bash
         run: |
-          python -m pip install poetry pre-commit
-          python -m poetry install
-          python -m poetry run -- pre-commit run --all-files --show-diff-on-failure
+          source .venv/scripts/activate
+          python -m pip install pre-commit
+          pre-commit install
+
+      - name: "Run pre-commit"
+        shell: bash
+        run: |
+          source .venv/scripts/activate
+          pre-commit run --all-files --show-diff-on-failure
 
 #      - uses: ansys/actions/code-style@v5.1
 #        with:
