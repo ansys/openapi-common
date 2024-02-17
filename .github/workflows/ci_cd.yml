@@ -27,7 +27,7 @@ jobs:
         run: |
           apt update
           export DEBIAN_FRONTEND=noninteractive
-          apt install -yq krb5-user
+          apt install -yq krb5-user git
 
       - name: "Install project and run pre-commit"
         shell: bash
