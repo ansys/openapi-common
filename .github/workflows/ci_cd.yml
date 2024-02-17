@@ -30,7 +30,6 @@ jobs:
           python -m venv ./venv
 
       - name: "Install project"
-        if: inputs.skip-install == 'false'
         run: |
           ./venv/scripts/activate
           python -m pip install poetry
