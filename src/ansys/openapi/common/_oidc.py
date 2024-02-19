@@ -86,9 +86,11 @@ class OIDCSessionFactory:
             authorization_url=self._well_known_parameters["authorization_endpoint"],
             token_url=self._well_known_parameters["token_endpoint"],
             redirect_uri_port=32284,
-            audience=self._authenticate_parameters["apiAudience"]
-            if "apiAudience" in self._authenticate_parameters
-            else None,
+            audience=(
+                self._authenticate_parameters["apiAudience"]
+                if "apiAudience" in self._authenticate_parameters
+                else None
+            ),
             client_id=self._authenticate_parameters["clientid"],
             scope=scopes,
             session=self._initial_session,

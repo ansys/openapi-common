@@ -29,8 +29,7 @@ class ModelBase(metaclass=abc.ABCMeta):
     attribute_map: Dict[str, str]
 
     @abc.abstractmethod
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        ...
+    def __init__(self, *args: Any, **kwargs: Any) -> None: ...
 
     def to_dict(self) -> Dict:
         """Returns the model properties as a dict
@@ -98,13 +97,11 @@ class ApiClientBase(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
-        ...
+    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]: ...
 
     @staticmethod
     @abc.abstractmethod
-    def select_header_content_type(content_types: Optional[List[str]]) -> str:
-        ...
+    def select_header_content_type(content_types: Optional[List[str]]) -> str: ...
 
     @abc.abstractmethod
     def call_api(
@@ -123,5 +120,4 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Dict[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
-        ...
+    ) -> Union[requests.Response, DeserializedType, None]: ...
