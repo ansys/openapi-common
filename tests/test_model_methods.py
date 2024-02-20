@@ -1,6 +1,6 @@
-from . import models
-
 import pytest
+
+from . import models
 
 
 class TestToDict:

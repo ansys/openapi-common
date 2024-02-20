@@ -2,10 +2,7 @@ import itertools
 
 import pytest
 
-from ansys.openapi.common._util import (
-    parse_authenticate,
-    CaseInsensitiveOrderedDict,
-)
+from ansys.openapi.common._util import CaseInsensitiveOrderedDict, parse_authenticate
 
 negotiate_challenges_with_tokens = (
     ("Negotiate abcdef", {"negotiate": "abcdef"}),

@@ -4,12 +4,9 @@ from time import sleep
 import pytest
 import uvicorn
 
-from ansys.openapi.common import (
-    ApiClientFactory,
-    SessionConfiguration,
-    AuthenticationWarning,
-)
-from .integration.common import fastapi_test_app, TEST_MODEL_ID, TEST_URL, TEST_PORT
+from ansys.openapi.common import ApiClientFactory, AuthenticationWarning, SessionConfiguration
+
+from .integration.common import TEST_MODEL_ID, TEST_PORT, TEST_URL, fastapi_test_app
 
 
 def run_server():

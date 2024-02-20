@@ -1,17 +1,14 @@
-import sys
 from multiprocessing import Process
+import sys
 from time import sleep
 
-import pytest
-import uvicorn
 from fastapi import FastAPI
+import pytest
 from starlette.requests import Request
+import uvicorn
 
-from ansys.openapi.common import (
-    ApiClientFactory,
-    SessionConfiguration,
-    ApiConnectionException,
-)
+from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
+
 from .integration.common import (
     TEST_MODEL_ID,
     TEST_PORT,
@@ -54,9 +51,7 @@ def run_server():
     uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="No portable KDC is available at present"
-)
+@pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
 class TestNegotiate:
     @pytest.fixture(autouse=True)
     def server(self):
@@ -112,9 +107,7 @@ class TestNegotiate:
         assert response == deserialized_response
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="No portable KDC is available at present"
-)
+@pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
 class TestNegotiateFailures:
     @pytest.fixture(autouse=True)
     def server(self):

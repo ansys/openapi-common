@@ -2,7 +2,7 @@ Overview
 --------
 
 OpenAPI-Common is intended for use with the custom code generation
-template in the `PyAnsys project <https://github.com/pyansys>`_. 
+template in the `PyAnsys project <https://github.com/pyansys>`_.
 It provides the source code for an authentication-aware
 client for OpenAPI client libraries.
 
@@ -52,7 +52,7 @@ Authentication schemes
 ----------------------
 
 OpenAPI-Common supports API servers configured with no authentication, API keys,
-client certificates, and basic authentication schemes. 
+client certificates, and basic authentication schemes.
 
 Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
 APIs with their Windows credentials and to NTLM where it is supported.

@@ -1,22 +1,16 @@
-import http.cookiejar
-import sys
 from collections import OrderedDict
-from http.server import BaseHTTPRequestHandler, HTTPServer
+import http.cookiejar
 from itertools import chain
-from typing import Any, Collection, Dict, List, Optional, Tuple, Union, cast
+import tempfile
+from typing import Any, Collection, Dict, List, Optional, Tuple, TypedDict, Union, cast
 
 import pyparsing as pp
 from pyparsing import Word
+import requests
+from requests.structures import CaseInsensitiveDict
 
 from ._exceptions import ApiException
 from ._logger import logger
-
-from typing import TypedDict
-
-import tempfile
-
-import requests
-from requests.structures import CaseInsensitiveDict
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
@@ -38,41 +32,50 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         super().__init__(self._process_args(mapping, **kwargs))
 
     def __getitem__(self, k: str) -> Any:
+        """Override __getitem__ to retrieve lower-case key."""
         return super().__getitem__(k.lower())
 
     def __setitem__(self, k: str, v: Any) -> None:
+        """Override __setitem__ to store lower-case key."""
         return super().__setitem__(k.lower(), v)
 
     def __delitem__(self, k: str) -> None:
+        """Override __delitem__ to delete lower-case key."""
         return super().__delitem__(k.lower())
 
     def get(self, k: str, default: Optional[Any] = None) -> Any:
+        """Override get to retrieve lower-case key."""
         return super().get(k.lower(), default)
 
     def setdefault(self, k: str, default: Optional[Any] = None) -> Any:
+        """Override setdefault to use lower-case key."""
         return super().setdefault(k.lower(), default)
 
     def pop(self, k: str, v: Any = object()) -> Any:
+        """Override pop to use lower-case key."""
         if v is object():
             return super().pop(k.lower())
         return super().pop(k.lower(), v)
 
     def update(self, mapping: Any = (), **kwargs: Any) -> None:  # type: ignore[override]
+        """Override update to use lower-case key."""
         super().update(self._process_args(mapping, **kwargs))
 
     def __contains__(self, k: str) -> bool:  # type: ignore[override]
+        """Override __contains__ to use lower-case key."""
         return super().__contains__(k.lower())
 
     def copy(self) -> "CaseInsensitiveOrderedDict":
+        """Override copy."""
         return type(self)(self)
 
     @classmethod
     def fromkeys(cls, keys: Collection[str], v: Optional[Any] = None) -> "CaseInsensitiveOrderedDict":  # type: ignore[override]
-        return cast(
-            "CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v)
-        )
+        """Override fromkeys to use lower-case keys."""
+        return cast("CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v))
 
     def __repr__(self) -> str:
+        """Printable representation of the object."""
         return "{0}({1})".format(type(self).__name__, super().__repr__())
 
 
@@ -87,6 +90,7 @@ class Singleton(type):
     _instances: Dict[type, object] = {}
 
     def __call__(cls, *args: Any, **kwargs: Any) -> Any:
+        """Invoke when calling this object."""
         if cls not in cls._instances:
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
@@ -132,9 +136,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         try:
             parsed_value = self.auth_parser.parseString(value, parseAll=True)
         except pp.ParseException as exception_info:
-            raise ValueError("Failed to parse value").with_traceback(
-                exception_info.__traceback__
-            )
+            raise ValueError("Failed to parse value").with_traceback(exception_info.__traceback__)
         output = CaseInsensitiveOrderedDict({})
         for scheme in parsed_value.schemes:
             output[scheme[0]] = AuthenticateHeaderParser._render_options(scheme)
@@ -155,8 +157,10 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
 
 def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
-    """Parse a string containing a ``WWW-Authenticate`` header and return a dictionary with the supported
-    authentication types and provided parameters (if any exist).
+    """Parse a string containing a ``WWW-Authenticate`` header.
+
+    Return a dictionary with the supported authentication types and provided parameters
+    (if any exist).
 
     Parameters
     ----------
@@ -167,9 +171,7 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     return parser.parse_header(value)
 
 
-def set_session_kwargs(
-    session: requests.Session, property_dict: "RequestsConfiguration"
-) -> None:
+def set_session_kwargs(session: requests.Session, property_dict: "RequestsConfiguration") -> None:
     """Set session parameters from the dictionary provided.
 
     Parameters
@@ -184,6 +186,8 @@ def set_session_kwargs(
 
 
 class RequestsConfiguration(TypedDict):
+    """Configuration for requests session."""
+
     cert: Union[None, str, Tuple[str, str]]
     verify: Union[None, str, bool]
     cookies: http.cookiejar.CookieJar
@@ -281,9 +285,7 @@ class SessionConfiguration:
     def get_configuration_for_requests(
         self,
     ) -> "RequestsConfiguration":
-        """
-        Retrieve the configuration as a dictionary, with keys corresponding to ``requests`` session properties.
-        """
+        """Retrieve the configuration as a dictionary, with keys corresponding to ``requests`` session properties."""
         output: RequestsConfiguration = {
             "cert": self._cert,
             "verify": self._verify,
@@ -295,12 +297,11 @@ class SessionConfiguration:
         return output
 
     @classmethod
-    def from_dict(
-        cls, configuration_dict: "RequestsConfiguration"
-    ) -> "SessionConfiguration":
+    def from_dict(cls, configuration_dict: "RequestsConfiguration") -> "SessionConfiguration":
         """
-        Create a :class:`SessionConfiguration` object from its dictionary form, which is the inverse of
-        the :meth:`.get_configuration_for_requests` method.
+        Create a :class:`SessionConfiguration` object from its dictionary form.
+
+        This is the inverse of the :meth:`.get_configuration_for_requests` method.
 
         Parameters
         ----------
@@ -316,9 +317,7 @@ class SessionConfiguration:
             elif isinstance(cert, str):
                 new.client_cert_path = cert
             else:
-                raise ValueError(
-                    f"Invalid 'cert' field. Must be Tuple or str, not '{type(cert)}'."
-                )
+                raise ValueError(f"Invalid 'cert' field. Must be Tuple or str, not '{type(cert)}'.")
         if configuration_dict["verify"] is not None:
             verify = configuration_dict["verify"]
             if isinstance(verify, str):
@@ -377,10 +376,11 @@ def generate_user_agent(package_name: str, package_version: str) -> str:
     str
         User-agent string.
     """
-
     import platform
 
     python_implementation = platform.python_implementation()
     python_version = platform.python_version()
     os_version = platform.platform()
-    return f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"
+    return (
+        f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"
+    )

@@ -1,4 +1,3 @@
-import pprint
 from ansys.openapi.common import ModelBase
 
 

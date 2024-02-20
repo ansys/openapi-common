@@ -1,6 +1,6 @@
+from functools import wraps
 import json
 import os
-from functools import wraps
 from urllib.parse import parse_qs
 
 import pytest
@@ -8,11 +8,7 @@ import requests
 import requests_mock
 import requests_ntlm
 
-from ansys.openapi.common import (
-    SessionConfiguration,
-    ApiClientFactory,
-    ApiConnectionException,
-)
+from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
 
 SERVICELAYER_URL = "http://localhost/mi_servicelayer"
 SECURE_SERVICELAYER_URL = "https://localhost/mi_servicelayer"
@@ -87,9 +83,7 @@ def test_can_connect_with_basic_and_domain():
         m.get(
             SERVICELAYER_URL,
             status_code=200,
-            request_headers={
-                "Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="
-            },
+            request_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
         )
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="TEST_USER", password="PASSWORD", domain="DOMAIN"
@@ -155,9 +149,7 @@ class MockNTLMAuth(requests_ntlm.HttpNtlmAuth):
 @pytest.mark.skip(reason="Mock is not working in tox for some reason.")
 @pytest.mark.skipif(os.name != "nt", reason="NTLM is not currently supported on linux")
 def test_can_connect_with_ntlm(mocker):
-    expect1 = {
-        "Authorization": "NTLM TlRMTVNTUAABAAAAMZCI4gAAAAAoAAAAAAAAACgAAAAGAbEdAAAADw=="
-    }
+    expect1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAMZCI4gAAAAAoAAAAAAAAACgAAAAGAbEdAAAADw=="}
     response1 = {
         "WWW-Authenticate": "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAAC"
         "gBhSgAAAA9UAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgACAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQB"
@@ -233,7 +225,9 @@ def test_can_connect_with_oidc_using_token():
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
-    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    authenticate_header = (
+        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    )
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",
@@ -295,7 +289,9 @@ def test_can_connect_with_oidc_using_token():
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
-    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    authenticate_header = (
+        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    )
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",

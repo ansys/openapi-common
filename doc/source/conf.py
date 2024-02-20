@@ -1,8 +1,10 @@
-from ansys.openapi import common
+from datetime import datetime
 import os
 import sys
-from datetime import datetime
+
 from ansys_sphinx_theme import pyansys_logo_black
+
+from ansys.openapi import common
 
 # -- Project information -----------------------------------------------------
 
