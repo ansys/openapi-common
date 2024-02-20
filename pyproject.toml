@@ -31,7 +31,8 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 packages = [
-  { include = "**/*.py", from = "src" }
+  { include = "**/*.py", from = "src" },
+  { include = "**/py.typed", from = "src" }
 ]
 
 [tool.poetry.dependencies]
