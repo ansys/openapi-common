@@ -175,7 +175,8 @@ jobs:
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
 
   release:
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
+    name: "Release"
+#    if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     needs: [build-library]
     runs-on: ubuntu-latest
     steps:
@@ -185,11 +186,13 @@ jobs:
           library-name: ${{ env.LIBRARY_NAME }}
           twine-username: "__token__"
           twine-token: ${{ secrets.PYPI_TOKEN }}
+          dry-run: "true"
 
       - uses: ansys/actions/release-github@v5
         name: "Release to GitHub"
         with:
           library-name: ${{ env.LIBRARY_NAME }}
+          dry-run: "true"
 
   doc-deploy-stable:
     name: "Deploy stable documentation"
