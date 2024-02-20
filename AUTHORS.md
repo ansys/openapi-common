@@ -1,4 +1,4 @@
-# This is the list of GRANTA MI RecordLists API significant contributors.
+# This is the list of OpenAPI Common significant contributors.
 #
 # This file does not necessarily list everyone who has contributed code,
 # especially since many employees of one corporation may be contributing.
