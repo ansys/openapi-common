@@ -94,7 +94,7 @@ jobs:
            python-version: ['3.9', '3.10', '3.11', '3.12']
     steps:
       - name: Install kerberos headers
-        if: matrix.os == "ubuntu-latest"
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt install libkrb5-dev
