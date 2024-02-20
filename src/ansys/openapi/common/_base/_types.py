@@ -92,12 +92,12 @@ class ApiClientBase(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]: ...
+    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
         """Provide method signature for determining header priority."""
 
     @staticmethod
     @abc.abstractmethod
-    def select_header_content_type(content_types: Optional[List[str]]) -> str: ...
+    def select_header_content_type(content_types: Optional[List[str]]) -> str:
         """Provide method signature for determining header priority."""
 
     @abc.abstractmethod
@@ -117,5 +117,5 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Dict[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]: ...
+    ) -> Union[requests.Response, DeserializedType, None]:
         """Provide method signature for calling the API."""
