@@ -592,7 +592,7 @@ files = [
 name = "jaraco-classes"
 version = "3.2.3"
 description = "Utility functions for Python class constructs"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "jaraco.classes-3.2.3-py3-none-any.whl", hash = "sha256:2353de3288bc6b82120752201c6b1c1a14b058267fa424ed5ce5984e3b922158"},
@@ -610,7 +610,7 @@ testing = ["flake8 (<5)", "pytest (>=6)", "pytest-black (>=0.3.7)", "pytest-chec
 name = "jeepney"
 version = "0.8.0"
 description = "Low-level, pure Python DBus protocol wrapper."
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "jeepney-0.8.0-py3-none-any.whl", hash = "sha256:c0a454ad016ca575060802ee4d590dd912e35c122fa04e70306de3d076cce755"},
@@ -642,7 +642,7 @@ i18n = ["Babel (>=2.7)"]
 name = "keyring"
 version = "24.3.0"
 description = "Store and access your passwords safely."
-optional = true
+optional = false
 python-versions = ">=3.8"
 files = [
     {file = "keyring-24.3.0-py3-none-any.whl", hash = "sha256:4446d35d636e6a10b8bce7caa66913dd9eca5fd222ca03a3d42c38608ac30836"},
@@ -743,7 +743,7 @@ files = [
 name = "more-itertools"
 version = "9.1.0"
 description = "More routines for operating on iterables, beyond itertools"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "more-itertools-9.1.0.tar.gz", hash = "sha256:cabaa341ad0389ea83c17a94566a53ae4c9d07349861ecb14dc6d0345cf9ac5d"},
@@ -1200,7 +1200,7 @@ files = [
 name = "pywin32-ctypes"
 version = "0.2.0"
 description = ""
-optional = true
+optional = false
 python-versions = "*"
 files = [
     {file = "pywin32-ctypes-0.2.0.tar.gz", hash = "sha256:24ffc3b341d457d48e8922352130cf2644024a4ff09762a2261fd34c36ee5942"},
@@ -1232,7 +1232,7 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 name = "requests-auth"
 version = "7.0.0"
 description = "Authentication for Requests"
-optional = true
+optional = false
 python-versions = ">=3.7"
 files = [
     {file = "requests_auth-7.0.0-py3-none-any.whl", hash = "sha256:a6ee7209435a1489d1f2a9b0e855e1f3d87bbae5bc4acda0c27bdac49aa74fd4"},
@@ -1317,7 +1317,7 @@ requests = ">=2.0.0"
 name = "secretstorage"
 version = "3.3.3"
 description = "Python bindings to FreeDesktop.org Secret Service API"
-optional = true
+optional = false
 python-versions = ">=3.6"
 files = [
     {file = "SecretStorage-3.3.3-py3-none-any.whl", hash = "sha256:f356e6628222568e3af06f2eba8df495efa13b3b63081dafd4f7d9a7b7bc9f99"},
@@ -1682,4 +1682,4 @@ oidc = ["keyring", "requests_auth"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "e0de8db451a49c36f8d781df479ec6dd1c8fa3eabf58855d849ed6688cbdfaa8"
+content-hash = "42e91b0ecbc9dbf8406bc0a486bc681192dcda0baefa44e5aa0c786dd227e11a"

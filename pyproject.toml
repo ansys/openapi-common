@@ -65,6 +65,8 @@ asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'" }
 mypy = "^1.8.0"
 types-requests = { version = "*" }
 types-python-dateutil = { version = "*" }
+requests_auth = { version = "*" }
+keyring = { version = "*" }
 
 [tool.poetry.group.docs]
 optional = true
