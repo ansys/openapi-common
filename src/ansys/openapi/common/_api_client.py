@@ -29,8 +29,6 @@ with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=DeprecationWarning)
     from dateutil.parser import parse
 
-from dateutil.parser import parse
-
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
 from ._exceptions import ApiException, UndefinedObjectWarning
 from ._util import SessionConfiguration, handle_response
