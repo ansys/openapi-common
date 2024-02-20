@@ -16,7 +16,7 @@ jobs:
     name: "Code style"
     runs-on: windows-latest
     steps:
-     - uses: ansys/actions/code-style@test/code-style
+     - uses: ansys/actions/code-style@v5
        with:
          python-version: "3.10"
          skip-install: "false"
