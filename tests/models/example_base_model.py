@@ -1,4 +1,3 @@
-import pprint
 from ansys.openapi.common import ModelBase
 
 
@@ -33,9 +32,7 @@ class ExampleBaseModel(ModelBase):
     @model_type.setter
     def model_type(self, model_type):
         if model_type is None:
-            raise ValueError(
-                "Invalid value for `model_type`, must not be `None`"
-            )  # noqa: E501
+            raise ValueError("Invalid value for `model_type`, must not be `None`")  # noqa: E501
 
         self._model_type = model_type
 

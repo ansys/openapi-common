@@ -1,8 +1,8 @@
 import copy
 import os
+import sys
 
 import pytest
-import sys
 
 init_modules = []
 

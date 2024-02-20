@@ -6,7 +6,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import requests
-import requests_mock
 from requests.utils import CaseInsensitiveDict
 
 from ansys.openapi.common import SessionConfiguration
@@ -50,9 +49,7 @@ def test_verify_returns_valid(verify):
 
 
 def test_verify_with_path_returns_path():
-    output = SessionConfiguration(
-        cert_store_path=CA_CERT_PATH
-    ).get_configuration_for_requests()
+    output = SessionConfiguration(cert_store_path=CA_CERT_PATH).get_configuration_for_requests()
     assert output["verify"] == CA_CERT_PATH
 
 
@@ -278,9 +275,7 @@ class TestTimeoutAdapter:
         yield requests.Request("GET", self.TEST_URL)
 
     @staticmethod
-    def check_timeout(
-        patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int
-    ):
+    def check_timeout(patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int):
         patched_urlopen.assert_called_once()
         assert "timeout" in patched_urlopen.call_args[1]
         timeout = patched_urlopen.call_args[1]["timeout"]

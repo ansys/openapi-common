@@ -1,8 +1,6 @@
 import pytest
 
-from ansys.openapi.common._util import (
-    CaseInsensitiveOrderedDict,
-)
+from ansys.openapi.common._util import CaseInsensitiveOrderedDict
 
 
 class TestCaseInsensitiveOrderedDict:

@@ -1,0 +1,46 @@
+repos:
+
+- repo: https://github.com/psf/black
+  rev: 24.2.0
+  hooks:
+  - id: black
+
+- repo: https://github.com/pycqa/isort
+  rev: 5.12.0
+  hooks:
+  - id: isort
+
+- repo: https://github.com/PyCQA/flake8
+  rev: 6.0.0
+  hooks:
+  - id: flake8
+
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.2.4
+  hooks:
+  - id: codespell
+    args: ["--ignore-words", "doc/styles/Vocab/ANSYS/accept.txt", "--skip", "poetry.lock"]
+
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+  - id: check-yaml
+  - id: debug-statements
+  - id: check-merge-conflict
+  - id: trailing-whitespace
+- repo: https://github.com/pycqa/pydocstyle
+  rev: 6.3.0
+  hooks:
+  - id: pydocstyle
+    additional_dependencies: [tomli]
+    files: "^(src/)"
+
+- repo: local
+  hooks:
+  - id: mypy-code
+    name: "mypy: checks on code"
+    entry: "python -m mypy"
+    language: system
+    types: [python]
+    require_serial: true
+    files: "^(src/)"

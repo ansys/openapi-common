@@ -1,31 +1,29 @@
 import datetime
 import json
 import os
+from pathlib import Path
+import secrets
 import sys
 import tempfile
+from typing import IO, Dict, Iterable, List, Tuple, Union
 import uuid
-from pathlib import Path
-from typing import Dict, List, Tuple, IO, Iterable, Union
 
 import pytest
-import requests_mock
 import requests
 from requests.packages.urllib3.response import HTTPResponse
-from requests_mock.response import _IOReader, _FakeConnection
+import requests_mock
 from requests_mock.request import _RequestObjectProxy
-import secrets
+from requests_mock.response import _FakeConnection, _IOReader
 
 from ansys.openapi.common import (
     ApiClient,
-    SessionConfiguration,
     ApiException,
+    SessionConfiguration,
     UndefinedObjectWarning,
 )
 
 TEST_URL = "http://localhost/api/v1.svc"
-UA_STRING = (
-    "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
-)
+UA_STRING = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
 
 VERBS_WITH_BODY = ["DELETE", "PUT", "POST", "PATCH", "OPTIONS"]
 VERBS_WITH_FILE_PARAMS = ["PUT", "POST", "PATCH", "OPTIONS"]
@@ -51,9 +49,7 @@ class TestParameterHandling:
     def test_simple_path_rewrite(self):
         id_ = str(uuid.uuid4())
         single_path = "/resource/{id}"
-        result = self._client._ApiClient__handle_path_params(
-            single_path, {"id": id_}, None
-        )
+        result = self._client._ApiClient__handle_path_params(single_path, {"id": id_}, None)
         assert single_path.replace("{id}", id_) == result
 
     def test_multiple_path_rewrites(self):
@@ -68,18 +64,14 @@ class TestParameterHandling:
     def test_path_with_naughty_characters(self):
         name = '"Na,ughty!P,ath.'
         naughty_path = "/resource/{name}"
-        result = self._client._ApiClient__handle_path_params(
-            naughty_path, {"name": name}, None
-        )
+        result = self._client._ApiClient__handle_path_params(naughty_path, {"name": name}, None)
         assert "/resource/%22Na%2Cughty%21P%2Cath." == result
 
     def test_path_with_naughty_characters_allowed(self):
         name = "<SpecialName>"
         naughty_path = "/resource/{name}"
         self._client.configuration.safe_chars_for_path_param = "<>"
-        result = self._client._ApiClient__handle_path_params(
-            naughty_path, {"name": name}, None
-        )
+        result = self._client._ApiClient__handle_path_params(naughty_path, {"name": name}, None)
         assert "/resource/<SpecialName>" == result
 
     def test_single_query(self):
@@ -161,9 +153,7 @@ class TestSerialization:
             assert value == source_value
 
     def test_serialize_dict(self):
-        source_dict = {
-            k.__name__: v for k, v in zip(self._test_value_types, self._test_value_list)
-        }
+        source_dict = {k.__name__: v for k, v in zip(self._test_value_types, self._test_value_list)}
         serialized_dict = self._client.sanitize_for_serialization(source_dict)
         assert isinstance(serialized_dict, dict)
         assert len(serialized_dict.keys()) == len(self._test_value_list)
@@ -239,14 +229,10 @@ class TestDeserialization:
         assert isinstance(deserialized_primitive, type_)
         assert deserialized_primitive == value
 
-    @pytest.mark.parametrize(
-        ("target_type", "expected_result"), ((int, int(3)), (str, "3.1"))
-    )
+    @pytest.mark.parametrize(("target_type", "expected_result"), ((int, int(3)), (str, "3.1")))
     def test_deserialize_float_casts(self, target_type, expected_result):
         test_float = 3.1
-        deserialized_object = self._client._ApiClient__deserialize(
-            test_float, target_type.__name__
-        )
+        deserialized_object = self._client._ApiClient__deserialize(test_float, target_type.__name__)
         assert isinstance(deserialized_object, target_type)
         assert deserialized_object == expected_result
 
@@ -258,25 +244,19 @@ class TestDeserialization:
 
     def test_deserialize_list(self):
         source_list = ["Look", "another", "list"]
-        deserialized_list = self._client._ApiClient__deserialize(
-            source_list, "list[str]"
-        )
+        deserialized_list = self._client._ApiClient__deserialize(source_list, "list[str]")
         assert isinstance(deserialized_list, list)
         assert deserialized_list == source_list
 
     def test_deserialize_dict(self):
         source_dict = {1: "one", 2: "two", 3: "three"}
-        deserialized_dict = self._client._ApiClient__deserialize(
-            source_dict, "dict(int, str)"
-        )
+        deserialized_dict = self._client._ApiClient__deserialize(source_dict, "dict(int, str)")
         assert isinstance(deserialized_dict, dict)
         assert deserialized_dict == source_dict
 
     def test_deserialize_dict_casts_ints(self):
         source_dict = {"one": 1.0, "two": 2.0, "three": 3.1}
-        deserialized_dict = self._client._ApiClient__deserialize(
-            source_dict, "dict(str, int)"
-        )
+        deserialized_dict = self._client._ApiClient__deserialize(source_dict, "dict(str, int)")
         assert isinstance(deserialized_dict, dict)
         for key, val in source_dict.items():
             assert key in deserialized_dict
@@ -302,9 +282,7 @@ class TestDeserialization:
         source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21)
         datetime_string = source_datetime.isoformat()
         type_ref = "datetime"
-        deserialized_datetime = self._client._ApiClient__deserialize(
-            datetime_string, type_ref
-        )
+        deserialized_datetime = self._client._ApiClient__deserialize(datetime_string, type_ref)
         assert isinstance(deserialized_datetime, datetime.datetime)
         assert deserialized_datetime == source_datetime
 
@@ -475,9 +453,7 @@ class TestResponseParsing:
     def test_application_data_is_not_parsed(self, mocker, provide_content_type):
         # The false case tests the default handling of non-json data
         data = b"This is some data this is definitely not json, it should be rendered as application/octet-stream"
-        response = self.create_response(
-            content=data, content_type="application/octet-stream"
-        )
+        response = self.create_response(content=data, content_type="application/octet-stream")
         if not provide_content_type:
             response.headers.pop("Content-Type")
         deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
@@ -502,9 +478,7 @@ class TestResponseParsing:
 
     def test_file_with_no_name_is_saved(self):
         data = b"Here is some file data to save"
-        response = self.create_response(
-            content=data, content_type="application/octet-stream"
-        )
+        response = self.create_response(content=data, content_type="application/octet-stream")
         file_path = self._client.deserialize(response, "file")
         assert os.path.exists(file_path)
         with open(file_path, "rb") as output_file:
@@ -1002,9 +976,7 @@ class TestStaticMethods:
         for entry in output:
             output_dict[entry[0]] = entry[1]
         assert output_dict["Content-Type"] == "application/json"
-        assert output_dict["Accept"] == separator.join(
-            ["text/plain", "application/json"]
-        )
+        assert output_dict["Accept"] == separator.join(["text/plain", "application/json"])
 
     @pytest.mark.parametrize("input_type", ("dict", "tuple"))
     def test_params_to_tuples_from_dict_multi(self, input_type):
@@ -1106,32 +1078,24 @@ class TestStaticMethods:
 
     @staticmethod
     def _check_file_contents(
-        output: Iterable[
-            Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]
-        ],
+        output: Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]],
         file_count: int,
         file_names: Iterable[str],
         file_contents: Iterable[bytes],
     ):
         assert len(list(output)) == file_count
 
-        file_tuples = [
-            parameter[1] for parameter in output if parameter[0] == "post_body"
-        ]
+        file_tuples = [parameter[1] for parameter in output if parameter[0] == "post_body"]
         for file_name, file_content in zip(file_names, file_contents):
             matched_parameter = [
-                entry
-                for entry in file_tuples
-                if entry[0] == os.path.basename(file_name)
+                entry for entry in file_tuples if entry[0] == os.path.basename(file_name)
             ]
             assert len(matched_parameter) == 1
             assert matched_parameter[0][1] == file_content
             assert matched_parameter[0][2] is not None
 
     @pytest.mark.parametrize("file_parameter_count", (0, 1, 2))
-    def test_prepare_post_parameters_with_file_names(
-        self, file_context, file_parameter_count
-    ):
+    def test_prepare_post_parameters_with_file_names(self, file_context, file_parameter_count):
         file_names, file_contents = file_context(file_parameter_count)
         file_dict = {"post_body": file_names}
 
@@ -1145,9 +1109,7 @@ class TestStaticMethods:
     def test_prepare_post_parameters_with_file_handles(
         self, opened_file_context, file_parameter_count
     ):
-        file_handles, file_names, file_contents = opened_file_context(
-            file_parameter_count
-        )
+        file_handles, file_names, file_contents = opened_file_context(file_parameter_count)
         file_dict = {"post_body": file_handles}
 
         output = ApiClient.prepare_post_parameters(None, file_dict)

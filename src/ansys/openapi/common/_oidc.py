@@ -3,9 +3,9 @@ from typing import Optional
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import InvalidGrantRequest  # type: ignore[import]
+from requests_auth import InvalidGrantRequest  # type: ignore[import-untyped]
 from requests_auth import OAuth2AuthorizationCodePKCE
-from requests_auth.authentication import OAuth2  # type: ignore[import]
+from requests_auth.authentication import OAuth2  # type: ignore[import-untyped]
 
 from ._logger import logger
 from ._util import (
@@ -22,8 +22,10 @@ if TYPE_CHECKING:
 
 class OIDCSessionFactory:
     """
-    Creates an OpenID Connect session with the configuration fetched from the API server. This class uses either
-    the provided token credentials or authorizes a user with a browser-based interactive prompt.
+    Creates an OpenID Connect session with the configuration fetched from the API server.
+
+    This class uses either the provided token credentials or authorizes a user with a browser-based
+    interactive prompt.
 
     Parameters
     ----------
@@ -54,18 +56,14 @@ class OIDCSessionFactory:
 
         logger.debug("Creating OIDC session handler...")
 
-        self._authenticate_parameters = self._parse_unauthorized_header(
-            initial_response
-        )
+        self._authenticate_parameters = self._parse_unauthorized_header(initial_response)
 
         if api_session_configuration is None:
             api_session_configuration = SessionConfiguration()
         if idp_session_configuration is None:
             idp_session_configuration = SessionConfiguration()
 
-        self._api_session_configuration = (
-            api_session_configuration.get_configuration_for_requests()
-        )
+        self._api_session_configuration = api_session_configuration.get_configuration_for_requests()
         self._idp_session_configuration = OIDCSessionFactory._override_idp_header(
             idp_session_configuration.get_configuration_for_requests()
         )
@@ -121,14 +119,10 @@ class OIDCSessionFactory:
         if refresh_token is None:
             raise ValueError("Must provide a value for 'refresh_token', not None")
         try:
-            state, token, expires_in, new_refresh_token = self._auth.refresh_token(
-                refresh_token
-            )
+            state, token, expires_in, new_refresh_token = self._auth.refresh_token(refresh_token)
         except InvalidGrantRequest as excinfo:
             logger.debug(str(excinfo))
-            raise ValueError(
-                "The provided refresh token was invalid, please request a new token."
-            )
+            raise ValueError("The provided refresh token was invalid, please request a new token.")
         with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
             # If we were provided with a new refresh token it's likely that the Identity
             # Provider is configured to rotate refresh tokens. Store the new one and
@@ -136,9 +130,7 @@ class OIDCSessionFactory:
             if new_refresh_token is not None:
                 refresh_token = new_refresh_token
             # noinspection PyProtectedMember
-            OAuth2.token_cache._add_access_token(
-                state, token, expires_in, refresh_token
-            )
+            OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
         self._authorized_session.auth = self._auth
         return self._authorized_session
 
@@ -176,7 +168,6 @@ class OIDCSessionFactory:
         login_timeout : int, optional
             Number of seconds to wait for the user to authenticate. The default is ``60s``.
         """
-
         self._auth.timeout = login_timeout
         self._authorized_session.auth = self._auth
         self._authorized_session.get(self._api_url)
@@ -210,9 +201,7 @@ class OIDCSessionFactory:
 
         mandatory_headers = ["redirecturi", "authority", "clientid"]
         missing_headers = []
-        bearer_parameters: Optional["CaseInsensitiveDict"] = authenticate_parameters[
-            "bearer"
-        ]
+        bearer_parameters: Optional["CaseInsensitiveDict"] = authenticate_parameters["bearer"]
         if bearer_parameters is None:
             bearer_parameters = CaseInsensitiveDict()
 
@@ -239,8 +228,9 @@ class OIDCSessionFactory:
             return bearer_parameters
 
     def _fetch_and_parse_well_known(self, url: str) -> CaseInsensitiveDict:
-        """Perform a GET request to the OpenID identity provider's well-known endpoint and verify that the
-        required parameters are returned.
+        """Fetch and process the required parameters from identity provider's the well-known endpoint.
+
+        Perform a GET request to the endpoint and verify that the required parameters are returned.
 
         Parameters
         ----------
@@ -287,8 +277,9 @@ class OIDCSessionFactory:
     def _override_idp_header(
         requests_configuration: RequestsConfiguration,
     ) -> RequestsConfiguration:
-        """Override user-provided ``Accept`` and ``Content-Type`` headers to ensure correct
-        response from the OpenID identity provider.
+        """Override user-provided ``Accept`` and ``Content-Type`` headers.
+
+        Required to ensure correct response from the OpenID identity provider.
 
         Parameters
         ----------
@@ -302,8 +293,9 @@ class OIDCSessionFactory:
         return requests_configuration
 
     def _add_api_audience_if_set(self) -> None:
-        """Set the ``ApiAudience`` header on connection to the API, if provided by the OpenID
-        identity provider. This is mainly required for Auth0.
+        """Set the ``ApiAudience`` header on connection to the API.
+
+        Only add if provided by the OpenID identity provider. This is mainly required for Auth0.
         """
         if "apiAudience" not in self._authenticate_parameters:
             return

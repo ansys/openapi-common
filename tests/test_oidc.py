@@ -1,16 +1,15 @@
 import json
+from unittest.mock import MagicMock, Mock
 from urllib.parse import parse_qs
 
+from covertable import make
 import pytest
 import requests
-import requests_mock
 from requests_auth.authentication import OAuth2
-from unittest.mock import Mock, MagicMock
-from covertable import make
+import requests_mock
 
 from ansys.openapi.common import ApiClientFactory
 from ansys.openapi.common._oidc import OIDCSessionFactory
-
 
 REQUIRED_HEADERS = {
     "clientid": "3acde603-9bb9-48e7-9eaa-c624c4fd40ca",
@@ -44,12 +43,8 @@ def try_parse_and_assert_failed(response):
 def get_session_from_mock_factory_with_refresh_token(refresh_token: str):
     mock_factory = Mock()
     mock_factory._auth = Mock()
-    mock_factory._auth.refresh_token = MagicMock(
-        return_value=(0, "token", 1, refresh_token)
-    )
-    session = OIDCSessionFactory.get_session_with_provided_token(
-        mock_factory, refresh_token
-    )
+    mock_factory._auth.refresh_token = MagicMock(return_value=(0, "token", 1, refresh_token))
+    session = OIDCSessionFactory.get_session_with_provided_token(mock_factory, refresh_token)
     return session
 
 
@@ -102,9 +97,7 @@ def test_valid_well_known_parsed_correctly():
         mock_factory._initial_session = requests.Session()
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
-        output = OIDCSessionFactory._fetch_and_parse_well_known(
-            mock_factory, identity_provider_url
-        )
+        output = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, identity_provider_url)
         for k, v in WELL_KNOWN_PARAMETERS.items():
             assert output[k] == v
             assert output[k.upper()] == v
@@ -127,9 +120,7 @@ def test_missing_well_known_parameters_throws(missing_parameter):
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
         with pytest.raises(ConnectionError) as exception_info:
-            _ = OIDCSessionFactory._fetch_and_parse_well_known(
-                mock_factory, identity_provider_url
-            )
+            _ = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, identity_provider_url)
         assert "Unable to connect with OpenID Connect" in str(exception_info.value)
         assert missing_parameter in str(exception_info.value)
 
@@ -149,9 +140,7 @@ def test_multiple_missing_well_known_parameters_throws():
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
         with pytest.raises(ConnectionError) as exception_info:
-            _ = OIDCSessionFactory._fetch_and_parse_well_known(
-                mock_factory, identity_provider_url
-            )
+            _ = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, identity_provider_url)
         assert "Unable to connect with OpenID Connect" in str(exception_info.value)
         for header_value in WELL_KNOWN_PARAMETERS:
             assert header_value in str(exception_info.value)
@@ -168,10 +157,7 @@ def test_override_idp_configuration(accept, content_type):
         configuration["content-type"] = content_type
     response = OIDCSessionFactory._override_idp_header({"headers": configuration})
     assert response["headers"]["accept"] == "application/json"
-    assert (
-        response["headers"]["content-type"]
-        == "application/x-www-form-urlencoded;charset=UTF-8"
-    )
+    assert response["headers"]["content-type"] == "application/x-www-form-urlencoded;charset=UTF-8"
 
 
 def test_override_idp_configuration_with_no_headers_does_nothing():
@@ -204,7 +190,9 @@ def test_invalid_refresh_token_throws():
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
     redirect_uri = "https://www.example.com/login/"
-    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    authenticate_header = (
+        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    )
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",
@@ -240,9 +228,7 @@ def test_invalid_refresh_token_throws():
             headers={"WWW-Authenticate": "Bearer error=invalid_token"},
         )
         with pytest.raises(ValueError) as exception_info:
-            ApiClientFactory(api_url).with_oidc().with_token(
-                refresh_token=refresh_token
-            )
+            ApiClientFactory(api_url).with_oidc().with_token(refresh_token=refresh_token)
         assert "refresh token was invalid" in str(exception_info)
 
 

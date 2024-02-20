@@ -9,10 +9,11 @@ if MYPY:
 
 class ApiConnectionException(Exception):
     """
-    Provides the exception to raise when connection to the API server fails. For more information
-    about the failure, inspect ``.response``.
+    Provides the exception to raise when connection to the API server fails.
 
-    Attributes
+    For more information about the failure, inspect ``.response``.
+
+    Parameters
     ----------
     response : requests.Response
         Response from the server.
@@ -26,33 +27,34 @@ class ApiConnectionException(Exception):
         self.response = response
 
     def __repr__(self) -> str:
+        """Printable representation of the object."""
         return f"ApiConnectionException({repr(self.response)})"
 
 
 class AuthenticationWarning(Warning):
-    """
-    Provides the warning to raise when the server connection process completes but does proceed as expected.
+    """Provides the warning to raise when the server connection process completes but does proceed as expected.
+
+    Parameters
+    ----------
+    message : str
+        Cause of the warning and any additional information.
     """
 
     def __init__(self, message: str) -> None:
-        """
-        Parameters
-        ----------
-        message : str
-            Cause of the warning and any additional information.
-        """
         self.message = message
 
     def __repr__(self) -> str:
+        """Printable representation of the object."""
         return f"AuthenticationWarning('{self.message}')"
 
 
 class ApiException(Exception):
     """
-    Provides the exception to raise when the remote server returns an unsuccessful response. For more information
-    about the failure, inspect ``.status_code`` and ``.reason_phrase``.
+    Provides the exception to raise when the remote server returns an unsuccessful response.
 
-    Attributes
+    For more information about the failure, inspect ``.status_code`` and ``.reason_phrase``.
+
+    Parameters
     ----------
     status_code : int
         HTTP status code associated with the response.
@@ -83,6 +85,7 @@ class ApiException(Exception):
 
     @classmethod
     def from_response(cls, http_response: "requests.Response") -> "ApiException":
+        """Initialize object from a requests.Response object."""
         new = cls(
             status_code=http_response.status_code,
             reason_phrase=http_response.reason,
@@ -92,6 +95,7 @@ class ApiException(Exception):
         return new
 
     def __str__(self) -> str:
+        """Printable description of the object."""
         error_message = f"ApiException({self.status_code}, '{self.reason_phrase}')\n"
         if self.headers:
             error_message += f"HTTP response headers: {self.headers}\n"
@@ -100,15 +104,13 @@ class ApiException(Exception):
         return error_message
 
     def __repr__(self) -> str:
-        return (
-            f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
-        )
+        """Printable representation of the object."""
+        return f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
 
 
 class UndefinedObjectWarning(UserWarning):
     """
-    Provides a warning which is emitted when a model is incompletely described in the OpenAPI
-    definition.
+    Provides a warning for when a model is incompletely described in the OpenAPI definition.
 
     The data received from the server cannot be fully deserialized, and so the response is provided
     as an un-deserialized dictionary.
