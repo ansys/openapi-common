@@ -95,7 +95,6 @@ class ApiClient(ApiClientBase):
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
-        self.__deserialization_parent_key = None
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
