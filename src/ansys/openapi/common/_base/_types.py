@@ -2,7 +2,7 @@ import abc
 import datetime
 from enum import Enum
 import pprint
-from typing import Any, Dict, List, Literal, Optional, Tuple, TypeVar, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import requests
 
@@ -75,7 +75,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         """
         return pprint.pformat(self.to_dict())
 
-    def get_real_child_model(self, data: Union[Dict, str]) -> str:
+    def get_real_child_model(self, data: "ModelBase") -> str:
         """Classes with discriminators will override this method and may change the method signature."""
         raise NotImplementedError()
 
@@ -127,6 +127,6 @@ class _Unset:
         return False
 
 
-Unset_Type = TypeVar("Unset_Type", bound=_Unset)
+Unset_Type = _Unset
 Unset = _Unset()
 """Magic value to indicate a value has not been set."""
