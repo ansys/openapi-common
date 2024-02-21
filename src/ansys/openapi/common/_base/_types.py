@@ -2,7 +2,7 @@ import abc
 import datetime
 from enum import Enum
 import pprint
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 import requests
 
@@ -119,3 +119,13 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         response_type_map: Optional[Dict[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Provide method signature for calling the API."""
+
+
+class _Unset:
+    @staticmethod
+    def __bool__() -> Literal[False]:
+        return False
+
+
+Unset = _Unset()
+"""Magic value to indicate a value has not been set."""

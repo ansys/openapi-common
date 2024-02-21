@@ -25,7 +25,7 @@ from urllib.parse import quote
 from dateutil.parser import parse
 import requests
 
-from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
+from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException
 from ._util import SessionConfiguration, handle_response
 
@@ -272,7 +272,7 @@ class ApiClient(ApiClientBase):
             obj_dict = {
                 obj.attribute_map[attr]: getattr(obj, attr)
                 for attr in obj.swagger_types
-                if getattr(obj, attr) is not None
+                if getattr(obj, attr) is not Unset
             }
 
         return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
