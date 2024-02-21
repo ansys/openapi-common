@@ -5,7 +5,7 @@ from importlib import metadata as metadata
 __version__ = metadata.version("ansys-openapi-common")
 
 from ._api_client import ApiClient
-from ._base import ApiBase, ApiClientBase, ModelBase, Unset
+from ._base import ApiBase, ApiClientBase, ModelBase, Unset, Unset_Type
 from ._exceptions import ApiConnectionException, ApiException, AuthenticationWarning
 from ._session import ApiClientFactory, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
@@ -23,4 +23,5 @@ __all__ = [
     "ApiClientBase",
     "ModelBase",
     "Unset",
+    "Unset_Type",
 ]

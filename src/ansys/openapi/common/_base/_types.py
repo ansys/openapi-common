@@ -2,7 +2,7 @@ import abc
 import datetime
 from enum import Enum
 import pprint
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, TypeVar, Union
 
 import requests
 
@@ -127,5 +127,6 @@ class _Unset:
         return False
 
 
+Unset_Type = TypeVar("Unset_Type", bound=_Unset)
 Unset = _Unset()
 """Magic value to indicate a value has not been set."""
