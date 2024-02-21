@@ -75,7 +75,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         """
         return pprint.pformat(self.to_dict())
 
-    def get_real_child_model(self, data: Union[Dict, str]) -> str:
+    def get_real_child_model(self, data: Dict[str, str]) -> str:
         """Classes with discriminators will override this method and may change the method signature."""
         raise NotImplementedError()
 
