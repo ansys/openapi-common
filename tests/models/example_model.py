@@ -1,4 +1,4 @@
-from ansys.openapi.common import ModelBase
+from ansys.openapi.common import ModelBase, Unset
 
 
 class ExampleModel(ModelBase):
@@ -31,15 +31,17 @@ class ExampleModel(ModelBase):
 
     def __init__(
         self,
-        string_property=None,
-        int_property=None,
-        bool_property=None,
-        list_property=None,
+        string_property=Unset,
+        int_property=Unset,
+        bool_property=Unset,
+        list_property=Unset,
     ):  # noqa: E501
         self._string_property = None
         self._int_property = None
         self._bool_property = None
         self._list_property = None
+        self._nullable_property = None
+        self._optional_property = None
         self.discriminator = None
         if string_property is not None:
             self._string_property = string_property
