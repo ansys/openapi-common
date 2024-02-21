@@ -2,7 +2,7 @@ import abc
 import datetime
 from enum import Enum
 import pprint
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Mapping, Optional, Tuple, Union
 
 import requests
 
@@ -75,7 +75,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         """
         return pprint.pformat(self.to_dict())
 
-    def get_real_child_model(self, data: "ModelBase") -> str:
+    def get_real_child_model(self, data: Union[Dict, str]) -> str:
         """Classes with discriminators will override this method and may change the method signature."""
         raise NotImplementedError()
 
@@ -110,13 +110,13 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         header_params: Union[Dict[str, Union[str, int]], None] = None,
         body: Optional[DeserializedType] = None,
         post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[Dict[str, str]] = None,
+        files: Optional[Mapping[str, str]] = None,
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
+        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Provide method signature for calling the API."""
 

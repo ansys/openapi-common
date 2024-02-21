@@ -133,7 +133,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
+        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         # header parameters
         header_params = header_params or {}
@@ -397,7 +397,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
+        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
 
