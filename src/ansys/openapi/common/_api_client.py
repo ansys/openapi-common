@@ -854,7 +854,7 @@ class ApiClient(ApiClientBase):
                 if key not in klass.swagger_types:
                     instance[key] = value
         try:
-            klass_name = instance.get_real_child_model(data)
+            klass_name = instance.get_real_child_model(data)  # type: ignore[arg-type]
             if klass_name:
                 instance = self.__deserialize(data, klass_name)  # type: ignore[assignment]
         except NotImplementedError:
