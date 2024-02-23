@@ -191,6 +191,44 @@ class TestSerialization:
         serialized_model = self._client.sanitize_for_serialization(model_instance)
         assert serialized_model == model_dict
 
+    def test_serialize_model_null_values(self):
+        from . import models
+
+        self._client.setup_client(models)
+        model_instance = models.ExampleModel("foo", None, False, None)
+        model_dict = {
+            "Boolean": False,
+            "Integer": None,
+            "ListOfStrings": None,
+            "String": "foo",
+        }
+        serialized_model = self._client.sanitize_for_serialization(model_instance)
+        assert serialized_model == model_dict
+
+    def test_serialize_model_unset_values(self):
+        from . import models
+
+        self._client.setup_client(models)
+        model_instance = models.ExampleModel(int_property=3, list_property=["It's", "a", "list"])
+        model_dict = {
+            "Integer": 3,
+            "ListOfStrings": ["It's", "a", "list"],
+        }
+        serialized_model = self._client.sanitize_for_serialization(model_instance)
+        assert serialized_model == model_dict
+
+    def test_serialize_model_set_unset_and_null_values(self):
+        from . import models
+
+        self._client.setup_client(models)
+        model_instance = models.ExampleModel(int_property=None, list_property=["It's", "a", "list"])
+        model_dict = {
+            "Integer": None,
+            "ListOfStrings": ["It's", "a", "list"],
+        }
+        serialized_model = self._client.sanitize_for_serialization(model_instance)
+        assert serialized_model == model_dict
+
     def test_serialize_enum_model(self):
         from . import models
 
