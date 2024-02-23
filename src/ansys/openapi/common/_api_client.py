@@ -21,12 +21,16 @@ from typing import (
     cast,
 )
 from urllib.parse import quote
+import warnings
 
-from dateutil.parser import parse
 import requests
 
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=DeprecationWarning)
+    from dateutil.parser import parse
+
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
-from ._exceptions import ApiException
+from ._exceptions import ApiException, UndefinedObjectWarning
 from ._util import SessionConfiguration, handle_response
 
 
@@ -346,9 +350,19 @@ class ApiClient(ApiClientBase):
 
             * String class name
             * String type definition for list or dictionary
+            * "object" literal, which returns the dictionary as-is
         """
         if data is None:
             return None
+
+        if klass_name == "object":
+            warnings.warn(
+                "Attempting to deserialize an object with no defined type. Returning "
+                "the raw data as a dictionary. Check your OpenAPI definition and ensure "
+                "all types are fully defined.",
+                UndefinedObjectWarning,
+            )
+            return data
 
         list_match = self.LIST_MATCH_REGEX.match(klass_name)
         if list_match is not None:

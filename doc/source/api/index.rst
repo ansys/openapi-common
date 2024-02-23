@@ -35,7 +35,7 @@ This section summarizes OpenAPI-Common helper functions.
 Exceptions and warnings
 =======================
 
-This section summarizes OpenAPI-Common attributes.
+This section summarizes OpenAPI-Common exceptions and warnings.
 
 .. autosummary::
    :toctree: _autosummary
@@ -43,6 +43,7 @@ This section summarizes OpenAPI-Common attributes.
    ApiException
    ApiConnectionException
    AuthenticationWarning
+   UndefinedObjectWarning
 
 
 ============

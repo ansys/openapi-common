@@ -106,3 +106,15 @@ class ApiException(Exception):
     def __repr__(self) -> str:
         """Printable representation of the object."""
         return f"ApiException({self.status_code}, '{self.reason_phrase}', '{self.body}')"
+
+
+class UndefinedObjectWarning(UserWarning):
+    """
+    Provides a warning for when a model is incompletely described in the OpenAPI definition.
+
+    The data received from the server cannot be fully deserialized, and so the response is provided
+    as an un-deserialized dictionary.
+
+    This warning can be safely suppressed if the required detail cannot be added to the OpenAPI
+    definition, but in this case the deserialization must be defined manually.
+    """

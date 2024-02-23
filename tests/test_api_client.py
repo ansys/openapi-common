@@ -15,7 +15,12 @@ import requests_mock
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _FakeConnection, _IOReader
 
-from ansys.openapi.common import ApiClient, ApiException, SessionConfiguration
+from ansys.openapi.common import (
+    ApiClient,
+    ApiException,
+    SessionConfiguration,
+    UndefinedObjectWarning,
+)
 
 TEST_URL = "http://localhost/api/v1.svc"
 UA_STRING = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
@@ -388,6 +393,15 @@ class TestDeserialization:
     def test_deserialize_primitive_of_wrong_type_does_nothing(self, data, target_type):
         output = self._client._ApiClient__deserialize_primitive(data, target_type)
         assert isinstance(output, type(data))
+        assert output == data
+
+    def test_deserialize_undefined_object_returns_dict_and_warns(self):
+        data = {"foo": "bar", "baz": [1, 2, 3]}
+        with pytest.warns(
+            UndefinedObjectWarning,
+            match="Attempting to deserialize an object with no defined type",
+        ):
+            output = self._client._ApiClient__deserialize(data, "object")
         assert output == data
 
 
