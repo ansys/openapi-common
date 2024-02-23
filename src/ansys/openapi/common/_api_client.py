@@ -25,7 +25,7 @@ from urllib.parse import quote
 from dateutil.parser import parse
 import requests
 
-from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
+from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException
 from ._util import SessionConfiguration, handle_response
 
@@ -133,7 +133,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
+        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         # header parameters
         header_params = header_params or {}
@@ -272,7 +272,7 @@ class ApiClient(ApiClientBase):
             obj_dict = {
                 obj.attribute_map[attr]: getattr(obj, attr)
                 for attr in obj.swagger_types
-                if getattr(obj, attr) is not None
+                if getattr(obj, attr) is not Unset
             }
 
         return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
@@ -397,7 +397,7 @@ class ApiClient(ApiClientBase):
         collection_formats: Optional[Dict[str, str]] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Dict[int, Union[str, None]]] = None,
+        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
     ) -> Union[requests.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
 
@@ -854,7 +854,7 @@ class ApiClient(ApiClientBase):
                 if key not in klass.swagger_types:
                     instance[key] = value
         try:
-            klass_name = instance.get_real_child_model(data)
+            klass_name = instance.get_real_child_model(data)  # type: ignore[arg-type]
             if klass_name:
                 instance = self.__deserialize(data, klass_name)  # type: ignore[assignment]
         except NotImplementedError:
