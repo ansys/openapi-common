@@ -1,12 +1,9 @@
 # Changelog
 
-## openapi-common 1.5.0, 2024-02-26
+## openapi-common 1.5.1, 2024-03-01
 
 ### New features
 
-* [Issue #495](https://github.com/ansys/openapi-common/issues/495),
-  [Pull request #497](https://github.com/ansys/openapi-common/pull/497):
-  Support optional fields during serialization.
 * [Issue #491](https://github.com/ansys/openapi-common/issues/491),
   [Pull request #434](https://github.com/ansys/openapi-common/pull/434):
   Add `py.typed` file to release.
@@ -19,7 +16,6 @@
 * Doug Addy (Ansys)
 * Andy Grigg (Ansys)
 * Ludovic Steinbach (Ansys)
-
 
 ## openapi-common 1.4.0, 2024-01-10
 
