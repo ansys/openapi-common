@@ -23,11 +23,8 @@ from typing import (
 from urllib.parse import quote
 import warnings
 
+from dateutil.parser import parse
 import requests
-
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", category=DeprecationWarning)
-    from dateutil.parser import parse
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException, UndefinedObjectWarning
