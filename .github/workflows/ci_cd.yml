@@ -20,7 +20,7 @@ jobs:
     name: "Code style"
     runs-on: windows-latest
     steps:
-     - uses: ansys/actions/code-style@v5
+     - uses: ansys/actions/code-style@feat/tests-code-style-poetry-adapting
        with:
          python-version: ${{ env.MAIN_PYTHON_VERSION }}
          skip-install: "false"
