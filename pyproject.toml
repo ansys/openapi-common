@@ -47,7 +47,7 @@ python-dateutil ="^2.9"
 
 # Packages for oidc extra
 requests_auth = { version = ">=6,<8", optional = true }
-keyring = { version = ">=22,<25", optional = true }
+keyring = { version = ">=22,<26", optional = true }
 
 # Packages for linux-kerberos extra
 requests-kerberos = {version = "^0.13", markers = "sys_platform == 'linux'", optional = true }
