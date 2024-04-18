@@ -31,6 +31,7 @@ repos:
   - id: debug-statements
   - id: check-merge-conflict
   - id: trailing-whitespace
+
 - repo: https://github.com/pycqa/pydocstyle
   rev: 6.3.0
   hooks:
@@ -47,3 +48,11 @@ repos:
     types: [python]
     require_serial: true
     files: "^(src/)"
+
+- repo: https://github.com/ansys/pre-commit-hooks
+  rev: v0.3.0
+  hooks:
+    - id: add-license-headers
+      args:
+      - --start_year=2022
+      files: '(src|tests)/.*\.(py)'
