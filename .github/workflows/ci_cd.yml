@@ -42,7 +42,6 @@ jobs:
         uses: ansys/actions/doc-build@v5
         with:
           check-links: false
-          dependencies: "pandoc"
           sphinxopts: "-j 1 -n -W --keep-going"
 
   smoke-tests:
