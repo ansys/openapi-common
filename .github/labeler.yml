@@ -1,9 +1,19 @@
 documentation:
 - changed-files:
   - any-glob-to-any-file: ['doc/source/**/*']
+- head-branch: ['^doc/', '^docs/']
+
 maintenance:
 - changed-files:
   - any-glob-to-any-file: ['.github/**/*', 'pyproject.toml']
+- head-branch: ['^maint/', '^ci/', '^no-ci/']
+
+enhancement:
+- head-branch: ['^feat/']
+
+bug:
+- head-branch: ['^fix/', '^patch/']
+
 dependencies:
 - changed-files:
   - any-glob-to-any-file: ['poetry.lock']
