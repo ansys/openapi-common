@@ -69,10 +69,10 @@ types-python-dateutil = { version = "*" }
 requests_auth = { version = "*" }
 keyring = { version = "*" }
 
-[tool.poetry.group.docs]
+[tool.poetry.group.doc]
 optional = true
 
-[tool.poetry.group.docs.dependencies]
+[tool.poetry.group.doc.dependencies]
 # Doc packages
 ansys-sphinx-theme = { version = "0.15.2" }
 numpydoc = { version = "1.7.0" }
