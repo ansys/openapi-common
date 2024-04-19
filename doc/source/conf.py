@@ -180,7 +180,7 @@ texinfo_documents = [
         "Engineering Software",
     ),
 ]
-latex_engine = "xelatex"
+# latex_engine = "xelatex"
 
 # -- Options for Epub output -------------------------------------------------
 
