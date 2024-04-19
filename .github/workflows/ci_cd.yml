@@ -35,7 +35,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   doc-build:
-    name: Documentation Build (mock examples)
+    name: Documentation build
     runs-on: ubuntu-latest
     steps:
       - name: "Install system dependencies"
