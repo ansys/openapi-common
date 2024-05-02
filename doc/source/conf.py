@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import sys
 
-from ansys_sphinx_theme import pyansys_logo_black, get_version_match
+from ansys_sphinx_theme import get_version_match, pyansys_logo_black
 
 from ansys.openapi import common
 
