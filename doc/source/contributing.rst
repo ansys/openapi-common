@@ -10,7 +10,7 @@ with this guide before attempting to contribute to OpenAPI-Common.
 
 The following contribution information is specific to OpenAPI-Common.
 
-our test comment
+We are testing.
 
 Clone the repository
 --------------------
