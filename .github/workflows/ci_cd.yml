@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: PyAnsys documentation style checks
-        uses: ansys/actions/doc-style@v6
+        uses: ansys/actions/doc-style@maint/vale-ignore-changelogd
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
