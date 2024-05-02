@@ -79,8 +79,6 @@ numpydoc = { version = "1.7.0" }
 sphinx = { version = "7.3.7" }
 sphinx-notfound-page = { version = "1.0.0" }
 sphinx-copybutton = { version = "0.5.2" }
-# Duplicate extra - required to use ansys/actions/doc-build
-requests-kerberos = {version = "^0.13", markers = "sys_platform == 'linux'" }
 
 [tool.poetry.extras]
 oidc = [

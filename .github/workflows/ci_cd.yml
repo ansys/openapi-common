@@ -39,10 +39,6 @@ jobs:
     name: Documentation build
     runs-on: ubuntu-latest
     steps:
-      - name: "Install system dependencies"
-        run: |
-          sudo apt-get update && sudo apt-get install libkrb5-dev
-
       - name: "Run Ansys documentation building action"
         uses: ansys/actions/doc-build@v5
         with:
