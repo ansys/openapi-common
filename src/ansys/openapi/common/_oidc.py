@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
 from typing import Optional
+import urllib.parse
 
 import keyring
 import requests
@@ -261,9 +261,10 @@ class OIDCSessionFactory:
         """
         logger.info(f"Fetching configuration information from Identity Provider {url}")
         set_session_kwargs(self._initial_session, self._idp_session_configuration)
-        authority_response = self._initial_session.get(
-            f"{url}.well-known/openid-configuration",
-        )
+        if not url.endswith("/"):
+            url += "/"
+        well_known_endpoint = urllib.parse.urljoin(url, ".well-known/openid-configuration")
+        authority_response = self._initial_session.get(well_known_endpoint)
         set_session_kwargs(self._initial_session, self._api_session_configuration)
 
         logger.debug("Received configuration:")
