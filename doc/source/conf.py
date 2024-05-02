@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import sys
 
-from ansys_sphinx_theme import pyansys_logo_black
+from ansys_sphinx_theme import pyansys_logo_black, get_version_match
 
 from ansys.openapi import common
 
@@ -114,6 +114,8 @@ copybutton_prompt_is_regexp = True
 
 
 # -- Options for HTML output -------------------------------------------------
+cname = os.getenv("DOCUMENTATION_CNAME", "https://ansys.github.io/openapi-common/")
+
 html_theme = "ansys_sphinx_theme"
 html_logo = pyansys_logo_black
 html_theme_options = {
@@ -124,6 +126,11 @@ html_theme_options = {
         ("PyAnsys Documentation", "https://docs.pyansys.com"),
         ("Shared Components", "https://shared.docs.pyansys.com"),
     ],
+    "switcher": {
+        "json_url": f"https://{cname}/versions.json",
+        "version_match": get_version_match(common.__version__),
+    },
+    "check_switcher": False,
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
