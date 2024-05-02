@@ -33,7 +33,7 @@ jobs:
         uses: ansys/actions/doc-style@maint/vale-ignore-changelogd
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          # ignore-changelogd: true
+          ignore-changelogd: true
 
   # doc-build:
   #   name: Build Documentation
