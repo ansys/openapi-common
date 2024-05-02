@@ -114,7 +114,7 @@ copybutton_prompt_is_regexp = True
 
 
 # -- Options for HTML output -------------------------------------------------
-cname = os.getenv("DOCUMENTATION_CNAME", "https://ansys.github.io/openapi-common/")
+cname = os.getenv("DOCUMENTATION_CNAME", "ansys.github.io/openapi-common/")
 
 html_theme = "ansys_sphinx_theme"
 html_logo = pyansys_logo_black
