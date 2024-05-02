@@ -106,12 +106,17 @@ def test_valid_header_returns_correct_values(authenticate_parsing_fixture):
     assert all(parsed_header[k] == v for k, v in REQUIRED_HEADERS.items())
 
 
-def test_valid_well_known_parsed_correctly():
+@pytest.mark.parametrize(
+    "authority_url",
+    ["https://www.example.com/", "https://www.example.com", "https://www.example.com/api/"],
+)
+def test_valid_well_known_parsed_correctly(authority_url):
     response = json.dumps(WELL_KNOWN_PARAMETERS)
-    identity_provider_url = "http://www.example.com/"
     with requests_mock.Mocker() as requests_mocker:
+        if not authority_url.endswith("/"):
+            authority_url += "/"
         requests_mocker.get(
-            "{}.well-known/openid-configuration".format(identity_provider_url),
+            f"{authority_url}.well-known/openid-configuration",
             status_code=200,
             text=response,
         )
@@ -119,7 +124,7 @@ def test_valid_well_known_parsed_correctly():
         mock_factory._initial_session = requests.Session()
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
-        output = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, identity_provider_url)
+        output = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, authority_url)
         for k, v in WELL_KNOWN_PARAMETERS.items():
             assert output[k] == v
             assert output[k.upper()] == v
