@@ -62,12 +62,18 @@ pydantic = { version = "*" }
 requests-mock = { version = "*" }
 pytest-mock = { version = "*" }
 covertable = { version = "*" }
-asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'" }
+
 mypy = "^1.8.0"
 types-requests = { version = "*" }
 types-python-dateutil = { version = "*" }
 requests_auth = { version = "*" }
 keyring = { version = "*" }
+
+[tool.poetry.group.dev-linux]
+optional = true
+
+[tool.poetry.group.dev-linux.dependencies]
+asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'" }
 
 [tool.poetry.group.doc]
 optional = true
@@ -108,7 +114,7 @@ python =
 [testenv]
 whitelist_externals = poetry
 commands_pre =
-    poetry install --no-root --extras "oidc linux-kerberos"
+    poetry install --no-root --with dev-linux --extras "oidc linux-kerberos"
 extras =
     oidc
     linux-kerberos
