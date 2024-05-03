@@ -5,7 +5,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 name = "ansys-openapi-common"
 description = "Provides a helper to create sessions for use with Ansys OpenAPI clients."
-version = "2.0.1"
+version = "2.0.2"
 license = "MIT"
 authors = ["ANSYS, Inc. <pyansys.core@ansys.com>"]
 maintainers = ["ANSYS, Inc. <pyansys.core@ansys.com>"]
@@ -62,17 +62,22 @@ pydantic = { version = "*" }
 requests-mock = { version = "*" }
 pytest-mock = { version = "*" }
 covertable = { version = "*" }
-asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'" }
 mypy = "^1.8.0"
 types-requests = { version = "*" }
 types-python-dateutil = { version = "*" }
 requests_auth = { version = "*" }
 keyring = { version = "*" }
 
-[tool.poetry.group.docs]
+[tool.poetry.group.dev-linux]
 optional = true
 
-[tool.poetry.group.docs.dependencies]
+[tool.poetry.group.dev-linux.dependencies]
+asgi_gssapi = { version = "*", markers = "sys_platform == 'linux'" }
+
+[tool.poetry.group.doc]
+optional = true
+
+[tool.poetry.group.doc.dependencies]
 # Doc packages
 ansys-sphinx-theme = { version = "0.14.0" }
 numpydoc = { version = "1.6.0" }
@@ -108,7 +113,7 @@ python =
 [testenv]
 whitelist_externals = poetry
 commands_pre =
-    poetry install --no-root --extras "oidc linux-kerberos"
+    poetry install --no-root --with dev-linux --extras "oidc linux-kerberos"
 extras =
     oidc
     linux-kerberos
