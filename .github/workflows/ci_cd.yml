@@ -14,7 +14,7 @@ on:
 env:
   MAIN_PYTHON_VERSION: '3.10'
   LIBRARY_NAME: 'ansys-openapi-common'
-  DOCUMENTATION_CNAME: 'ansys.github.io/openapi-common/'
+  DOCUMENTATION_CNAME: 'openapi.docs.pyansys.com'
 
 jobs:
   code-style:
