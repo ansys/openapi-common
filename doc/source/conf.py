@@ -2,7 +2,7 @@ from datetime import datetime
 import os
 import sys
 
-from ansys_sphinx_theme import pyansys_logo_black
+from ansys_sphinx_theme import get_version_match, pyansys_logo_black
 
 from ansys.openapi import common
 
@@ -114,6 +114,8 @@ copybutton_prompt_is_regexp = True
 
 
 # -- Options for HTML output -------------------------------------------------
+cname = os.getenv("DOCUMENTATION_CNAME", "ansys.github.io/openapi-common/")
+
 html_theme = "ansys_sphinx_theme"
 html_logo = pyansys_logo_black
 html_theme_options = {
@@ -124,77 +126,14 @@ html_theme_options = {
         ("PyAnsys Documentation", "https://docs.pyansys.com"),
         ("Shared Components", "https://shared.docs.pyansys.com"),
     ],
+    "switcher": {
+        "json_url": f"https://{cname}/versions.json",
+        "version_match": get_version_match(common.__version__),
+    },
+    "check_switcher": False,
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "openapicommondoc"
-
-
-# -- Options for LaTeX output ------------------------------------------------
-latex_elements = {}
-
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (
-        master_doc,
-        "ansys_openapi_common.tex",
-        "ansys.openapi.common Documentation",
-        author,
-        "manual",
-    ),
-]
-
-
-# -- Options for manual page output ------------------------------------------
-
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [
-    (
-        master_doc,
-        "ansys.openapi.common",
-        "ansys.openapi.common Documentation",
-        [author],
-        1,
-    )
-]
-
-
-# -- Options for Texinfo output ----------------------------------------------
-
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (
-        master_doc,
-        "ansys.openapi.common",
-        "ansys.openapi.common Documentation",
-        author,
-        "ansys.openapi.common",
-        "Common authentication components for pyAnsys REST clients",
-        "Engineering Software",
-    ),
-]
-latex_engine = "xelatex"
-
-# -- Options for Epub output -------------------------------------------------
-
-# Bibliographic Dublin Core info.
-epub_title = project
-
-# The unique identifier of the text. This can be a ISBN number
-# or the project homepage.
-#
-# epub_identifier = ''
-
-# A unique identification for the text.
-#
-# epub_uid = ''
-
-# A list of files that should not be packed into the epub file.
-epub_exclude_files = ["search.html"]
