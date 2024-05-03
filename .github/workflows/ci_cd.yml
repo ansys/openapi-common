@@ -43,7 +43,7 @@ jobs:
         uses: ansys/actions/doc-build@v5
         with:
           check-links: false
-          sphinxopts: "-j 1 -W --keep-going"
+          sphinxopts: "-W --keep-going"
 
   smoke-tests:
     name: "Build wheelhouse for latest Python versions"
