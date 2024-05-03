@@ -62,7 +62,6 @@ pydantic = { version = "*" }
 requests-mock = { version = "*" }
 pytest-mock = { version = "*" }
 covertable = { version = "*" }
-
 mypy = "^1.8.0"
 types-requests = { version = "*" }
 types-python-dateutil = { version = "*" }
