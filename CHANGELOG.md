@@ -6,6 +6,35 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## openapi-common 2.0.1, 2024-05-02
+
+### Bugs fixed
+
+* [Issue #570](https://github.com/ansys/openapi-common/issues/570),
+  [Pull request #571](https://github.com/ansys/openapi-common/pull/571):
+  Add handling for authority URLs with no trailing slash.
+
+### Contributors
+
+* Doug Addy (Ansys)
+
+## openapi-common 2.0.0, 2024-03-01
+
+### New features
+
+* [Issue #495](https://github.com/ansys/openapi-common/issues/495),
+  [Pull request #497](https://github.com/ansys/openapi-common/pull/497):
+  Support optional fields in models.
+* [Issue #508](https://github.com/ansys/openapi-common/issues/508),
+  [Pull request #514](https://github.com/ansys/openapi-common/pull/514):
+  Add `Unset` `__repr__`.
+
+### Contributors
+
+* Doug Addy (Ansys)
+* Andy Grigg (Ansys)
+* Ludovic Steinbach (Ansys)
+
 ## openapi-common 1.5.1, 2024-03-01
 
 ### New features
