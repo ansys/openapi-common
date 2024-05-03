@@ -4,6 +4,9 @@ on:
     types: [opened, reopened, synchronize, edited, labeled]
   push:
     branches: [ main ]
+    paths:
+      - '../labels.yml'
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
