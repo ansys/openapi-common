@@ -14,7 +14,7 @@ on:
 env:
   MAIN_PYTHON_VERSION: '3.10'
   LIBRARY_NAME: 'ansys-openapi-common'
-  DOCUMENTATION_CNAME: 'ansys.github.io/openapi-common/'
+  DOCUMENTATION_CNAME: 'openapi.docs.pyansys.com'
 
 jobs:
   code-style:
@@ -41,10 +41,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Run Ansys documentation building action"
-        uses: ansys/actions/doc-build@v5
+        uses: ansys/actions/doc-build@v6
         with:
           check-links: false
-          sphinxopts: "-j 1 -W --keep-going"
+          sphinxopts: "-W --keep-going"
 
   smoke-tests:
     name: "Build wheelhouse for latest Python versions"
