@@ -6,6 +6,24 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## openapi-common 2.0.2, 2024-05-03
+
+### New features
+
+* [Issue #549](https://github.com/ansys/openapi-common/issues/459),
+  [Pull request #555](https://github.com/ansys/openapi-common/pull/555):
+  Use Ansys standard actions.
+
+### Documentation
+
+* [Issue #494](https://github.com/ansys/openapi-common/issues/494),
+  [Pull request #577](https://github.com/ansys/openapi-common/pull/577):
+  Support multi-versioned documentation.
+
+### Contributors
+
+* Ludovic Steinbach (Ansys)
+
 ## openapi-common 2.0.1, 2024-05-02
 
 ### Bugs fixed
