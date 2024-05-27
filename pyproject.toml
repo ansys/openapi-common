@@ -82,7 +82,7 @@ optional = true
 ansys-sphinx-theme = { version = "0.16.0" }
 numpydoc = { version = "1.7.0" }
 sphinx = { version = "7.3.7" }
-sphinx-notfound-page = { version = "1.0.0" }
+sphinx-notfound-page = { version = "1.0.2" }
 sphinx-copybutton = { version = "0.5.2" }
 
 [tool.poetry.extras]
