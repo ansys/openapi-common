@@ -27,7 +27,7 @@ import warnings
 import requests
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-from requests_ntlm import HttpNtlmAuth  # type: ignore[import-untyped]
+from requests_ntlm import HttpNtlmAuth
 from urllib3.util.retry import Retry
 
 from . import __version__
