@@ -310,7 +310,7 @@ class TestTimeoutAdapter:
 
     def test_default_timeout_is_applied_to_request(self, mocker, test_request):
         adapter = _RequestsTimeoutAdapter()
-        connection = adapter.get_connection(test_request.url)
+        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
         patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         self.check_timeout(patched_urlopen, self.DEFAULT_TIMEOUT, self.DEFAULT_TIMEOUT)
@@ -318,7 +318,7 @@ class TestTimeoutAdapter:
     def test_custom_timeout_int_is_applied_to_request(self, mocker, test_request):
         timeout = 10
         adapter = _RequestsTimeoutAdapter(timeout=timeout)
-        connection = adapter.get_connection(test_request.url)
+        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
         patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         self.check_timeout(patched_urlopen, timeout, timeout)
@@ -326,7 +326,7 @@ class TestTimeoutAdapter:
     def test_custom_timeout_tuple_is_applied_to_request(self, mocker, test_request):
         timeout = (10, 100)
         adapter = _RequestsTimeoutAdapter(timeout=timeout)
-        connection = adapter.get_connection(test_request.url)
+        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
         patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         self.check_timeout(patched_urlopen, *timeout)
@@ -334,7 +334,7 @@ class TestTimeoutAdapter:
     def test_custom_max_retries_is_applied_to_request(self, mocker, test_request):
         max_retries = 99
         adapter = _RequestsTimeoutAdapter(max_retries=max_retries)
-        connection = adapter.get_connection(test_request.url)
+        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
         patched_urlopen = mocker.patch.object(connection, "urlopen")
         adapter.send(test_request.prepare())
         patched_urlopen.assert_called_once()
