@@ -27,7 +27,7 @@ import warnings
 import requests
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
-from requests_ntlm import HttpNtlmAuth  # type: ignore[import-untyped]
+from requests_ntlm import HttpNtlmAuth
 from urllib3.util.retry import Retry
 
 from . import __version__
@@ -47,7 +47,7 @@ _platform_windows = False
 try:
     # noinspection PyUnresolvedReferences
     import keyring
-    import requests_auth  # type: ignore[import-untyped]  # noqa: F401
+    import requests_auth  # noqa: F401
 
     from ._oidc import OIDCSessionFactory
 except ImportError:
