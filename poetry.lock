@@ -38,13 +38,13 @@ files = [
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "0.16.5"
+version = "0.16.6"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 optional = false
 python-versions = "<4,>=3.9"
 files = [
-    {file = "ansys_sphinx_theme-0.16.5-py3-none-any.whl", hash = "sha256:3546b1a9fde6aebbe5d1a762470248d1e3a24d70c26c6eb334d6a9f1b986e5c9"},
-    {file = "ansys_sphinx_theme-0.16.5.tar.gz", hash = "sha256:21e23524e92be937b8e6b2efc1eaa6b1afa3d500d48d4260ef4596337fdc7732"},
+    {file = "ansys_sphinx_theme-0.16.6-py3-none-any.whl", hash = "sha256:9f19caeb4bbe3b6426f8d49d5c6fc2a85bbf2b5a6529229c3845df6d7b272bc0"},
+    {file = "ansys_sphinx_theme-0.16.6.tar.gz", hash = "sha256:c045cfb4f0baf2e5feb7688247ea37ad0286a7494ef1f751bfce753cae8c558c"},
 ]
 
 [package.dependencies]
@@ -1586,20 +1586,20 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "requests-auth"
-version = "8.0.0"
+version = "7.0.0"
 description = "Authentication for Requests"
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.7"
 files = [
-    {file = "requests_auth-8.0.0-py3-none-any.whl", hash = "sha256:7faf0c58cadb61d2398fed9ea412a38641d70a856b1db25db281f9057194f1ca"},
-    {file = "requests_auth-8.0.0.tar.gz", hash = "sha256:ca2f2126d8a41e1d1615faa8cf8d5d62ea01d705f9ee99f470b9a44abd5dee82"},
+    {file = "requests_auth-7.0.0-py3-none-any.whl", hash = "sha256:a6ee7209435a1489d1f2a9b0e855e1f3d87bbae5bc4acda0c27bdac49aa74fd4"},
+    {file = "requests_auth-7.0.0.tar.gz", hash = "sha256:8a9d5a185905d13bdba03de3e52c0c7a9d8658b5f43ff6de462fbeb2df91e9c9"},
 ]
 
 [package.dependencies]
 requests = "==2.*"
 
 [package.extras]
-testing = ["pyjwt (==2.*)", "pytest-cov (==5.*)", "pytest-responses (==0.5.*)"]
+testing = ["pyjwt (==2.*)", "pytest-cov (==4.*)", "pytest-responses (==0.5.*)"]
 
 [[package]]
 name = "requests-kerberos"
@@ -2033,13 +2033,13 @@ files = [
 
 [[package]]
 name = "types-requests"
-version = "2.32.0.20240602"
+version = "2.32.0.20240622"
 description = "Typing stubs for requests"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "types-requests-2.32.0.20240602.tar.gz", hash = "sha256:3f98d7bbd0dd94ebd10ff43a7fbe20c3b8528acace6d8efafef0b6a184793f06"},
-    {file = "types_requests-2.32.0.20240602-py3-none-any.whl", hash = "sha256:ed3946063ea9fbc6b5fc0c44fa279188bae42d582cb63760be6cb4b9d06c3de8"},
+    {file = "types-requests-2.32.0.20240622.tar.gz", hash = "sha256:ed5e8a412fcc39159d6319385c009d642845f250c63902718f605cd90faade31"},
+    {file = "types_requests-2.32.0.20240622-py3-none-any.whl", hash = "sha256:97bac6b54b5bd4cf91d407e62f0932a74821bc2211f22116d9ee1dd643826caf"},
 ]
 
 [package.dependencies]
@@ -2407,4 +2407,4 @@ oidc = ["keyring", "requests_auth"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "1a034bb2627f5422424c2a055e74395f93eb69cf66f508c0e71fdac84cbd79b1"
+content-hash = "7dc9085d21bb41cf82b157758801987cc7aab03db67d7a7ae38547b14a797ddc"
