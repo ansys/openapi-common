@@ -1,0 +1,12 @@
+[
+  {
+    "name": "dev",
+    "version": "dev",
+    "url": "https://openapi.docs.pyansys.com/version/dev/"
+  },
+  {
+    "name": "2.0 (stable)",
+    "version": "2.0",
+    "url": "https://openapi.docs.pyansys.com/version/stable/"
+  }
+]

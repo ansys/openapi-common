@@ -1,0 +1,4 @@
+User-agent: *
+
+
+Sitemap: https://openapi.docs.pyansys.com/sitemap.xml
