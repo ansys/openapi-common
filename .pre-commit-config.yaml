@@ -4,7 +4,7 @@ ci:
 repos:
 
 - repo: https://github.com/psf/black
-  rev: 24.4.2
+  rev: 24.8.0
   hooks:
   - id: black
 
@@ -14,12 +14,12 @@ repos:
   - id: isort
 
 - repo: https://github.com/PyCQA/flake8
-  rev: 7.0.0
+  rev: 7.1.1
   hooks:
   - id: flake8
 
 - repo: https://github.com/codespell-project/codespell
-  rev: v2.2.6
+  rev: v2.3.0
   hooks:
   - id: codespell
     args: ["--ignore-words", "doc/styles/config/vocabularies/ANSYS/accept.txt", "--skip", "poetry.lock"]
@@ -50,7 +50,7 @@ repos:
     files: "^(src/)"
 
 - repo: https://github.com/ansys/pre-commit-hooks
-  rev: v0.3.1
+  rev: v0.4.2
   hooks:
     - id: add-license-headers
       args:
