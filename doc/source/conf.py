@@ -117,7 +117,6 @@ copybutton_prompt_is_regexp = True
 cname = os.getenv("DOCUMENTATION_CNAME", "openapi.docs.pyansys.com")
 
 html_theme = "ansys_sphinx_theme"
-html_logo = pyansys_logo_black
 html_theme_options = {
     "github_url": "https://github.com/pyansys/openapi-common",
     "show_prev_next": False,
@@ -131,6 +130,7 @@ html_theme_options = {
         "version_match": get_version_match(common.__version__),
     },
     "check_switcher": False,
+    "logo": "ansys",
 }
 
 # -- Options for HTMLHelp output ---------------------------------------------
