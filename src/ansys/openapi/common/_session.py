@@ -47,7 +47,7 @@ _platform_windows = False
 try:
     # noinspection PyUnresolvedReferences
     import keyring
-    import requests_auth  # noqa: F401
+    import requests_auth  # type: ignore[import-untyped]  # noqa: F401
 
     from ._oidc import OIDCSessionFactory
 except ImportError:
