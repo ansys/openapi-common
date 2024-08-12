@@ -29,6 +29,8 @@ from requests_auth import (  # type: ignore[import-untyped]
     InvalidGrantRequest,
     OAuth2AuthorizationCodePKCE,
 )
+
+# This import is optional and has missing type hints, so use a broad ignore statement
 from requests_auth.authentication import OAuth2  # type: ignore
 
 from ._logger import logger
