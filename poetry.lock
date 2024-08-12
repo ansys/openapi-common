@@ -1876,4 +1876,4 @@ oidc = ["keyring", "requests_auth"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "7948621dd77fb12db5ae9211bf2b5d58f7f4173dc2dafc6c25bfa0ec6e61c408"
+content-hash = "3174050fdd869af8512d0c9886f9a4774810f719834b21f31074bd01210f0a54"
