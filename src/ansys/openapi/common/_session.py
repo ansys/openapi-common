@@ -245,9 +245,9 @@ class ApiClientFactory:
         password: str,
         domain: Optional[str] = None,
     ) -> Api_Client_Factory:
-        """Set up client authentication for use with provided credentials.
+        """Set up client authentication for use with provided credentials via basic authentication only.
 
-        This method will force the use of basic authentication.
+        This method forces the use of basic authentication.
 
         .. versionadded:: 2.0.3
 
