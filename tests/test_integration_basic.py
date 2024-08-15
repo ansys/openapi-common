@@ -44,6 +44,10 @@ from .integration.common import (
 custom_test_app = FastAPI()
 security = HTTPBasic()
 
+auth_methods = pytest.mark.parametrize(
+    "auth_method", ["with_credentials", "with_preemptive_basic_auth"]
+)
+
 
 @custom_test_app.patch("/models/{model_id}")
 async def patch_model(
@@ -81,26 +85,30 @@ class TestBasic:
         while proc.is_alive():
             sleep(1)
 
-    def test_can_connect(self):
+    @auth_methods
+    def test_can_connect(self, auth_method):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_credentials(TEST_USER, TEST_PASS).connect()
+        _ = getattr(client_factory, auth_method)(TEST_USER, TEST_PASS).connect()
 
-    def test_invalid_user_return_401(self):
+    @auth_methods
+    def test_invalid_user_return_401(self, auth_method):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as exception_info:
-            _ = client_factory.with_credentials("eve", "password").connect()
+            _ = getattr(client_factory, auth_method)("eve", "password").connect()
         assert exception_info.value.response.status_code == 401
         assert "Unauthorized" in exception_info.value.response.reason
 
-    def test_get_health_returns_200_ok(self):
+    @auth_methods
+    def test_get_health_returns_200_ok(self, auth_method):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(TEST_USER, TEST_PASS).connect()
+        client = getattr(client_factory, auth_method)(TEST_USER, TEST_PASS).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
         assert "OK" in resp.text
 
-    def test_patch_model(self):
+    @auth_methods
+    def test_patch_model(self, auth_method):
         from . import models
 
         deserialized_response = models.ExampleModel(
@@ -111,7 +119,7 @@ class TestBasic:
         )
 
         resource_path = "/models/{ID}"
-        method = "PATCH"
+        http_method = "PATCH"
         path_params = {"ID": TEST_MODEL_ID}
 
         response_type = "ExampleModel"
@@ -119,12 +127,12 @@ class TestBasic:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(TEST_USER, TEST_PASS).connect()
+        client = getattr(client_factory, auth_method)(TEST_USER, TEST_PASS).connect()
         client.setup_client(models)
 
         response = client.call_api(
             resource_path,
-            method,
+            http_method,
             path_params=path_params,
             body=upload_data,
             response_type=response_type,

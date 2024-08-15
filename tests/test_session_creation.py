@@ -95,6 +95,19 @@ def test_can_connect_with_basic():
         )
 
 
+def test_can_connect_with_pre_emptive_basic():
+    with requests_mock.Mocker() as m:
+        m.get(
+            SERVICELAYER_URL,
+            status_code=200,
+            request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
+        )
+        _ = ApiClientFactory(SERVICELAYER_URL).with_preemptive_basic_auth(
+            username="TEST_USER", password="PASSWORD"
+        )
+        assert m.called_once
+
+
 def test_can_connect_with_basic_and_domain():
     with requests_mock.Mocker() as m:
         m.get(
@@ -112,6 +125,19 @@ def test_can_connect_with_basic_and_domain():
         )
 
 
+def test_can_connect_with_pre_emptive_basic_and_domain():
+    with requests_mock.Mocker() as m:
+        m.get(
+            SERVICELAYER_URL,
+            status_code=200,
+            request_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
+        )
+        _ = ApiClientFactory(SERVICELAYER_URL).with_preemptive_basic_auth(
+            username="TEST_USER", password="PASSWORD", domain="DOMAIN"
+        )
+        assert m.called_once
+
+
 def test_only_called_once_with_basic_when_anonymous_is_ok():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
@@ -122,7 +148,8 @@ def test_only_called_once_with_basic_when_anonymous_is_ok():
         assert m.called_once
 
 
-def test_throws_with_invalid_credentials():
+@pytest.mark.parametrize("auth_method", ["with_credentials", "with_preemptive_basic_auth"])
+def test_throws_with_invalid_credentials(auth_method):
     with requests_mock.Mocker() as m:
         UNAUTHORIZED = "Unauthorized_unique"
         m.get(
@@ -137,7 +164,7 @@ def test_throws_with_invalid_credentials():
             request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
         )
         with pytest.raises(ApiConnectionException) as exception_info:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            _ = getattr(ApiClientFactory(SERVICELAYER_URL), auth_method)(
                 username="NOT_A_TEST_USER", password="PASSWORD"
             )
         assert exception_info.value.response.status_code == 401

@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import os
-from typing import Any, Mapping, Optional, Tuple, TypeVar, Union
+from typing import Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
 import warnings
 
 import requests
@@ -175,11 +175,10 @@ class ApiClientFactory:
         :class:`~ansys.openapi.common.ApiClientFactory`
             Original client factory object.
         """
-        if self.__test_connection():
-            logger.info("Connection successful.")
-            self._configured = True
-            return self
-        assert False, "Connection failures will throw above"
+        self.__test_connection()
+        logger.info("Connection successful.")
+        self._configured = True
+        return self
 
     def with_credentials(
         self: Api_Client_Factory,
@@ -227,18 +226,61 @@ class ApiClientFactory:
             if _platform_windows:
                 logger.debug("Attempting to connect with NTLM authentication...")
                 self._session.auth = HttpNtlmAuth(username, password)
-                if self.__test_connection():
-                    logger.info("Connection successful.")
-                    self._configured = True
-                    return self
-        if "Basic" in headers:
-            logger.debug("Attempting connection with Basic authentication...")
-            self._session.auth = HTTPBasicAuth(username, password)
-            if self.__test_connection():
+                self.__test_connection()
                 logger.info("Connection successful.")
                 self._configured = True
                 return self
+        if "Basic" in headers:
+            logger.debug("Attempting connection with Basic authentication...")
+            self._session.auth = HTTPBasicAuth(username, password)
+            self.__test_connection()
+            logger.info("Connection successful.")
+            self._configured = True
+            return self
         raise ConnectionError("Unable to connect with credentials provided.")
+
+    def with_preemptive_basic_auth(
+        self: Api_Client_Factory,
+        username: str,
+        password: str,
+        domain: Optional[str] = None,
+    ) -> Api_Client_Factory:
+        """Set up client authentication for use with provided credentials.
+
+        This method will force the use of basic authentication.
+
+        Parameters
+        ----------
+        username : str
+            Username for the connection.
+        password : str
+            Password for the connection.
+        domain : str, optional
+            Domain to use for connection if required. The default is ``None``.
+
+        Returns
+        -------
+        :class:`~ansys.openapi.common.ApiClientFactory`
+            Original client factory object.
+
+        Warnings
+        --------
+        In almost all cases you should use the :meth:`.with_credentials` instead, which automatically uses the most
+        secure credential-based supported authentication method advertised by the server. You should only use this
+        method if your server does not advertise ``Basic`` as a supported authentication method in the
+        ``www-authenticate`` header.
+        """
+        logger.info(f"Setting credentials for user '{username}'.")
+        if domain is not None:
+            username = f"{domain}\\{username}"
+            logger.debug(f"Setting domain for username, connecting as '{username}'.")
+
+        logger.debug("Attempting connection with pre-emptive Basic authentication...")
+        self._session.auth = HTTPBasicAuth(username, password)
+        self.__test_connection()
+        logger.info("Connection successful.")
+        self._configured = True
+        return self
 
     def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
         """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
@@ -271,10 +313,10 @@ class ApiClientFactory:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
             self._session.auth = NegotiateAuth()
-            if self.__test_connection():
-                logger.info("Connection successful.")
-                self._configured = True
-                return self
+            self.__test_connection()
+            logger.info("Connection successful.")
+            self._configured = True
+            return self
         raise ConnectionError("Unable to connect with autologon.")
 
     def with_oidc(
@@ -314,14 +356,19 @@ class ApiClientFactory:
 
         return OIDCSessionBuilder(self, session_factory)
 
-    def __test_connection(self) -> bool:
+    def __test_connection(self) -> Literal[True]:
         """Attempt to connect to the API server.
 
-        If this returns a 2XX status code, the method returns ``True``. Otherwise, the method will
+        If the server returns a 2XX status code, the method returns ``True``. Otherwise, the method will
         throw an :obj:`APIConnectionError` object with the status code and the reason phrase. If the
         underlying requests method returns an exception of its own, it is left to propagate as-is
         (for example, a :obj:`~requests.exceptions.SSLException` object if the remote certificate
         is untrusted).
+
+        Returns
+        -------
+        Literal[True]
+            If the test is successful.
 
         Raises
         ------
