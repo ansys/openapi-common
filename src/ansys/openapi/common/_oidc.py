@@ -31,7 +31,11 @@ from requests_auth import (  # type: ignore[import-untyped]
 )
 
 # This import is optional and has missing type hints, so use a broad ignore statement
-from requests_auth.authentication import OAuth2  # type: ignore
+try:
+    from requests_auth import OAuth2  # type: ignore[unused-ignore, import-untyped]
+except ImportError:
+    # This class is available in the authentication submodule in versions <8.0.0
+    from requests_auth.authentication import OAuth2  # type: ignore[unused-ignore, import-untyped]
 
 from ._logger import logger
 from ._util import (
@@ -149,14 +153,19 @@ class OIDCSessionFactory:
         except InvalidGrantRequest as excinfo:
             logger.debug(str(excinfo))
             raise ValueError("The provided refresh token was invalid, please request a new token.")
-        with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
+        try:
+            # noinspection PyProtectedMember
+            lock = OAuth2.token_cache._forbid_concurrent_missing_token_function_call
+        except AttributeError:
+            lock = OAuth2.token_cache.forbid_concurrent_missing_token_function_call
+        with lock:
             # If we were provided with a new refresh token it's likely that the Identity
             # Provider is configured to rotate refresh tokens. Store the new one and
             # discard the old one. Otherwise use the existing refresh token.
             if new_refresh_token is not None:
                 refresh_token = new_refresh_token
-            # noinspection PyProtectedMember
-            OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
+        # noinspection PyProtectedMember
+        OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
         self._authorized_session.auth = self._auth
         return self._authorized_session
 
