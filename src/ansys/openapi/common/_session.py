@@ -249,6 +249,8 @@ class ApiClientFactory:
 
         This method will force the use of basic authentication.
 
+        .. versionadded:: 2.0.3
+
         Parameters
         ----------
         username : str
