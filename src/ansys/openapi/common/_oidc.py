@@ -25,17 +25,15 @@ import urllib.parse
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import (  # type: ignore[import-untyped]
-    InvalidGrantRequest,
-    OAuth2AuthorizationCodePKCE,
-)
 
-# This import is optional and has missing type hints, so use a broad ignore statement
+# noinspection PyUnresolvedReferences
+from requests_auth import InvalidGrantRequest, OAuth2AuthorizationCodePKCE
+
 try:
-    from requests_auth import OAuth2  # type: ignore[unused-ignore, import-untyped]
+    from requests_auth import OAuth2
 except ImportError:
     # This class is available in the authentication submodule in versions <8.0.0
-    from requests_auth.authentication import OAuth2  # type: ignore[unused-ignore, import-untyped]
+    from requests_auth.authentication import OAuth2  # type: ignore
 
 from ._logger import logger
 from ._util import (
@@ -155,9 +153,9 @@ class OIDCSessionFactory:
             raise ValueError("The provided refresh token was invalid, please request a new token.")
         try:
             # noinspection PyProtectedMember
-            lock = OAuth2.token_cache._forbid_concurrent_missing_token_function_call
+            lock = OAuth2.token_cache._forbid_concurrent_missing_token_function_call  # type: ignore[attr-defined, unused-ignore]
         except AttributeError:
-            lock = OAuth2.token_cache.forbid_concurrent_missing_token_function_call
+            lock = OAuth2.token_cache.forbid_concurrent_missing_token_function_call  # type: ignore[attr-defined, unused-ignore]
         with lock:
             # If we were provided with a new refresh token it's likely that the Identity
             # Provider is configured to rotate refresh tokens. Store the new one and
