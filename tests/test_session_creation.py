@@ -153,7 +153,7 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
         AuthMode.BASIC,
         pytest.param(
             AuthMode.NTLM,
-            pytest.mark.skipif(sys.platform == "linux", "NTLM not supported on Linux"),
+            marks=pytest.mark.skipif(sys.platform == "linux", reason="NTLM not supported on Linux"),
         ),
     ],
 )
@@ -176,7 +176,7 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
         AuthMode.BASIC,
         pytest.param(
             AuthMode.NTLM,
-            pytest.mark.skipif(sys.platform == "linux", "NTLM not supported on Linux"),
+            marks=pytest.mark.skipif(sys.platform == "linux", reason="NTLM not supported on Linux"),
         ),
     ],
 )
@@ -204,12 +204,28 @@ def test_throws_with_invalid_credentials(auth_mode):
         assert exception_info.value.response.reason == UNAUTHORIZED
 
 
-def test_with_credentials_throws_with_invalid_auth_method():
-    with pytest.raises(ValueError, match="AuthMode.KERBEROS is not supported for this method."):
+@pytest.mark.parametrize(
+    "auth_mode, message",
+    [
+        (AuthMode.KERBEROS, "AuthMode.KERBEROS is not supported for this method"),
+        pytest.param(
+            AuthMode.NTLM,
+            "AuthMode.NTLM is not supported on Linux",
+            marks=pytest.mark.skipif(sys.platform != "Linux", reason="Linux test"),
+        ),
+        pytest.param(
+            AuthMode.NEGOTIATE,
+            "AuthMode.NEGOTIATE is not supported on Linux",
+            marks=pytest.mark.skipif(sys.platform != "Linux", reason="Linux test"),
+        ),
+    ],
+)
+def test_with_credentials_throws_with_invalid_auth_method(auth_mode, message):
+    with pytest.raises(ValueError, match=message):
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="NOT_A_TEST_USER",
             password="PASSWORD",
-            auth_mode=AuthMode.KERBEROS,
+            auth_mode=auth_mode,
         )
 
 
