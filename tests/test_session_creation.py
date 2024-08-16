@@ -146,7 +146,17 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
 
 # In Auto mode, the single call is during the initial request to retrieve the header
 # In Basic and NTLM modes, the single call is the test request
-@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC, AuthMode.NTLM])
+@pytest.mark.parametrize(
+    "auth_mode",
+    [
+        AuthMode.AUTO,
+        AuthMode.BASIC,
+        pytest.param(
+            AuthMode.NTLM,
+            pytest.mark.skipif(sys.platform == "linux", "NTLM not supported on Linux"),
+        ),
+    ],
+)
 def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
@@ -159,7 +169,17 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
         assert m.called_once
 
 
-@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC, AuthMode.NTLM])
+@pytest.mark.parametrize(
+    "auth_mode",
+    [
+        AuthMode.AUTO,
+        AuthMode.BASIC,
+        pytest.param(
+            AuthMode.NTLM,
+            pytest.mark.skipif(sys.platform == "linux", "NTLM not supported on Linux"),
+        ),
+    ],
+)
 def test_throws_with_invalid_credentials(auth_mode):
     with requests_mock.Mocker() as m:
         UNAUTHORIZED = "Unauthorized_unique"

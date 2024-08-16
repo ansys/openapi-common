@@ -236,7 +236,9 @@ class ApiClientFactory:
         NTLM authentication is not currently supported on Linux.
         """
         if auth_mode == AuthMode.KERBEROS:
-            raise ValueError(f"AuthMode.KERBEROS is not supported for this method.")
+            raise ValueError("AuthMode.KERBEROS is not supported for this method.")
+        if auth_mode in [AuthMode.NTLM, AuthMode.NEGOTIATE] and not _platform_windows:
+            raise ValueError(f"AuthMode.{auth_mode.name} is not supported on Linux.")
 
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
@@ -321,8 +323,8 @@ class ApiClientFactory:
             )
         if auth_mode == AuthMode.NEGOTIATE and not _platform_windows:
             raise ValueError(
-                f"AuthMode.{auth_mode.name} is not supported for this method on Linux. Only AuthMode.KERBEROS"
-                "or AuthMode.AUTO are supported."
+                f"AuthMode.{auth_mode.name} is not supported on Linux. Only AuthMode.KERBEROS or AuthMode.AUTO are"
+                "supported."
             )
 
         if auth_mode == AuthMode.AUTO:
