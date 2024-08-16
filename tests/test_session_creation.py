@@ -356,7 +356,7 @@ def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
 
 
-@pytest.mark.skipif(sys.platform != "linux", reason="Exception only raised on Windows")
+@pytest.mark.skipif(sys.platform != "win32", reason="Exception only raised on Windows")
 def test_autologon_throws_with_kerberos_auth_mode_windows():
     with pytest.raises(
         ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
