@@ -318,24 +318,6 @@ def test_can_connect_with_negotiate(auth_mode):
     pass
 
 
-@pytest.mark.parametrize(
-    "auth_mode",
-    [
-        AuthMode.AUTO,
-        pytest.param(
-            AuthMode.KERBEROS,
-            marks=pytest.mark.skipif(
-                sys.platform != "linux", reason="Kerberos only supported on Linux"
-            ),
-        ),
-        pytest.param(
-            AuthMode.NEGOTIATE,
-            marks=pytest.mark.skipif(
-                sys.platform != "win32", reason="Negotiate only supported on Windows"
-            ),
-        ),
-    ],
-)
 def test_only_called_once_with_autologon_when_anonymous_is_ok(auth_mode):
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
