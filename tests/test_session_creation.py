@@ -318,11 +318,11 @@ def test_can_connect_with_negotiate(auth_mode):
     pass
 
 
-def test_only_called_once_with_autologon_when_anonymous_is_ok(auth_mode):
+def test_only_called_once_with_autologon_when_anonymous_is_ok():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
 
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
         assert m.called_once
 
 
