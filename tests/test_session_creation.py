@@ -153,7 +153,9 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
         AuthMode.BASIC,
         pytest.param(
             AuthMode.NTLM,
-            marks=pytest.mark.skipif(sys.platform == "linux", reason="NTLM not supported on Linux"),
+            marks=pytest.mark.skipif(
+                sys.platform != "win32", reason="NTLM only available on Windows"
+            ),
         ),
     ],
 )
@@ -176,7 +178,9 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
         AuthMode.BASIC,
         pytest.param(
             AuthMode.NTLM,
-            marks=pytest.mark.skipif(sys.platform == "linux", reason="NTLM not supported on Linux"),
+            marks=pytest.mark.skipif(
+                sys.platform != "win32", reason="NTLM only available on Windows"
+            ),
         ),
     ],
 )
@@ -211,12 +215,16 @@ def test_throws_with_invalid_credentials(auth_mode):
         pytest.param(
             AuthMode.NTLM,
             "AuthMode.NTLM is not supported on Linux",
-            marks=pytest.mark.skipif(sys.platform != "Linux", reason="Linux test"),
+            marks=pytest.mark.skipif(
+                sys.platform != "linux", reason="NTLM only not supported on Linux"
+            ),
         ),
         pytest.param(
             AuthMode.NEGOTIATE,
             "AuthMode.NEGOTIATE is not supported on Linux",
-            marks=pytest.mark.skipif(sys.platform != "Linux", reason="Linux test"),
+            marks=pytest.mark.skipif(
+                sys.platform != "linux", reason="NTLM only not supported on Linux"
+            ),
         ),
     ],
 )
@@ -317,13 +325,13 @@ def test_can_connect_with_negotiate(auth_mode):
         pytest.param(
             AuthMode.KERBEROS,
             marks=pytest.mark.skipif(
-                condition=sys.platform == "win32", reason="Kerberos not supported on Windows"
+                sys.platform != "linux", reason="Kerberos only supported on Linux"
             ),
         ),
         pytest.param(
             AuthMode.NEGOTIATE,
             marks=pytest.mark.skipif(
-                condition=sys.platform == "linux", reason="Negotiate not supported on Linux"
+                sys.platform != "win32", reason="Negotiate only supported on Windows"
             ),
         ),
     ],
@@ -348,7 +356,7 @@ def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
 
 
-@pytest.mark.skipif(sys.platform == "linux", reason="Windows only")
+@pytest.mark.skipif(sys.platform != "linux", reason="Exception only raised on Windows")
 def test_autologon_throws_with_kerberos_auth_mode_windows():
     with pytest.raises(
         ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
@@ -356,8 +364,8 @@ def test_autologon_throws_with_kerberos_auth_mode_windows():
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.KERBEROS)
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="Linux only")
-def test_autologon_throws_with_negotiate_auth_mode_windows():
+@pytest.mark.skipif(sys.platform != "linux", reason="Exception only raised on Linux")
+def test_autologon_throws_with_negotiate_auth_mode_linux():
     with pytest.raises(ValueError, match="AuthMode.NEGOTIATE is not supported on Linux"):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.NEGOTIATE)
 
