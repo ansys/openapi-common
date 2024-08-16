@@ -348,7 +348,7 @@ def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
 
 
-@pytest.mark.skipif(condition=sys.platform == "linux", reason="Windows only")
+@pytest.mark.skipif(sys.platform == "linux", reason="Windows only")
 def test_autologon_throws_with_kerberos_auth_mode_windows():
     with pytest.raises(
         ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
@@ -356,11 +356,9 @@ def test_autologon_throws_with_kerberos_auth_mode_windows():
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.KERBEROS)
 
 
-@pytest.mark.skipif(condition=sys.platform == "win32", reason="Linux only")
+@pytest.mark.skipif(sys.platform == "win32", reason="Linux only")
 def test_autologon_throws_with_negotiate_auth_mode_windows():
-    with pytest.raises(
-        ValueError, match="AuthMode.NEGOTIATE is not supported for this method on Linux"
-    ):
+    with pytest.raises(ValueError, match="AuthMode.NEGOTIATE is not supported on Linux"):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.NEGOTIATE)
 
 

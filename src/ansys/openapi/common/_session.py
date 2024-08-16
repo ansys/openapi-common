@@ -323,7 +323,7 @@ class ApiClientFactory:
             )
         if auth_mode == AuthMode.NEGOTIATE and not _platform_windows:
             raise ValueError(
-                f"AuthMode.{auth_mode.name} is not supported on Linux. Only AuthMode.KERBEROS or AuthMode.AUTO are"
+                f"AuthMode.{auth_mode.name} is not supported on Linux. Only AuthMode.KERBEROS or AuthMode.AUTO are "
                 "supported."
             )
 
