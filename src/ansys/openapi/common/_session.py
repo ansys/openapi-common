@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from enum import Enum
 import os
 from typing import Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
 import warnings
@@ -34,7 +35,13 @@ from . import __version__
 from ._api_client import ApiClient
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
-from ._util import SessionConfiguration, generate_user_agent, parse_authenticate, set_session_kwargs
+from ._util import (
+    CaseInsensitiveOrderedDict,
+    SessionConfiguration,
+    generate_user_agent,
+    parse_authenticate,
+    set_session_kwargs,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -72,6 +79,19 @@ else:
 # Required to allow the ApiClientFactory to be subclassed. This ensures that Pylance
 # understands that the subclass is returned by the builder methods instead of the base class
 Api_Client_Factory = TypeVar("Api_Client_Factory", bound="ApiClientFactory")
+
+
+class AuthMode(Enum):
+    """Authentication mode.
+
+    Used to specify the type of authentication used when connecting to the server.
+    """
+
+    AUTO = "auto"
+    BASIC = "Basic"
+    NTLM = "NTLM"
+    NEGOTIATE = "Negotiate"
+    KERBEROS = "Kerberos"
 
 
 class ApiClientFactory:
@@ -185,12 +205,16 @@ class ApiClientFactory:
         username: str,
         password: str,
         domain: Optional[str] = None,
+        auth_mode: Optional[AuthMode] = AuthMode.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
 
-        This method will attempt to connect to the API and uses the provided ``WWW-Authenticate`` header to determine
-        whether Negotiate, NTLM, or Basic Authentication should be used. The selected authentication method will then be
-        configured for use.
+        The default operation of this method is to attempt to connect to the API and to use the provided
+        ``WWW-Authenticate`` header to determine whether Negotiate, NTLM, or Basic Authentication should be used. The
+        selected authentication method will then be configured for use.
+
+        Alternatively, a different value of :enum:mem:`~PreEmptiveAuthMode` can be specified to manually control the
+        authentication method used.
 
         Parameters
         ----------
@@ -200,6 +224,11 @@ class ApiClientFactory:
             Password for the connection.
         domain : str, optional
             Domain to use for connection if required. The default is ``None``.
+        auth_mode : AuthMode
+            The authentication mode to use instead of using the ``WWW-Authenticate`` header. The default is,
+            :enum:mem:`~AuthMode.AUTO` which uses the `WWW-Authenticate`` header to determine the optimal
+            authentication method. Valid modes are :enum:mem:`~AuthMode.BASIC`, :enum:mem:`~AuthMode.NTLM` and
+            :enum:mem:`~AuthMode.NEGOTIATE`.
 
         Returns
         -------
@@ -210,19 +239,26 @@ class ApiClientFactory:
         -----
         NTLM authentication is not currently supported on Linux.
         """
+        if auth_mode == AuthMode.KERBEROS:
+            raise ValueError(f"AuthMode.KERBEROS is not supported for this method.")
+
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
             username = f"{domain}\\{username}"
             logger.debug(f"Setting domain for username, connecting as '{username}'.")
 
-        initial_response = self._session.get(self._api_url)
-        if self.__handle_initial_response(initial_response):
-            return self
-        headers = self.__get_authenticate_header(initial_response)
-        logger.debug(
-            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
-        )
-        if "Negotiate" in headers or "NTLM" in headers:
+        if auth_mode == AuthMode.AUTO:
+            headers = self.__get_www_authenticate_header()
+            if headers is None:
+                return self
+        else:
+            headers = CaseInsensitiveOrderedDict()
+
+        if (
+            "Negotiate" in headers
+            or "NTLM" in headers
+            or auth_mode in [AuthMode.NTLM, AuthMode.NEGOTIATE]
+        ):
             if _platform_windows:
                 logger.debug("Attempting to connect with NTLM authentication...")
                 self._session.auth = HttpNtlmAuth(username, password)
@@ -230,7 +266,7 @@ class ApiClientFactory:
                 logger.info("Connection successful.")
                 self._configured = True
                 return self
-        if "Basic" in headers:
+        if "Basic" in headers or auth_mode == AuthMode.BASIC:
             logger.debug("Attempting connection with Basic authentication...")
             self._session.auth = HTTPBasicAuth(username, password)
             self.__test_connection()
@@ -239,53 +275,23 @@ class ApiClientFactory:
             return self
         raise ConnectionError("Unable to connect with credentials provided.")
 
-    def with_preemptive_basic_auth(
+    def with_autologon(
         self: Api_Client_Factory,
-        username: str,
-        password: str,
-        domain: Optional[str] = None,
+        auth_mode: Optional[AuthMode] = AuthMode.AUTO,
     ) -> Api_Client_Factory:
-        """Set up client authentication for use with provided credentials via basic authentication only.
+        """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
-        This method forces the use of basic authentication.
-
-        .. versionadded:: 2.0.3
+        The default operation of this method is to attempt to connect to the API and to use the provided
+        ``WWW-Authenticate`` header to determine if Negotiate authentication is supported by the server. If so,
+        Negotiate will then be used for authentication.
 
         Parameters
         ----------
-        username : str
-            Username for the connection.
-        password : str
-            Password for the connection.
-        domain : str, optional
-            Domain to use for connection if required. The default is ``None``.
-
-        Returns
-        -------
-        :class:`~ansys.openapi.common.ApiClientFactory`
-            Original client factory object.
-
-        Warnings
-        --------
-        In almost all cases you should use the :meth:`.with_credentials` instead, which automatically uses the most
-        secure credential-based supported authentication method advertised by the server. You should only use this
-        method if your server does not advertise ``Basic`` as a supported authentication method in the
-        ``www-authenticate`` header.
-        """
-        logger.info(f"Setting credentials for user '{username}'.")
-        if domain is not None:
-            username = f"{domain}\\{username}"
-            logger.debug(f"Setting domain for username, connecting as '{username}'.")
-
-        logger.debug("Attempting connection with pre-emptive Basic authentication...")
-        self._session.auth = HTTPBasicAuth(username, password)
-        self.__test_connection()
-        logger.info("Connection successful.")
-        self._configured = True
-        return self
-
-    def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
-        """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
+        auth_mode : AuthMode
+            The authentication mode to use instead of using the ``WWW-Authenticate`` header. The default is,
+            :enum:mem:`~AuthMode.AUTO` which uses the `WWW-Authenticate`` header to determine the optimal
+            authentication method. Valid modes are :enum:mem:`~AuthMode.NEGOTIATE` for Windows and
+            :enum:mem:`~AuthMode.KERBEROS` for Linux.
 
         Returns
         -------
@@ -304,14 +310,32 @@ class ApiClientFactory:
             raise ImportError(
                 "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
             )
-        initial_response = self._session.get(self._api_url)
-        if self.__handle_initial_response(initial_response):
-            return self
-        headers = self.__get_authenticate_header(initial_response)
-        logger.debug(
-            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
-        )
-        if "Negotiate" in headers:
+
+        if auth_mode in [AuthMode.BASIC or AuthMode.NTLM]:
+            raise ValueError(f"AuthMode.{auth_mode.name} is not supported for this method.")
+        if auth_mode == AuthMode.KERBEROS and _platform_windows:
+            raise ValueError(
+                f"AuthMode.{auth_mode.name} is not supported for this method on Windows. Only AuthMode.NEGOTIATE"
+                "or AuthMode.AUTO are supported."
+            )
+        if auth_mode == AuthMode.NEGOTIATE and not _platform_windows:
+            raise ValueError(
+                f"AuthMode.{auth_mode.name} is not supported for this method on Linux. Only AuthMode.KERBEROS"
+                "or AuthMode.AUTO are supported."
+            )
+
+        if auth_mode == AuthMode.AUTO:
+            headers = self.__get_www_authenticate_header()
+            if headers is None:
+                return self
+        else:
+            headers = CaseInsensitiveOrderedDict()
+
+        if (
+            "Negotiate" in headers
+            or (auth_mode == AuthMode.NEGOTIATE and _platform_windows)
+            or (auth_mode == AuthMode.KERBEROS and not _platform_windows)
+        ):
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
             self._session.auth = NegotiateAuth()
@@ -382,6 +406,16 @@ class ApiClientFactory:
             return True
         else:
             raise ApiConnectionException(resp)
+
+    def __get_www_authenticate_header(self) -> CaseInsensitiveOrderedDict | None:
+        initial_response = self._session.get(self._api_url)
+        if self.__handle_initial_response(initial_response):
+            return None
+        headers = self.__get_authenticate_header(initial_response)
+        logger.debug(
+            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
+        )
+        return headers
 
     def __handle_initial_response(
         self, initial_response: requests.Response

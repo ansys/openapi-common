@@ -29,7 +29,12 @@ import pytest
 from starlette.requests import Request
 import uvicorn
 
-from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
+from ansys.openapi.common import (
+    ApiClientFactory,
+    ApiConnectionException,
+    AuthMode,
+    SessionConfiguration,
+)
 
 from .integration.common import (
     TEST_MODEL_ID,
@@ -84,19 +89,22 @@ class TestNegotiate:
         while proc.is_alive():
             sleep(1)
 
-    def test_can_connect(self):
+    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    def test_can_connect(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_autologon().connect()
+        _ = client_factory.with_autologon(auth_mode=auth_mode).connect()
 
-    def test_get_health_returns_200_ok(self):
+    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    def test_get_health_returns_200_ok(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon().connect()
+        client = client_factory.with_autologon(auth_mode=auth_mode).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
         assert "OK" in resp.text
 
-    def test_patch_model(self):
+    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    def test_patch_model(self, auth_mode):
         from . import models
 
         deserialized_response = models.ExampleModel(
@@ -115,7 +123,7 @@ class TestNegotiate:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon().connect()
+        client = client_factory.with_autologon(auth_mode=auth_mode).connect()
         client.setup_client(models)
 
         response = client.call_api(
@@ -148,9 +156,10 @@ class TestNegotiateFailures:
         while proc.is_alive():
             sleep(1)
 
-    def test_bad_principal_returns_403(self):
+    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    def test_bad_principal_returns_403(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
-            _ = client_factory.with_autologon().connect()
+            _ = client_factory.with_autologon(auth_mode=auth_mode).connect()
         assert excinfo.value.response.status_code == 403
         assert excinfo.value.response.reason == "Forbidden"

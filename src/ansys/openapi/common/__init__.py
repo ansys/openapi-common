@@ -34,12 +34,13 @@ from ._exceptions import (
     AuthenticationWarning,
     UndefinedObjectWarning,
 )
-from ._session import ApiClientFactory, OIDCSessionBuilder
+from ._session import ApiClientFactory, AuthMode, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 
 __all__ = [
     "ApiClient",
     "ApiClientFactory",
+    "AuthMode",
     "SessionConfiguration",
     "ApiException",
     "ApiConnectionException",

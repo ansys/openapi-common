@@ -23,6 +23,7 @@
 from functools import wraps
 import json
 import os
+import sys
 from urllib.parse import parse_qs
 
 import pytest
@@ -30,7 +31,12 @@ import requests
 import requests_mock
 import requests_ntlm
 
-from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
+from ansys.openapi.common import (
+    ApiClientFactory,
+    ApiConnectionException,
+    AuthMode,
+    SessionConfiguration,
+)
 
 SERVICELAYER_URL = "http://localhost/mi_servicelayer"
 SECURE_SERVICELAYER_URL = "https://localhost/mi_servicelayer"
@@ -102,8 +108,8 @@ def test_can_connect_with_pre_emptive_basic():
             status_code=200,
             request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
         )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_preemptive_basic_auth(
-            username="TEST_USER", password="PASSWORD"
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="TEST_USER", password="PASSWORD", auth_mode=AuthMode.BASIC
         )
         assert m.called_once
 
@@ -132,24 +138,29 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
             status_code=200,
             request_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
         )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_preemptive_basic_auth(
-            username="TEST_USER", password="PASSWORD", domain="DOMAIN"
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="TEST_USER", password="PASSWORD", domain="DOMAIN", auth_mode=AuthMode.BASIC
         )
         assert m.called_once
 
 
-def test_only_called_once_with_basic_when_anonymous_is_ok():
+# In Auto mode, the single call is during the initial request to retrieve the header
+# In Basic and NTLM modes, the single call is the test request
+@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC, AuthMode.NTLM])
+def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
 
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD"
+            username="TEST_USER",
+            password="PASSWORD",
+            auth_mode=auth_mode,
         )
         assert m.called_once
 
 
-@pytest.mark.parametrize("auth_method", ["with_credentials", "with_preemptive_basic_auth"])
-def test_throws_with_invalid_credentials(auth_method):
+@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC, AuthMode.NTLM])
+def test_throws_with_invalid_credentials(auth_mode):
     with requests_mock.Mocker() as m:
         UNAUTHORIZED = "Unauthorized_unique"
         m.get(
@@ -164,7 +175,7 @@ def test_throws_with_invalid_credentials(auth_method):
             request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
         )
         with pytest.raises(ApiConnectionException) as exception_info:
-            _ = getattr(ApiClientFactory(SERVICELAYER_URL), auth_method)(
+            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
                 username="NOT_A_TEST_USER", password="PASSWORD"
             )
         assert exception_info.value.response.status_code == 401
@@ -197,7 +208,8 @@ class MockNTLMAuth(requests_ntlm.HttpNtlmAuth):
 
 @pytest.mark.skip(reason="Mock is not working in tox for some reason.")
 @pytest.mark.skipif(os.name != "nt", reason="NTLM is not currently supported on linux")
-def test_can_connect_with_ntlm(mocker):
+@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.NTLM])
+def test_can_connect_with_ntlm(mocker, auth_mode):
     expect1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAMZCI4gAAAAAoAAAAAAAAACgAAAAGAbEdAAAADw=="}
     response1 = {
         "WWW-Authenticate": "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAAC"
@@ -242,18 +254,38 @@ def test_can_connect_with_ntlm(mocker):
         ).with_credentials(
             username="IIS_Test",
             password="rosebud",
+            auth_mode=auth_mode,
         )
 
 
-def test_can_connect_with_negotiate():
+@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.NEGOTIATE])
+def test_can_connect_with_negotiate(auth_mode):
     pass
 
 
-def test_only_called_once_with_autologon_when_anonymous_is_ok():
+@pytest.mark.parametrize(
+    "auth_mode",
+    [
+        AuthMode.AUTO,
+        pytest.param(
+            AuthMode.KERBEROS,
+            marks=pytest.mark.skipif(
+                condition=sys.platform == "win32", reason="Kerberos not supported on Windows"
+            ),
+        ),
+        pytest.param(
+            AuthMode.NEGOTIATE,
+            marks=pytest.mark.skipif(
+                condition=sys.platform == "linux", reason="Negotiate not supported on Linux"
+            ),
+        ),
+    ],
+)
+def test_only_called_once_with_autologon_when_anonymous_is_ok(auth_mode):
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
 
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
         assert m.called_once
 
 
