@@ -213,9 +213,6 @@ class ApiClientFactory:
         ``WWW-Authenticate`` header to determine whether Negotiate, NTLM, or Basic Authentication should be used. The
         selected authentication method will then be configured for use.
 
-        Alternatively, a different value of :enum:mem:`~PreEmptiveAuthMode` can be specified to manually control the
-        authentication method used.
-
         Parameters
         ----------
         username : str
@@ -226,9 +223,8 @@ class ApiClientFactory:
             Domain to use for connection if required. The default is ``None``.
         auth_mode : AuthMode
             The authentication mode to use instead of using the ``WWW-Authenticate`` header. The default is,
-            :enum:mem:`~AuthMode.AUTO` which uses the `WWW-Authenticate`` header to determine the optimal
-            authentication method. Valid modes are :enum:mem:`~AuthMode.BASIC`, :enum:mem:`~AuthMode.NTLM` and
-            :enum:mem:`~AuthMode.NEGOTIATE`.
+            ``AuthMode.AUTO`` which uses the `WWW-Authenticate`` header to determine the optimal
+            authentication method. Valid modes are ``AuthMode.BASIC``, ``AuthMode.NTLM`` and ``AuthMode.NEGOTIATE``.
 
         Returns
         -------
@@ -248,9 +244,14 @@ class ApiClientFactory:
             logger.debug(f"Setting domain for username, connecting as '{username}'.")
 
         if auth_mode == AuthMode.AUTO:
-            headers = self.__get_www_authenticate_header()
-            if headers is None:
+            initial_response = self._session.get(self._api_url)
+            if self.__handle_initial_response(initial_response):
                 return self
+            headers = self.__get_authenticate_header(initial_response)
+            logger.debug(
+                "Detected authentication methods: "
+                + ", ".join([method for method in headers.keys()])
+            )
         else:
             headers = CaseInsensitiveOrderedDict()
 
@@ -289,9 +290,9 @@ class ApiClientFactory:
         ----------
         auth_mode : AuthMode
             The authentication mode to use instead of using the ``WWW-Authenticate`` header. The default is,
-            :enum:mem:`~AuthMode.AUTO` which uses the `WWW-Authenticate`` header to determine the optimal
-            authentication method. Valid modes are :enum:mem:`~AuthMode.NEGOTIATE` for Windows and
-            :enum:mem:`~AuthMode.KERBEROS` for Linux.
+            ``AuthMode.AUTO`` which uses the `WWW-Authenticate`` header to determine the optimal
+            authentication method. Valid modes are ``AuthMode.NEGOTIATE`` for Windows and ``AuthMode.KERBEROS``
+            for Linux.
 
         Returns
         -------
@@ -311,7 +312,7 @@ class ApiClientFactory:
                 "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
             )
 
-        if auth_mode in [AuthMode.BASIC or AuthMode.NTLM]:
+        if auth_mode in [AuthMode.BASIC, AuthMode.NTLM]:
             raise ValueError(f"AuthMode.{auth_mode.name} is not supported for this method.")
         if auth_mode == AuthMode.KERBEROS and _platform_windows:
             raise ValueError(
@@ -325,9 +326,14 @@ class ApiClientFactory:
             )
 
         if auth_mode == AuthMode.AUTO:
-            headers = self.__get_www_authenticate_header()
-            if headers is None:
+            initial_response = self._session.get(self._api_url)
+            if self.__handle_initial_response(initial_response):
                 return self
+            headers = self.__get_authenticate_header(initial_response)
+            logger.debug(
+                "Detected authentication methods: "
+                + ", ".join([method for method in headers.keys()])
+            )
         else:
             headers = CaseInsensitiveOrderedDict()
 
@@ -406,16 +412,6 @@ class ApiClientFactory:
             return True
         else:
             raise ApiConnectionException(resp)
-
-    def __get_www_authenticate_header(self) -> CaseInsensitiveOrderedDict | None:
-        initial_response = self._session.get(self._api_url)
-        if self.__handle_initial_response(initial_response):
-            return None
-        headers = self.__get_authenticate_header(initial_response)
-        logger.debug(
-            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
-        )
-        return headers
 
     def __handle_initial_response(
         self, initial_response: requests.Response

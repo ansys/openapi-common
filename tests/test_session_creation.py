@@ -176,10 +176,21 @@ def test_throws_with_invalid_credentials(auth_mode):
         )
         with pytest.raises(ApiConnectionException) as exception_info:
             _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-                username="NOT_A_TEST_USER", password="PASSWORD"
+                username="NOT_A_TEST_USER",
+                password="PASSWORD",
+                auth_mode=auth_mode,
             )
         assert exception_info.value.response.status_code == 401
         assert exception_info.value.response.reason == UNAUTHORIZED
+
+
+def test_with_credentials_throws_with_invalid_auth_method():
+    with pytest.raises(ValueError, match="AuthMode.KERBEROS is not supported for this method."):
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="NOT_A_TEST_USER",
+            password="PASSWORD",
+            auth_mode=AuthMode.KERBEROS,
+        )
 
 
 def wrap_with_workstation(func):
@@ -287,6 +298,34 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok(auth_mode):
 
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
         assert m.called_once
+
+
+@pytest.mark.parametrize(
+    "auth_mode, message",
+    [
+        (AuthMode.BASIC, "AuthMode.BASIC is not supported for this method"),
+        (AuthMode.NTLM, "AuthMode.NTLM is not supported for this method"),
+    ],
+)
+def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
+    with pytest.raises(ValueError, match=message):
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
+
+
+@pytest.mark.skipif(condition=sys.platform == "linux", reason="Windows only")
+def test_autologon_throws_with_kerberos_auth_mode_windows():
+    with pytest.raises(
+        ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
+    ):
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.KERBEROS)
+
+
+@pytest.mark.skipif(condition=sys.platform == "win32", reason="Linux only")
+def test_autologon_throws_with_negotiate_auth_mode_windows():
+    with pytest.raises(
+        ValueError, match="AuthMode.NEGOTIATE is not supported for this method on Linux"
+    ):
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.NEGOTIATE)
 
 
 def test_can_connect_with_oidc():
