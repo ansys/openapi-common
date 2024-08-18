@@ -20,12 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from base64 import b64decode
 from multiprocessing import Process
 from time import sleep
 
-from fastapi import FastAPI, Header
-from fastapi.security import HTTPBasicCredentials
+from fastapi import Depends, FastAPI, Request
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pytest
 import uvicorn
 
@@ -48,37 +47,35 @@ from .integration.common import (
 )
 
 custom_test_app = FastAPI()
+security = HTTPBasic()
 
 
-def extract_basic_credentials(header: str) -> HTTPBasicCredentials:
-    concatenated_credentials = b64decode(header[6:].encode()).decode("utf-8")
-    colon_position = concatenated_credentials.find(":")
-    credentials = HTTPBasicCredentials(
-        username=concatenated_credentials[:colon_position],
-        password=concatenated_credentials[colon_position + 1 :],
-    )
-    return credentials
+@custom_test_app.middleware("http")
+async def strip_www_authenticate_header(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code == 401:
+        del response.headers["www-authenticate"]
+    return response
 
 
 @custom_test_app.patch("/models/{model_id}")
 async def patch_model(
-    model_id: str, example_model: ExampleModelPyd, authorization: str = Header(None)
+    model_id: str,
+    example_model: ExampleModelPyd,
+    credentials: HTTPBasicCredentials = Depends(security),
 ):
-    credentials = extract_basic_credentials(authorization)
     validate_user_basic(credentials)
     return return_model(model_id, example_model)
 
 
 @custom_test_app.get("/test_api")
-async def get_test_api(authorization: str = Header(None)):
-    credentials = extract_basic_credentials(authorization)
+async def get_test_api(credentials: HTTPBasicCredentials = Depends(security)):
     validate_user_basic(credentials)
     return {"msg": "OK"}
 
 
 @custom_test_app.get("/")
-async def get_none(authorization: str = Header(None)):
-    credentials = extract_basic_credentials(authorization)
+async def get_none(credentials: HTTPBasicCredentials = Depends(security)):
     validate_user_basic(credentials)
     return None
 
