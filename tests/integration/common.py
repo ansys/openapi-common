@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
 import secrets
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import HTTPException, Response, status
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
 from starlette.requests import Request
@@ -65,9 +66,6 @@ class ExampleModelPyd(BaseModel):
     Boolean: Optional[bool] = None
 
 
-fastapi_test_app = FastAPI()
-
-
 def return_model(model_id: str, example_model: ExampleModelPyd):
     if model_id == TEST_MODEL_ID:
         response = {
@@ -81,16 +79,29 @@ def return_model(model_id: str, example_model: ExampleModelPyd):
         raise HTTPException(status_code=404, detail="Model not found")
 
 
-@fastapi_test_app.patch("/models/{model_id}")
-async def patch_model(model_id: str, example_model: ExampleModelPyd):
-    return return_model(model_id, example_model)
+class CustomResponseHeaders:
+    HEADER_ENVIRON_ROOT = "OPENAPI_COMMON_INT_TEST_HEADER_"
 
+    def __init__(self, name: str, value: Optional[str]) -> None:
+        self._environ_name = f"{self.HEADER_ENVIRON_ROOT}{name}"
+        self._value = value if value is not None else ""
 
-@fastapi_test_app.get("/test_api")
-async def get_test_api():
-    return {"msg": "OK"}
+    def __enter__(self) -> None:
+        os.environ[self._environ_name] = self._value
 
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        del os.environ[self._environ_name]
 
-@fastapi_test_app.get("/")
-async def get_none():
-    return None
+    @classmethod
+    def modify_response_headers(cls, response: Response) -> Response:
+        header_changes = {
+            env.replace(cls.HEADER_ENVIRON_ROOT, "", 1): value if value else None
+            for env, value in os.environ.items()
+            if env.startswith(cls.HEADER_ENVIRON_ROOT)
+        }
+        for header_name, value in header_changes.items():
+            if value is None:
+                del response.headers[header_name.lower()]
+            else:
+                response.headers[header_name.lower()] = value
+        return response

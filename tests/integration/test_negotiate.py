@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 from multiprocessing import Process
-import os
 import sys
 from time import sleep
 
@@ -39,6 +38,7 @@ from ansys.openapi.common import (
 from tests.integration.common import (
     TEST_MODEL_ID,
     TEST_PORT,
+    CustomResponseHeaders,
     ExampleModelPyd,
     return_model,
     validate_user_principal,
@@ -53,15 +53,10 @@ custom_test_app = FastAPI()
 
 
 @custom_test_app.middleware("http")
-async def strip_www_authenticate_header(request: Request, call_next):
+async def modify_response_headers(request: Request, call_next):
     response = await call_next(request)
     if response.status_code == 401:
-        env = os.getenv("strip-header")
-        if env:
-            del response.headers["www-authenticate"]
-        env = os.getenv("change-header")
-        if env:
-            response.headers["www-authenticate"] = '"Bearer realm="example""'
+        CustomResponseHeaders.modify_response_headers(response)
     return response
 
 
@@ -190,12 +185,11 @@ class TestNegotiateFailures(NegotiateFailureTests):
 class TestNegotiateWrongHeader(NegotiateTests):
     @pytest.fixture(autouse=True)
     def server(self):
-        os.environ["change-header"] = "1"
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        del os.environ["change-header"]
+        with CustomResponseHeaders("www-authenticate", '"Bearer realm="example""'):
+            proc = Process(target=run_server, args=(), daemon=True)
+            proc.start()
+            yield
+            proc.terminate()
         while proc.is_alive():
             sleep(1)
 
@@ -215,12 +209,11 @@ class TestNegotiateWrongHeaderFailures(NegotiateFailureTests):
             validate_user_principal(request, "otheruser@EXAMPLE.COM")
             return None
 
-        os.environ["change-header"] = "1"
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        del os.environ["change-header"]
+        with CustomResponseHeaders("www-authenticate", '"Bearer realm="example""'):
+            proc = Process(target=run_server, args=(), daemon=True)
+            proc.start()
+            yield
+            proc.terminate()
         while proc.is_alive():
             sleep(1)
 
@@ -232,12 +225,11 @@ class TestNegotiateWrongHeaderFailures(NegotiateFailureTests):
 class TestNegotiateMissingHeader(NegotiateTests):
     @pytest.fixture(autouse=True)
     def server(self):
-        os.environ["strip-header"] = "1"
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        del os.environ["strip-header"]
+        with CustomResponseHeaders("www-authenticate", None):
+            proc = Process(target=run_server, args=(), daemon=True)
+            proc.start()
+            yield
+            proc.terminate()
         while proc.is_alive():
             sleep(1)
 
@@ -257,12 +249,11 @@ class TestNegotiateMissingHeaderFailures(NegotiateFailureTests):
             validate_user_principal(request, "otheruser@EXAMPLE.COM")
             return None
 
-        os.environ["strip-header"] = "1"
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        del os.environ["strip-header"]
+        with CustomResponseHeaders("www-authenticate", None):
+            proc = Process(target=run_server, args=(), daemon=True)
+            proc.start()
+            yield
+            proc.terminate()
         while proc.is_alive():
             sleep(1)
 

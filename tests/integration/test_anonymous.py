@@ -23,11 +23,35 @@
 from multiprocessing import Process
 from time import sleep
 
+from fastapi import FastAPI
 import pytest
 import uvicorn
 
 from ansys.openapi.common import ApiClientFactory, AuthenticationWarning, SessionConfiguration
-from tests.integration.common import TEST_MODEL_ID, TEST_PORT, TEST_URL, fastapi_test_app
+from tests.integration.common import (
+    TEST_MODEL_ID,
+    TEST_PORT,
+    TEST_URL,
+    ExampleModelPyd,
+    return_model,
+)
+
+fastapi_test_app = FastAPI()
+
+
+@fastapi_test_app.patch("/models/{model_id}")
+async def patch_model(model_id: str, example_model: ExampleModelPyd):
+    return return_model(model_id, example_model)
+
+
+@fastapi_test_app.get("/test_api")
+async def get_test_api():
+    return {"msg": "OK"}
+
+
+@fastapi_test_app.get("/")
+async def get_none():
+    return None
 
 
 def run_server():

@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 from multiprocessing import Process
-import os
 from time import sleep
 
 from fastapi import Depends, FastAPI, Request
@@ -41,6 +40,7 @@ from tests.integration.common import (
     TEST_PORT,
     TEST_URL,
     TEST_USER,
+    CustomResponseHeaders,
     ExampleModelPyd,
     return_model,
     validate_user_basic,
@@ -51,15 +51,10 @@ security = HTTPBasic()
 
 
 @custom_test_app.middleware("http")
-async def strip_www_authenticate_header(request: Request, call_next):
+async def modify_response_headers(request: Request, call_next):
     response = await call_next(request)
     if response.status_code == 401:
-        env = os.getenv("strip-header")
-        if env:
-            del response.headers["www-authenticate"]
-        env = os.getenv("change-header")
-        if env:
-            response.headers["www-authenticate"] = '"Bearer realm="example""'
+        CustomResponseHeaders.modify_response_headers(response)
     return response
 
 
@@ -166,12 +161,11 @@ class TestBasic(BasicTestCases):
 class TestBasicWrongHeader(BasicTestCases):
     @pytest.fixture(autouse=True)
     def server(self):
-        os.environ["change-header"] = "1"
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        del os.environ["change-header"]
+        with CustomResponseHeaders("www-authenticate", 'Bearer realm="example"'):
+            proc = Process(target=run_server, args=(), daemon=True)
+            proc.start()
+            yield
+            proc.terminate()
         while proc.is_alive():
             sleep(1)
 
@@ -180,11 +174,10 @@ class TestBasicWrongHeader(BasicTestCases):
 class TestBasicMissingHeader(BasicTestCases):
     @pytest.fixture(autouse=True)
     def server(self):
-        os.environ["strip-header"] = "1"
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        del os.environ["strip-header"]
+        with CustomResponseHeaders("www-authenticate", None):
+            proc = Process(target=run_server, args=(), daemon=True)
+            proc.start()
+            yield
+            proc.terminate()
         while proc.is_alive():
             sleep(1)
