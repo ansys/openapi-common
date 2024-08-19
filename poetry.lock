@@ -1394,20 +1394,20 @@ use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
 
 [[package]]
 name = "requests-auth"
-version = "7.0.0"
+version = "8.0.0"
 description = "Authentication for Requests"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "requests_auth-7.0.0-py3-none-any.whl", hash = "sha256:a6ee7209435a1489d1f2a9b0e855e1f3d87bbae5bc4acda0c27bdac49aa74fd4"},
-    {file = "requests_auth-7.0.0.tar.gz", hash = "sha256:8a9d5a185905d13bdba03de3e52c0c7a9d8658b5f43ff6de462fbeb2df91e9c9"},
+    {file = "requests_auth-8.0.0-py3-none-any.whl", hash = "sha256:7faf0c58cadb61d2398fed9ea412a38641d70a856b1db25db281f9057194f1ca"},
+    {file = "requests_auth-8.0.0.tar.gz", hash = "sha256:ca2f2126d8a41e1d1615faa8cf8d5d62ea01d705f9ee99f470b9a44abd5dee82"},
 ]
 
 [package.dependencies]
 requests = "==2.*"
 
 [package.extras]
-testing = ["pyjwt (==2.*)", "pytest-cov (==4.*)", "pytest-responses (==0.5.*)"]
+testing = ["pyjwt (==2.*)", "pytest-cov (==5.*)", "pytest-responses (==0.5.*)"]
 
 [[package]]
 name = "requests-kerberos"
