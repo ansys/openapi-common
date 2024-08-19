@@ -164,6 +164,9 @@ class TestNegotiate(NegotiateTests):
 class TestNegotiateFailures(NegotiateFailureTests):
     @pytest.fixture(autouse=True)
     def server(self):
+        # Stash the original routes
+        original_routes = custom_test_app.router.routes
+
         # Remove all the routes (a bit drastic)
         custom_test_app.router.routes = []
 
@@ -178,6 +181,9 @@ class TestNegotiateFailures(NegotiateFailureTests):
         proc.terminate()
         while proc.is_alive():
             sleep(1)
+
+        # Restore the original routes
+        custom_test_app.router.routes = original_routes
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
@@ -198,6 +204,9 @@ class TestNegotiateWrongHeader(NegotiateTests):
 class TestNegotiateWrongHeaderFailures(NegotiateFailureTests):
     @pytest.fixture(autouse=True)
     def server(self):
+        # Stash the original routes
+        original_routes = custom_test_app.router.routes
+
         # Remove all the routes (a bit drastic)
         custom_test_app.router.routes = []
 
@@ -214,6 +223,9 @@ class TestNegotiateWrongHeaderFailures(NegotiateFailureTests):
         del os.environ["change-header"]
         while proc.is_alive():
             sleep(1)
+
+        # Restore the original routes
+        custom_test_app.router.routes = original_routes
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
@@ -234,6 +246,9 @@ class TestNegotiateMissingHeader(NegotiateTests):
 class TestNegotiateMissingHeaderFailures(NegotiateFailureTests):
     @pytest.fixture(autouse=True)
     def server(self):
+        # Stash the original routes
+        original_routes = custom_test_app.router.routes
+
         # Remove all the routes (a bit drastic)
         custom_test_app.router.routes = []
 
@@ -250,3 +265,6 @@ class TestNegotiateMissingHeaderFailures(NegotiateFailureTests):
         del os.environ["strip-header"]
         while proc.is_alive():
             sleep(1)
+
+        # Restore the original routes
+        custom_test_app.router.routes = original_routes
