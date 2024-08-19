@@ -214,7 +214,12 @@ class ApiClientFactory:
         username: str,
         password: str,
         domain: Optional[str] = None,
-        authentication_scheme: Optional[AuthenticationScheme] = AuthenticationScheme.AUTO,
+        authentication_scheme: Union[
+            Literal[AuthenticationScheme.AUTO],
+            Literal[AuthenticationScheme.BASIC],
+            Literal[AuthenticationScheme.NTLM],
+            Literal[AuthenticationScheme.NEGOTIATE],
+        ] = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
 
@@ -232,9 +237,9 @@ class ApiClientFactory:
             Domain to use for connection if required. The default is ``None``.
         authentication_scheme : AuthenticationScheme
             The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is,
-            ``AuthMode.AUTO`` which uses the `WWW-Authenticate`` header to determine the optimal
-            authentication scheme. Valid schemes for this method are ``AuthMode.BASIC``, ``AuthMode.NTLM``, and
-            ``AuthMode.NEGOTIATE``.
+            :attr:`~.AuthenticationScheme.AUTO` which uses the ``WWW-Authenticate`` header to determine the optimal
+            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.BASIC`,
+            :attr:`~.AuthenticationScheme.NTLM`, and :attr:`~.AuthenticationScheme.NEGOTIATE`.
 
         Returns
         -------
@@ -293,7 +298,11 @@ class ApiClientFactory:
 
     def with_autologon(
         self: Api_Client_Factory,
-        authentication_scheme: Optional[AuthenticationScheme] = AuthenticationScheme.AUTO,
+        authentication_scheme: Union[
+            Literal[AuthenticationScheme.AUTO],
+            Literal[AuthenticationScheme.NEGOTIATE],
+            Literal[AuthenticationScheme.KERBEROS],
+        ] = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
@@ -304,10 +313,10 @@ class ApiClientFactory:
         Parameters
         ----------
         authentication_scheme : AuthenticationScheme
-            The authentication sceheme to use instead of using the ``WWW-Authenticate`` header. The default is
-            ``AuthMode.AUTO``, which uses the `WWW-Authenticate`` header to determine the optimal
-            authentication scheme. Valid schemes for this method are ``AuthMode.NEGOTIATE`` for Windows and
-            ``AuthMode.KERBEROS`` for Linux.
+            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is
+            :attr:`~.AuthenticationScheme.AUTO`, which uses the ``WWW-Authenticate`` header to determine the optimal
+            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.NEGOTIATE` for Windows
+            and :attr:`~.AuthenticationScheme.KERBEROS` for Linux.
 
         Returns
         -------
