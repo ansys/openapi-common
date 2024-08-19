@@ -31,7 +31,7 @@ import uvicorn
 from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
-    AuthMode,
+    AuthenticationScheme,
     SessionConfiguration,
 )
 
@@ -86,12 +86,12 @@ class TestBasic:
         while proc.is_alive():
             sleep(1)
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC])
+    @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.BASIC])
     def test_can_connect(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         _ = client_factory.with_credentials(TEST_USER, TEST_PASS, auth_mode=auth_mode).connect()
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC])
+    @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.BASIC])
     def test_invalid_user_return_401(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as exception_info:
@@ -99,7 +99,7 @@ class TestBasic:
         assert exception_info.value.response.status_code == 401
         assert "Unauthorized" in exception_info.value.response.reason
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC])
+    @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.BASIC])
     def test_get_health_returns_200_ok(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_credentials(
@@ -110,7 +110,7 @@ class TestBasic:
         assert resp.status_code == 200
         assert "OK" in resp.text
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.BASIC])
+    @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.BASIC])
     def test_patch_model(self, auth_mode):
         from . import models
 

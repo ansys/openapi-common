@@ -32,7 +32,7 @@ import uvicorn
 from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
-    AuthMode,
+    AuthenticationScheme,
     SessionConfiguration,
 )
 
@@ -99,11 +99,11 @@ class TestNegotiate:
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_autologon(auth_mode=AuthMode.KERBEROS).connect()
+        _ = client_factory.with_autologon(auth_mode=AuthenticationScheme.KERBEROS).connect()
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon(auth_mode=AuthMode.KERBEROS).connect()
+        client = client_factory.with_autologon(auth_mode=AuthenticationScheme.KERBEROS).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
@@ -128,7 +128,7 @@ class TestNegotiate:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon(auth_mode=AuthMode.KERBEROS).connect()
+        client = client_factory.with_autologon(auth_mode=AuthenticationScheme.KERBEROS).connect()
         client.setup_client(models)
 
         response = client.call_api(
@@ -164,6 +164,6 @@ class TestNegotiateFailures:
     def test_bad_principal_returns_403(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
-            _ = client_factory.with_autologon(auth_mode=AuthMode.KERBEROS).connect()
+            _ = client_factory.with_autologon(auth_mode=AuthenticationScheme.KERBEROS).connect()
         assert excinfo.value.response.status_code == 403
         assert excinfo.value.response.reason == "Forbidden"

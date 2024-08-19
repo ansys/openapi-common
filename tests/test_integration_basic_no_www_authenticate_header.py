@@ -31,7 +31,7 @@ import uvicorn
 from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
-    AuthMode,
+    AuthenticationScheme,
     SessionConfiguration,
 )
 
@@ -97,14 +97,14 @@ class TestBasic:
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         _ = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, auth_mode=AuthMode.BASIC
+            TEST_USER, TEST_PASS, auth_mode=AuthenticationScheme.BASIC
         ).connect()
 
     def test_invalid_user_return_401(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as exception_info:
             _ = client_factory.with_credentials(
-                "eve", "password", auth_mode=AuthMode.BASIC
+                "eve", "password", auth_mode=AuthenticationScheme.BASIC
             ).connect()
         assert exception_info.value.response.status_code == 401
         assert "Unauthorized" in exception_info.value.response.reason
@@ -112,7 +112,7 @@ class TestBasic:
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, auth_mode=AuthMode.BASIC
+            TEST_USER, TEST_PASS, auth_mode=AuthenticationScheme.BASIC
         ).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
@@ -139,7 +139,7 @@ class TestBasic:
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, auth_mode=AuthMode.BASIC
+            TEST_USER, TEST_PASS, auth_mode=AuthenticationScheme.BASIC
         ).connect()
         client.setup_client(models)
 

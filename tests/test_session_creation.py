@@ -34,7 +34,7 @@ import requests_ntlm
 from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
-    AuthMode,
+    AuthenticationScheme,
     SessionConfiguration,
 )
 
@@ -109,7 +109,7 @@ def test_can_connect_with_pre_emptive_basic():
             request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
         )
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD", auth_mode=AuthMode.BASIC
+            username="TEST_USER", password="PASSWORD", auth_mode=AuthenticationScheme.BASIC
         )
         assert m.called_once
 
@@ -139,7 +139,10 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
             request_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
         )
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD", domain="DOMAIN", auth_mode=AuthMode.BASIC
+            username="TEST_USER",
+            password="PASSWORD",
+            domain="DOMAIN",
+            auth_mode=AuthenticationScheme.BASIC,
         )
         assert m.called_once
 
@@ -149,10 +152,10 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
 @pytest.mark.parametrize(
     "auth_mode",
     [
-        AuthMode.AUTO,
-        AuthMode.BASIC,
+        AuthenticationScheme.AUTO,
+        AuthenticationScheme.BASIC,
         pytest.param(
-            AuthMode.NTLM,
+            AuthenticationScheme.NTLM,
             marks=pytest.mark.skipif(
                 sys.platform != "win32", reason="NTLM only available on Windows"
             ),
@@ -174,10 +177,10 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
 @pytest.mark.parametrize(
     "auth_mode",
     [
-        AuthMode.AUTO,
-        AuthMode.BASIC,
+        AuthenticationScheme.AUTO,
+        AuthenticationScheme.BASIC,
         pytest.param(
-            AuthMode.NTLM,
+            AuthenticationScheme.NTLM,
             marks=pytest.mark.skipif(
                 sys.platform != "win32", reason="NTLM only available on Windows"
             ),
@@ -211,16 +214,16 @@ def test_throws_with_invalid_credentials(auth_mode):
 @pytest.mark.parametrize(
     "auth_mode, message",
     [
-        (AuthMode.KERBEROS, "AuthMode.KERBEROS is not supported for this method"),
+        (AuthenticationScheme.KERBEROS, "AuthMode.KERBEROS is not supported for this method"),
         pytest.param(
-            AuthMode.NTLM,
+            AuthenticationScheme.NTLM,
             "AuthMode.NTLM is not supported on Linux",
             marks=pytest.mark.skipif(
                 sys.platform != "linux", reason="NTLM only not supported on Linux"
             ),
         ),
         pytest.param(
-            AuthMode.NEGOTIATE,
+            AuthenticationScheme.NEGOTIATE,
             "AuthMode.NEGOTIATE is not supported on Linux",
             marks=pytest.mark.skipif(
                 sys.platform != "linux", reason="NTLM only not supported on Linux"
@@ -263,7 +266,7 @@ class MockNTLMAuth(requests_ntlm.HttpNtlmAuth):
 
 @pytest.mark.skip(reason="Mock is not working in tox for some reason.")
 @pytest.mark.skipif(os.name != "nt", reason="NTLM is not currently supported on linux")
-@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.NTLM])
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.NTLM])
 def test_can_connect_with_ntlm(mocker, auth_mode):
     expect1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAMZCI4gAAAAAoAAAAAAAAACgAAAAGAbEdAAAADw=="}
     response1 = {
@@ -313,7 +316,7 @@ def test_can_connect_with_ntlm(mocker, auth_mode):
         )
 
 
-@pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.NEGOTIATE])
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.NEGOTIATE])
 def test_can_connect_with_negotiate(auth_mode):
     pass
 
@@ -329,8 +332,8 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok():
 @pytest.mark.parametrize(
     "auth_mode, message",
     [
-        (AuthMode.BASIC, "AuthMode.BASIC is not supported for this method"),
-        (AuthMode.NTLM, "AuthMode.NTLM is not supported for this method"),
+        (AuthenticationScheme.BASIC, "AuthMode.BASIC is not supported for this method"),
+        (AuthenticationScheme.NTLM, "AuthMode.NTLM is not supported for this method"),
     ],
 )
 def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
@@ -343,13 +346,17 @@ def test_autologon_throws_with_kerberos_auth_mode_windows():
     with pytest.raises(
         ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
     ):
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.KERBEROS)
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(
+            auth_mode=AuthenticationScheme.KERBEROS
+        )
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="Exception only raised on Linux")
 def test_autologon_throws_with_negotiate_auth_mode_linux():
     with pytest.raises(ValueError, match="AuthMode.NEGOTIATE is not supported on Linux"):
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=AuthMode.NEGOTIATE)
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(
+            auth_mode=AuthenticationScheme.NEGOTIATE
+        )
 
 
 def test_can_connect_with_oidc():

@@ -32,7 +32,7 @@ import uvicorn
 from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
-    AuthMode,
+    AuthenticationScheme,
     SessionConfiguration,
 )
 
@@ -89,12 +89,16 @@ class TestNegotiate:
         while proc.is_alive():
             sleep(1)
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    @pytest.mark.parametrize(
+        "auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS]
+    )
     def test_can_connect(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         _ = client_factory.with_autologon(auth_mode=auth_mode).connect()
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    @pytest.mark.parametrize(
+        "auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS]
+    )
     def test_get_health_returns_200_ok(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         client = client_factory.with_autologon(auth_mode=auth_mode).connect()
@@ -103,7 +107,9 @@ class TestNegotiate:
         assert resp.status_code == 200
         assert "OK" in resp.text
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    @pytest.mark.parametrize(
+        "auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS]
+    )
     def test_patch_model(self, auth_mode):
         from . import models
 
@@ -156,7 +162,9 @@ class TestNegotiateFailures:
         while proc.is_alive():
             sleep(1)
 
-    @pytest.mark.parametrize("auth_mode", [AuthMode.AUTO, AuthMode.KERBEROS])
+    @pytest.mark.parametrize(
+        "auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS]
+    )
     def test_bad_principal_returns_403(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
