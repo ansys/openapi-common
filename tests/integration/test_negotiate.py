@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 from multiprocessing import Process
+import os
 import sys
 from time import sleep
 
@@ -51,14 +52,6 @@ TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 custom_test_app = FastAPI()
 
 
-@custom_test_app.middleware("http")
-async def strip_www_authenticate_header(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 401:
-        del response.headers["www-authenticate"]
-    return response
-
-
 @custom_test_app.patch("/models/{model_id}")
 async def patch_model(model_id: str, example_model: ExampleModelPyd, request: Request):
     validate_user_principal(request, TEST_PRINCIPAL)
@@ -86,34 +79,21 @@ def run_server():
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
-class TestNegotiate:
-    @pytest.fixture(autouse=True)
-    def server(self):
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-    def test_can_connect(self):
+class NegotiateTests:
+    def test_can_connect(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_autologon(
-            authentication_scheme=AuthenticationScheme.KERBEROS
-        ).connect()
+        _ = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
 
-    def test_get_health_returns_200_ok(self):
+    def test_get_health_returns_200_ok(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon(
-            authentication_scheme=AuthenticationScheme.KERBEROS
-        ).connect()
+        client = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
         assert "OK" in resp.text
 
-    def test_patch_model(self):
-        from . import models
+    def test_patch_model(self, auth_mode):
+        from .. import models
 
         deserialized_response = models.ExampleModel(
             string_property="new_model",
@@ -131,9 +111,7 @@ class TestNegotiate:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon(
-            authentication_scheme=AuthenticationScheme.KERBEROS
-        ).connect()
+        client = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
         client.setup_client(models)
 
         response = client.call_api(
@@ -145,6 +123,18 @@ class TestNegotiate:
             _return_http_data_only=True,
         )
         assert response == deserialized_response
+
+
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS])
+class TestNegotiate(NegotiateTests):
+    @pytest.fixture(autouse=True)
+    def server(self):
+        proc = Process(target=run_server, args=(), daemon=True)
+        proc.start()
+        yield
+        proc.terminate()
+        while proc.is_alive():
+            sleep(1)
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
@@ -166,11 +156,40 @@ class TestNegotiateFailures:
         while proc.is_alive():
             sleep(1)
 
-    def test_bad_principal_returns_403(self):
+    @pytest.mark.parametrize(
+        "auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS]
+    )
+    def test_bad_principal_returns_403(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
-            _ = client_factory.with_autologon(
-                authentication_scheme=AuthenticationScheme.KERBEROS
-            ).connect()
+            _ = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
         assert excinfo.value.response.status_code == 403
         assert excinfo.value.response.reason == "Forbidden"
+
+
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
+class TestNegotiateWrongHeader(NegotiateTests):
+    @pytest.fixture(autouse=True)
+    def server(self):
+        os.environ["change-header"] = "1"
+        proc = Process(target=run_server, args=(), daemon=True)
+        proc.start()
+        yield
+        proc.terminate()
+        del os.environ["change-header"]
+        while proc.is_alive():
+            sleep(1)
+
+
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
+class TestNegotiateMissingHeader(NegotiateTests):
+    @pytest.fixture(autouse=True)
+    def server(self):
+        os.environ["strip-header"] = "1"
+        proc = Process(target=run_server, args=(), daemon=True)
+        proc.start()
+        yield
+        proc.terminate()
+        del os.environ["strip-header"]
+        while proc.is_alive():
+            sleep(1)
