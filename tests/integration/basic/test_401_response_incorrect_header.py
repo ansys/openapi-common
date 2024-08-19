@@ -34,8 +34,7 @@ from ansys.openapi.common import (
     AuthenticationScheme,
     SessionConfiguration,
 )
-
-from .integration.common import (
+from tests.integration.common import (
     TEST_MODEL_ID,
     TEST_PASS,
     TEST_PORT,
@@ -120,7 +119,7 @@ class TestBasic:
         assert "OK" in resp.text
 
     def test_patch_model(self):
-        from . import models
+        from ... import models
 
         deserialized_response = models.ExampleModel(
             string_property="new_model",

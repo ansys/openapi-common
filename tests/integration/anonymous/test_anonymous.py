@@ -27,8 +27,7 @@ import pytest
 import uvicorn
 
 from ansys.openapi.common import ApiClientFactory, AuthenticationWarning, SessionConfiguration
-
-from .integration.common import TEST_MODEL_ID, TEST_PORT, TEST_URL, fastapi_test_app
+from tests.integration.common import TEST_MODEL_ID, TEST_PORT, TEST_URL, fastapi_test_app
 
 
 def run_server():
@@ -67,7 +66,7 @@ class TestAnonymous:
         assert "OK" in resp.text
 
     def test_patch_model(self):
-        from . import models
+        from ... import models
 
         deserialized_response = models.ExampleModel(
             string_property="new_model",

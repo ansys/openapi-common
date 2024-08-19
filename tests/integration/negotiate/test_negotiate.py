@@ -35,8 +35,7 @@ from ansys.openapi.common import (
     AuthenticationScheme,
     SessionConfiguration,
 )
-
-from .integration.common import (
+from tests.integration.common import (
     TEST_MODEL_ID,
     TEST_PORT,
     ExampleModelPyd,
