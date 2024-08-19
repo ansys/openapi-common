@@ -88,10 +88,19 @@ class AuthenticationScheme(Enum):
     """
 
     AUTO = "auto"
+    """Use the 401 response www-authenticate header to select the best supported authentication scheme."""
+
     BASIC = "Basic"
+    """Force the use of Basic authentication, even if more secure options are supported."""
+
     NTLM = "NTLM"
+    """Force the use of NTLM authentication only. Do not fall back to Basic authentication."""
+
     NEGOTIATE = "Negotiate"
+    """Force the use of negotiate authentication only. Do not fall back to Basic authentication."""
+
     KERBEROS = "Kerberos"
+    """Force the use of Kerbos authentication only. Do not fall back to Basic authentication."""
 
 
 class ApiClientFactory:
