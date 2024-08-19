@@ -109,7 +109,9 @@ def test_can_connect_with_pre_emptive_basic():
             request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
         )
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD", auth_mode=AuthenticationScheme.BASIC
+            username="TEST_USER",
+            password="PASSWORD",
+            authentication_scheme=AuthenticationScheme.BASIC,
         )
         assert m.called_once
 
@@ -142,7 +144,7 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
             username="TEST_USER",
             password="PASSWORD",
             domain="DOMAIN",
-            auth_mode=AuthenticationScheme.BASIC,
+            authentication_scheme=AuthenticationScheme.BASIC,
         )
         assert m.called_once
 
@@ -169,7 +171,7 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="TEST_USER",
             password="PASSWORD",
-            auth_mode=auth_mode,
+            authentication_scheme=auth_mode,
         )
         assert m.called_once
 
@@ -205,7 +207,7 @@ def test_throws_with_invalid_credentials(auth_mode):
             _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
                 username="NOT_A_TEST_USER",
                 password="PASSWORD",
-                auth_mode=auth_mode,
+                authentication_scheme=auth_mode,
             )
         assert exception_info.value.response.status_code == 401
         assert exception_info.value.response.reason == UNAUTHORIZED
@@ -236,7 +238,7 @@ def test_with_credentials_throws_with_invalid_auth_method(auth_mode, message):
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="NOT_A_TEST_USER",
             password="PASSWORD",
-            auth_mode=auth_mode,
+            authentication_scheme=auth_mode,
         )
 
 
@@ -312,7 +314,7 @@ def test_can_connect_with_ntlm(mocker, auth_mode):
         ).with_credentials(
             username="IIS_Test",
             password="rosebud",
-            auth_mode=auth_mode,
+            authentication_scheme=auth_mode,
         )
 
 
@@ -338,7 +340,7 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok():
 )
 def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
     with pytest.raises(ValueError, match=message):
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(auth_mode=auth_mode)
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(authentication_scheme=auth_mode)
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Exception only raised on Windows")
@@ -347,7 +349,7 @@ def test_autologon_throws_with_kerberos_auth_mode_windows():
         ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
     ):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(
-            auth_mode=AuthenticationScheme.KERBEROS
+            authentication_scheme=AuthenticationScheme.KERBEROS
         )
 
 
@@ -355,7 +357,7 @@ def test_autologon_throws_with_kerberos_auth_mode_windows():
 def test_autologon_throws_with_negotiate_auth_mode_linux():
     with pytest.raises(ValueError, match="AuthMode.NEGOTIATE is not supported on Linux"):
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(
-            auth_mode=AuthenticationScheme.NEGOTIATE
+            authentication_scheme=AuthenticationScheme.NEGOTIATE
         )
 
 

@@ -15,7 +15,7 @@ classes.
 
    ApiClient
    ApiClientFactory
-   AuthMode
+   AuthenticationScheme
    OIDCSessionBuilder
    SessionConfiguration
 

@@ -205,7 +205,7 @@ class ApiClientFactory:
         username: str,
         password: str,
         domain: Optional[str] = None,
-        auth_mode: Optional[AuthenticationScheme] = AuthenticationScheme.AUTO,
+        authentication_scheme: Optional[AuthenticationScheme] = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
 
@@ -221,10 +221,11 @@ class ApiClientFactory:
             Password for the connection.
         domain : str, optional
             Domain to use for connection if required. The default is ``None``.
-        auth_mode : AuthenticationScheme
-            The authentication mode to use instead of using the ``WWW-Authenticate`` header. The default is,
+        authentication_scheme : AuthenticationScheme
+            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is,
             ``AuthMode.AUTO`` which uses the `WWW-Authenticate`` header to determine the optimal
-            authentication method. Valid modes are ``AuthMode.BASIC``, ``AuthMode.NTLM`` and ``AuthMode.NEGOTIATE``.
+            authentication scheme. Valid schemes for this method are ``AuthMode.BASIC``, ``AuthMode.NTLM``, and
+            ``AuthMode.NEGOTIATE``.
 
         Returns
         -------
@@ -235,20 +236,20 @@ class ApiClientFactory:
         -----
         NTLM authentication is not currently supported on Linux.
         """
-        if auth_mode == AuthenticationScheme.KERBEROS:
+        if authentication_scheme == AuthenticationScheme.KERBEROS:
             raise ValueError("AuthMode.KERBEROS is not supported for this method.")
         if (
-            auth_mode in [AuthenticationScheme.NTLM, AuthenticationScheme.NEGOTIATE]
+            authentication_scheme in [AuthenticationScheme.NTLM, AuthenticationScheme.NEGOTIATE]
             and not _platform_windows
         ):
-            raise ValueError(f"AuthMode.{auth_mode.name} is not supported on Linux.")
+            raise ValueError(f"AuthMode.{authentication_scheme.name} is not supported on Linux.")
 
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
             username = f"{domain}\\{username}"
             logger.debug(f"Setting domain for username, connecting as '{username}'.")
 
-        if auth_mode == AuthenticationScheme.AUTO:
+        if authentication_scheme == AuthenticationScheme.AUTO:
             initial_response = self._session.get(self._api_url)
             if self.__handle_initial_response(initial_response):
                 return self
@@ -263,7 +264,7 @@ class ApiClientFactory:
         if (
             "Negotiate" in headers
             or "NTLM" in headers
-            or auth_mode in [AuthenticationScheme.NTLM, AuthenticationScheme.NEGOTIATE]
+            or authentication_scheme in [AuthenticationScheme.NTLM, AuthenticationScheme.NEGOTIATE]
         ):
             if _platform_windows:
                 logger.debug("Attempting to connect with NTLM authentication...")
@@ -272,7 +273,7 @@ class ApiClientFactory:
                 logger.info("Connection successful.")
                 self._configured = True
                 return self
-        if "Basic" in headers or auth_mode == AuthenticationScheme.BASIC:
+        if "Basic" in headers or authentication_scheme == AuthenticationScheme.BASIC:
             logger.debug("Attempting connection with Basic authentication...")
             self._session.auth = HTTPBasicAuth(username, password)
             self.__test_connection()
@@ -283,7 +284,7 @@ class ApiClientFactory:
 
     def with_autologon(
         self: Api_Client_Factory,
-        auth_mode: Optional[AuthenticationScheme] = AuthenticationScheme.AUTO,
+        authentication_scheme: Optional[AuthenticationScheme] = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
@@ -293,11 +294,11 @@ class ApiClientFactory:
 
         Parameters
         ----------
-        auth_mode : AuthenticationScheme
-            The authentication mode to use instead of using the ``WWW-Authenticate`` header. The default is,
-            ``AuthMode.AUTO`` which uses the `WWW-Authenticate`` header to determine the optimal
-            authentication method. Valid modes are ``AuthMode.NEGOTIATE`` for Windows and ``AuthMode.KERBEROS``
-            for Linux.
+        authentication_scheme : AuthenticationScheme
+            The authentication sceheme to use instead of using the ``WWW-Authenticate`` header. The default is
+            ``AuthMode.AUTO``, which uses the `WWW-Authenticate`` header to determine the optimal
+            authentication scheme. Valid schemes for this method are ``AuthMode.NEGOTIATE`` for Windows and
+            ``AuthMode.KERBEROS`` for Linux.
 
         Returns
         -------
@@ -317,20 +318,22 @@ class ApiClientFactory:
                 "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
             )
 
-        if auth_mode in [AuthenticationScheme.BASIC, AuthenticationScheme.NTLM]:
-            raise ValueError(f"AuthMode.{auth_mode.name} is not supported for this method.")
-        if auth_mode == AuthenticationScheme.KERBEROS and _platform_windows:
+        if authentication_scheme in [AuthenticationScheme.BASIC, AuthenticationScheme.NTLM]:
             raise ValueError(
-                f"AuthMode.{auth_mode.name} is not supported for this method on Windows. Only AuthMode.NEGOTIATE"
+                f"AuthMode.{authentication_scheme.name} is not supported for this method."
+            )
+        if authentication_scheme == AuthenticationScheme.KERBEROS and _platform_windows:
+            raise ValueError(
+                f"AuthMode.{authentication_scheme.name} is not supported for this method on Windows. Only AuthMode.NEGOTIATE"
                 "or AuthMode.AUTO are supported."
             )
-        if auth_mode == AuthenticationScheme.NEGOTIATE and not _platform_windows:
+        if authentication_scheme == AuthenticationScheme.NEGOTIATE and not _platform_windows:
             raise ValueError(
-                f"AuthMode.{auth_mode.name} is not supported on Linux. Only AuthMode.KERBEROS or AuthMode.AUTO are "
+                f"AuthMode.{authentication_scheme.name} is not supported on Linux. Only AuthMode.KERBEROS or AuthMode.AUTO are "
                 "supported."
             )
 
-        if auth_mode == AuthenticationScheme.AUTO:
+        if authentication_scheme == AuthenticationScheme.AUTO:
             initial_response = self._session.get(self._api_url)
             if self.__handle_initial_response(initial_response):
                 return self
@@ -344,8 +347,8 @@ class ApiClientFactory:
 
         if (
             "Negotiate" in headers
-            or (auth_mode == AuthenticationScheme.NEGOTIATE and _platform_windows)
-            or (auth_mode == AuthenticationScheme.KERBEROS and not _platform_windows)
+            or (authentication_scheme == AuthenticationScheme.NEGOTIATE and _platform_windows)
+            or (authentication_scheme == AuthenticationScheme.KERBEROS and not _platform_windows)
         ):
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
