@@ -23,67 +23,18 @@
 from multiprocessing import Process
 from time import sleep
 
-from fastapi import Depends, FastAPI, Request
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pytest
 import uvicorn
 
-from ansys.openapi.common import (
-    ApiClientFactory,
-    ApiConnectionException,
-    AuthenticationScheme,
-    SessionConfiguration,
-)
-from tests.integration.common import (
-    TEST_MODEL_ID,
-    TEST_PASS,
-    TEST_PORT,
-    TEST_URL,
-    TEST_USER,
-    ExampleModelPyd,
-    return_model,
-    validate_user_basic,
-)
-
-custom_test_app = FastAPI()
-security = HTTPBasic()
-
-
-@custom_test_app.middleware("http")
-async def strip_www_authenticate_header(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 401:
-        del response.headers["www-authenticate"]
-    return response
-
-
-@custom_test_app.patch("/models/{model_id}")
-async def patch_model(
-    model_id: str,
-    example_model: ExampleModelPyd,
-    credentials: HTTPBasicCredentials = Depends(security),
-):
-    validate_user_basic(credentials)
-    return return_model(model_id, example_model)
-
-
-@custom_test_app.get("/test_api")
-async def get_test_api(credentials: HTTPBasicCredentials = Depends(security)):
-    validate_user_basic(credentials)
-    return {"msg": "OK"}
-
-
-@custom_test_app.get("/")
-async def get_none(credentials: HTTPBasicCredentials = Depends(security)):
-    validate_user_basic(credentials)
-    return None
+from ansys.openapi.common import ApiClientFactory, AuthenticationWarning, SessionConfiguration
+from tests.integration.common import TEST_MODEL_ID, TEST_PORT, TEST_URL, fastapi_test_app
 
 
 def run_server():
-    uvicorn.run(custom_test_app, port=TEST_PORT)
+    uvicorn.run(fastapi_test_app, port=TEST_PORT)
 
 
-class TestBasic:
+class TestAnonymous:
     @pytest.fixture(autouse=True)
     def server(self):
         proc = Process(target=run_server, args=(), daemon=True)
@@ -95,31 +46,27 @@ class TestBasic:
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=AuthenticationScheme.BASIC
-        ).connect()
-
-    def test_invalid_user_return_401(self):
-        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        with pytest.raises(ApiConnectionException) as exception_info:
-            _ = client_factory.with_credentials(
-                "eve", "password", authentication_scheme=AuthenticationScheme.BASIC
-            ).connect()
-        assert exception_info.value.response.status_code == 401
-        assert "Unauthorized" in exception_info.value.response.reason
+        _ = client_factory.with_anonymous().connect()
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=AuthenticationScheme.BASIC
-        ).connect()
+        client = client_factory.with_anonymous().connect()
+
+        resp = client.request("GET", TEST_URL + "/test_api")
+        assert resp.status_code == 200
+        assert "OK" in resp.text
+
+    def test_basic_credentials_raises_warning(self):
+        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
+        with pytest.warns(AuthenticationWarning, match="anonymous"):
+            client = client_factory.with_credentials("TEST_USER", "TEST_PASS").connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
         assert "OK" in resp.text
 
     def test_patch_model(self):
-        from ... import models
+        from .. import models
 
         deserialized_response = models.ExampleModel(
             string_property="new_model",
@@ -129,7 +76,7 @@ class TestBasic:
         )
 
         resource_path = "/models/{ID}"
-        http_method = "PATCH"
+        method = "PATCH"
         path_params = {"ID": TEST_MODEL_ID}
 
         response_type = "ExampleModel"
@@ -137,14 +84,12 @@ class TestBasic:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=AuthenticationScheme.BASIC
-        ).connect()
+        client = client_factory.with_anonymous().connect()
         client.setup_client(models)
 
         response = client.call_api(
             resource_path,
-            http_method,
+            method,
             path_params=path_params,
             body=upload_data,
             response_type=response_type,
