@@ -93,7 +93,6 @@ class TestBasic:
         proc.terminate()
         while proc.is_alive():
             sleep(1)
-        pass
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
