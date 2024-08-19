@@ -80,6 +80,23 @@ def return_model(model_id: str, example_model: ExampleModelPyd):
 
 
 class CustomResponseHeaders:
+    """
+    Context manager to manage creating and cleaning up of environment variables that
+    describe how to modify response headers in FastAPI middleware.
+
+    Written to support the use case for testing missing or incomplete
+    www-authenticate headers, where a server may support Basic authentication
+    but not advertise it.
+
+    Parameters
+    ----------
+    name : str
+        The name of the header to be modified.
+    value : str, optional
+        The value the header should be set to. If this argument is omitted or provided
+        as an empty string, the header will be deleted in the response.
+    """
+
     HEADER_ENVIRON_ROOT = "OPENAPI_COMMON_INT_TEST_HEADER_"
 
     def __init__(self, name: str, value: Optional[str]) -> None:
@@ -93,7 +110,13 @@ class CustomResponseHeaders:
         del os.environ[self._environ_name]
 
     @classmethod
-    def modify_response_headers(cls, response: Response) -> Response:
+    def modify_response_headers(cls, response: Response) -> None:
+        """
+        Apply the header changes captured via this context manager.
+
+        This method translates the requested header changes from environment variables
+        to a dictionary of headers, and then applies them to the response.
+        """
         header_changes = {
             env.replace(cls.HEADER_ENVIRON_ROOT, "", 1): value if value else None
             for env, value in os.environ.items()
@@ -104,4 +127,3 @@ class CustomResponseHeaders:
                 del response.headers[header_name.lower()]
             else:
                 response.headers[header_name.lower()] = value
-        return response
