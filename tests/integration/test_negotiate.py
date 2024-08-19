@@ -52,6 +52,19 @@ TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 custom_test_app = FastAPI()
 
 
+@custom_test_app.middleware("http")
+async def strip_www_authenticate_header(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code == 401:
+        env = os.getenv("strip-header")
+        if env:
+            del response.headers["www-authenticate"]
+        env = os.getenv("change-header")
+        if env:
+            response.headers["www-authenticate"] = '"Bearer realm="example""'
+    return response
+
+
 @custom_test_app.patch("/models/{model_id}")
 async def patch_model(model_id: str, example_model: ExampleModelPyd, request: Request):
     validate_user_principal(request, TEST_PRINCIPAL)
@@ -148,7 +161,7 @@ class TestNegotiate(NegotiateTests):
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS])
-class TestNegotiateFailures(NegotiateTests):
+class TestNegotiateFailures(NegotiateFailureTests):
     @pytest.fixture(autouse=True)
     def server(self):
         # Remove all the routes (a bit drastic)
@@ -182,7 +195,7 @@ class TestNegotiateWrongHeader(NegotiateTests):
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
-class TestNegotiateWrongHeaderFailures(NegotiateTests):
+class TestNegotiateWrongHeaderFailures(NegotiateFailureTests):
     @pytest.fixture(autouse=True)
     def server(self):
         # Remove all the routes (a bit drastic)
@@ -218,7 +231,7 @@ class TestNegotiateMissingHeader(NegotiateTests):
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS])
-class TestNegotiateMissingHeaderFailures(NegotiateTests):
+class TestNegotiateMissingHeaderFailures(NegotiateFailureTests):
     @pytest.fixture(autouse=True)
     def server(self):
         # Remove all the routes (a bit drastic)
