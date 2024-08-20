@@ -27,13 +27,11 @@ import requests
 from requests.models import CaseInsensitiveDict
 
 # noinspection PyUnresolvedReferences
-from requests_auth import InvalidGrantRequest, OAuth2AuthorizationCodePKCE
-
-try:
-    from requests_auth import OAuth2
-except ImportError:
-    # This class is available in the authentication submodule in versions <8.0.0
-    from requests_auth.authentication import OAuth2  # type: ignore
+from requests_auth import (  # type: ignore[import-untyped]
+    InvalidGrantRequest,
+    OAuth2,
+    OAuth2AuthorizationCodePKCE,
+)
 
 from ._logger import logger
 from ._util import (
@@ -151,15 +149,11 @@ class OIDCSessionFactory:
         except InvalidGrantRequest as excinfo:
             logger.debug(str(excinfo))
             raise ValueError("The provided refresh token was invalid, please request a new token.")
-        try:
-            # noinspection PyProtectedMember
-            lock = OAuth2.token_cache._forbid_concurrent_missing_token_function_call  # type: ignore[attr-defined, unused-ignore]
-        except AttributeError:
-            lock = OAuth2.token_cache.forbid_concurrent_missing_token_function_call  # type: ignore[attr-defined, unused-ignore]
-        with lock:
+        # noinspection PyProtectedMember
+        with OAuth2.token_cache._forbid_concurrent_missing_token_function_call:  # type: ignore[unused-ignore]
             # If we were provided with a new refresh token it's likely that the Identity
             # Provider is configured to rotate refresh tokens. Store the new one and
-            # discard the old one. Otherwise use the existing refresh token.
+            # discard the old one. Otherwise, use the existing refresh token.
             if new_refresh_token is not None:
                 refresh_token = new_refresh_token
         # noinspection PyProtectedMember

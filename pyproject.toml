@@ -46,7 +46,7 @@ pyparsing = "^3.0.8"
 python-dateutil ="^2.9"
 
 # Packages for oidc extra
-requests_auth = { version = ">=6,<9", optional = true }
+requests_auth = { version = "^8.0.0", optional = true }
 keyring = { version = ">=22,<26", optional = true }
 
 # Packages for linux-kerberos extra
