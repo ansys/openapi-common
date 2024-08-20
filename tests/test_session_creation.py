@@ -213,32 +213,13 @@ def test_throws_with_invalid_credentials(auth_mode):
         assert exception_info.value.response.reason == UNAUTHORIZED
 
 
-@pytest.mark.parametrize(
-    "auth_mode, message",
-    [
-        (AuthenticationScheme.KERBEROS, "AuthMode.KERBEROS is not supported for this method"),
-        pytest.param(
-            AuthenticationScheme.NTLM,
-            "AuthMode.NTLM is not supported on Linux",
-            marks=pytest.mark.skipif(
-                sys.platform != "linux", reason="NTLM only not supported on Linux"
-            ),
-        ),
-        pytest.param(
-            AuthenticationScheme.NEGOTIATE,
-            "AuthMode.NEGOTIATE is not supported on Linux",
-            marks=pytest.mark.skipif(
-                sys.platform != "linux", reason="NTLM only not supported on Linux"
-            ),
-        ),
-    ],
-)
-def test_with_credentials_throws_with_invalid_auth_method(auth_mode, message):
-    with pytest.raises(ValueError, match=message):
+@pytest.mark.skipif(sys.platform != "linux", reason="NTLM only not supported on Linux")
+def test_with_credentials_throws_with_invalid_auth_method():
+    with pytest.raises(ValueError, match="AuthenticationMode.NTLM is not supported on Linux"):
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="NOT_A_TEST_USER",
             password="PASSWORD",
-            authentication_scheme=auth_mode,
+            authentication_scheme=AuthenticationScheme.NTLM,
         )
 
 
@@ -318,8 +299,7 @@ def test_can_connect_with_ntlm(mocker, auth_mode):
         )
 
 
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.NEGOTIATE])
-def test_can_connect_with_negotiate(auth_mode):
+def test_can_connect_with_negotiate():
     pass
 
 
@@ -329,36 +309,6 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok():
 
         _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
         assert m.called_once
-
-
-@pytest.mark.parametrize(
-    "auth_mode, message",
-    [
-        (AuthenticationScheme.BASIC, "AuthMode.BASIC is not supported for this method"),
-        (AuthenticationScheme.NTLM, "AuthMode.NTLM is not supported for this method"),
-    ],
-)
-def test_autologon_throws_with_invalid_auth_mode(auth_mode, message):
-    with pytest.raises(ValueError, match=message):
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(authentication_scheme=auth_mode)
-
-
-@pytest.mark.skipif(sys.platform != "win32", reason="Exception only raised on Windows")
-def test_autologon_throws_with_kerberos_auth_mode_windows():
-    with pytest.raises(
-        ValueError, match="AuthMode.KERBEROS is not supported for this method on Windows"
-    ):
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(
-            authentication_scheme=AuthenticationScheme.KERBEROS
-        )
-
-
-@pytest.mark.skipif(sys.platform != "linux", reason="Exception only raised on Linux")
-def test_autologon_throws_with_negotiate_auth_mode_linux():
-    with pytest.raises(ValueError, match="AuthMode.NEGOTIATE is not supported on Linux"):
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon(
-            authentication_scheme=AuthenticationScheme.NEGOTIATE
-        )
 
 
 def test_can_connect_with_oidc():

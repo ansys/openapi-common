@@ -29,12 +29,7 @@ import pytest
 from starlette.requests import Request
 import uvicorn
 
-from ansys.openapi.common import (
-    ApiClientFactory,
-    ApiConnectionException,
-    AuthenticationScheme,
-    SessionConfiguration,
-)
+from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
 from tests.integration.common import (
     TEST_MODEL_ID,
     TEST_PORT,
@@ -87,20 +82,29 @@ def run_server():
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
-class NegotiateTests:
-    def test_can_connect(self, auth_mode):
-        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
+class TestNegotiate:
+    @pytest.fixture(autouse=True)
+    def server(self):
+        proc = Process(target=run_server, args=(), daemon=True)
+        proc.start()
+        yield
+        proc.terminate()
+        while proc.is_alive():
+            sleep(1)
 
-    def test_get_health_returns_200_ok(self, auth_mode):
+    def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
+        _ = client_factory.with_autologon().connect()
+
+    def test_get_health_returns_200_ok(self):
+        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
+        client = client_factory.with_autologon().connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
         assert "OK" in resp.text
 
-    def test_patch_model(self, auth_mode):
+    def test_patch_model(self):
         from .. import models
 
         deserialized_response = models.ExampleModel(
@@ -119,7 +123,7 @@ class NegotiateTests:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
+        client = client_factory.with_autologon().connect()
         client.setup_client(models)
 
         response = client.call_api(
@@ -134,128 +138,33 @@ class NegotiateTests:
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
-class NegotiateFailureTests:
-    def test_bad_principal_returns_403(self, auth_mode):
+class TestNegotiateFailures:
+    @pytest.fixture(autouse=True)
+    def server(self):
+        # Stash the original routes
+        original_routes = custom_test_app.router.routes
+
+        # Remove all the routes (a bit drastic)
+        custom_test_app.router.routes = []
+
+        @custom_test_app.get("/")
+        async def get_forbidden(request: Request):
+            validate_user_principal(request, "otheruser@EXAMPLE.COM")
+            return None
+
+        proc = Process(target=run_server, args=(), daemon=True)
+        proc.start()
+        yield
+        proc.terminate()
+        while proc.is_alive():
+            sleep(1)
+
+        # Restore the original routes
+        custom_test_app.router.routes = original_routes
+
+    def test_bad_principal_returns_403(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as excinfo:
-            _ = client_factory.with_autologon(authentication_scheme=auth_mode).connect()
+            _ = client_factory.with_autologon().connect()
         assert excinfo.value.response.status_code == 403
         assert excinfo.value.response.reason == "Forbidden"
-
-
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS])
-class TestNegotiate(NegotiateTests):
-    @pytest.fixture(autouse=True)
-    def server(self):
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS])
-class TestNegotiateFailures(NegotiateFailureTests):
-    @pytest.fixture(autouse=True)
-    def server(self):
-        # Stash the original routes
-        original_routes = custom_test_app.router.routes
-
-        # Remove all the routes (a bit drastic)
-        custom_test_app.router.routes = []
-
-        @custom_test_app.get("/")
-        async def get_forbidden(request: Request):
-            validate_user_principal(request, "otheruser@EXAMPLE.COM")
-            return None
-
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-        # Restore the original routes
-        custom_test_app.router.routes = original_routes
-
-
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
-class TestNegotiateWrongHeader(NegotiateTests):
-    @pytest.fixture(autouse=True)
-    def server(self):
-        with CustomResponseHeaders("www-authenticate", '"Bearer realm="example""'):
-            proc = Process(target=run_server, args=(), daemon=True)
-            proc.start()
-            yield
-            proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
-class TestNegotiateWrongHeaderFailures(NegotiateFailureTests):
-    @pytest.fixture(autouse=True)
-    def server(self):
-        # Stash the original routes
-        original_routes = custom_test_app.router.routes
-
-        # Remove all the routes (a bit drastic)
-        custom_test_app.router.routes = []
-
-        @custom_test_app.get("/")
-        async def get_forbidden(request: Request):
-            validate_user_principal(request, "otheruser@EXAMPLE.COM")
-            return None
-
-        with CustomResponseHeaders("www-authenticate", '"Bearer realm="example""'):
-            proc = Process(target=run_server, args=(), daemon=True)
-            proc.start()
-            yield
-            proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-        # Restore the original routes
-        custom_test_app.router.routes = original_routes
-
-
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.KERBEROS])
-class TestNegotiateMissingHeader(NegotiateTests):
-    @pytest.fixture(autouse=True)
-    def server(self):
-        with CustomResponseHeaders("www-authenticate", None):
-            proc = Process(target=run_server, args=(), daemon=True)
-            proc.start()
-            yield
-            proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-
-@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.KERBEROS])
-class TestNegotiateMissingHeaderFailures(NegotiateFailureTests):
-    @pytest.fixture(autouse=True)
-    def server(self):
-        # Stash the original routes
-        original_routes = custom_test_app.router.routes
-
-        # Remove all the routes (a bit drastic)
-        custom_test_app.router.routes = []
-
-        @custom_test_app.get("/")
-        async def get_forbidden(request: Request):
-            validate_user_principal(request, "otheruser@EXAMPLE.COM")
-            return None
-
-        with CustomResponseHeaders("www-authenticate", None):
-            proc = Process(target=run_server, args=(), daemon=True)
-            proc.start()
-            yield
-            proc.terminate()
-        while proc.is_alive():
-            sleep(1)
-
-        # Restore the original routes
-        custom_test_app.router.routes = original_routes

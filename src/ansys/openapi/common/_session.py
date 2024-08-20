@@ -88,19 +88,13 @@ class AuthenticationScheme(Enum):
     """
 
     AUTO = "auto"
-    """Use the 401 response www-authenticate header to select the best supported authentication scheme."""
+    """Use the 401 response WWW-Authenticate header to select the best supported authentication scheme."""
 
     BASIC = "Basic"
     """Force the use of Basic authentication, even if more secure options are supported."""
 
     NTLM = "NTLM"
     """Force the use of NTLM authentication only. Do not fall back to Basic authentication."""
-
-    NEGOTIATE = "Negotiate"
-    """Force the use of negotiate authentication only. Do not fall back to Basic authentication."""
-
-    KERBEROS = "Kerberos"
-    """Force the use of Kerbos authentication only. Do not fall back to Basic authentication."""
 
 
 class ApiClientFactory:
@@ -218,14 +212,13 @@ class ApiClientFactory:
             Literal[AuthenticationScheme.AUTO],
             Literal[AuthenticationScheme.BASIC],
             Literal[AuthenticationScheme.NTLM],
-            Literal[AuthenticationScheme.NEGOTIATE],
         ] = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
 
         The default operation of this method is to attempt to connect to the API and to use the provided
-        ``WWW-Authenticate`` header to determine whether Negotiate, NTLM, or Basic Authentication should be used. The
-        selected authentication method will then be configured for use.
+        ``WWW-Authenticate`` header to determine whether NTLM or Basic Authentication should be used. The selected
+        authentication scheme will then be configured for use.
 
         Parameters
         ----------
@@ -236,27 +229,27 @@ class ApiClientFactory:
         domain : str, optional
             Domain to use for connection if required. The default is ``None``.
         authentication_scheme : AuthenticationScheme
-            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is,
+            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is
             :attr:`~.AuthenticationScheme.AUTO` which uses the ``WWW-Authenticate`` header to determine the optimal
-            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.BASIC`,
-            :attr:`~.AuthenticationScheme.NTLM`, and :attr:`~.AuthenticationScheme.NEGOTIATE`.
+            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.BASIC` or
+            :attr:`~.AuthenticationScheme.NTLM`.
 
         Returns
         -------
         :class:`~ansys.openapi.common.ApiClientFactory`
             Original client factory object.
 
+        Raises
+        ------
+        ConnectionError
+            If the server does not support Basic or NTLM authentication (Windows clients only).
+
         Notes
         -----
         NTLM authentication is not currently supported on Linux.
         """
-        if authentication_scheme == AuthenticationScheme.KERBEROS:
-            raise ValueError("AuthMode.KERBEROS is not supported for this method.")
-        if (
-            authentication_scheme in [AuthenticationScheme.NTLM, AuthenticationScheme.NEGOTIATE]
-            and not _platform_windows
-        ):
-            raise ValueError(f"AuthMode.{authentication_scheme.name} is not supported on Linux.")
+        if authentication_scheme == AuthenticationScheme.NTLM and not _platform_windows:
+            raise ValueError(f"AuthenticationScheme.NTLM is not supported on Linux.")
 
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
@@ -278,7 +271,7 @@ class ApiClientFactory:
         if (
             "Negotiate" in headers
             or "NTLM" in headers
-            or authentication_scheme in [AuthenticationScheme.NTLM, AuthenticationScheme.NEGOTIATE]
+            or authentication_scheme == AuthenticationScheme.NTLM
         ):
             if _platform_windows:
                 logger.debug("Attempting to connect with NTLM authentication...")
@@ -296,32 +289,24 @@ class ApiClientFactory:
             return self
         raise ConnectionError("Unable to connect with credentials provided.")
 
-    def with_autologon(
-        self: Api_Client_Factory,
-        authentication_scheme: Union[
-            Literal[AuthenticationScheme.AUTO],
-            Literal[AuthenticationScheme.NEGOTIATE],
-            Literal[AuthenticationScheme.KERBEROS],
-        ] = AuthenticationScheme.AUTO,
-    ) -> Api_Client_Factory:
+    def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
         """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
         The default operation of this method is to attempt to connect to the API and to use the provided
         ``WWW-Authenticate`` header to determine if Negotiate authentication is supported by the server. If so,
         Negotiate will then be used for authentication.
 
-        Parameters
-        ----------
-        authentication_scheme : AuthenticationScheme
-            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is
-            :attr:`~.AuthenticationScheme.AUTO`, which uses the ``WWW-Authenticate`` header to determine the optimal
-            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.NEGOTIATE` for Windows
-            and :attr:`~.AuthenticationScheme.KERBEROS` for Linux.
+        If Negotiate authentication is not supported by the server, an exception is raised.
 
         Returns
         -------
         :class:`~ansys.openapi.common.ApiClientFactory`
             Current client factory object.
+
+        Raises
+        ------
+        ConnectionError
+            If the server does not support Negotiate authentication.
 
         Notes
         -----
@@ -331,43 +316,15 @@ class ApiClientFactory:
         * On Linux, this requires the ``[linux-kerberos]`` extension to be installed and your Kerberos installation
           to be configured correctly.
         """
-        if not (_platform_windows or _linux_kerberos_enabled):
-            raise ImportError(
-                "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
-            )
+        initial_response = self._session.get(self._api_url)
+        if self.__handle_initial_response(initial_response):
+            return self
+        headers = self.__get_authenticate_header(initial_response)
+        logger.debug(
+            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
+        )
 
-        if authentication_scheme in [AuthenticationScheme.BASIC, AuthenticationScheme.NTLM]:
-            raise ValueError(
-                f"AuthMode.{authentication_scheme.name} is not supported for this method."
-            )
-        if authentication_scheme == AuthenticationScheme.KERBEROS and _platform_windows:
-            raise ValueError(
-                f"AuthMode.{authentication_scheme.name} is not supported for this method on Windows. Only AuthMode.NEGOTIATE"
-                "or AuthMode.AUTO are supported."
-            )
-        if authentication_scheme == AuthenticationScheme.NEGOTIATE and not _platform_windows:
-            raise ValueError(
-                f"AuthMode.{authentication_scheme.name} is not supported on Linux. Only AuthMode.KERBEROS or AuthMode.AUTO are "
-                "supported."
-            )
-
-        if authentication_scheme == AuthenticationScheme.AUTO:
-            initial_response = self._session.get(self._api_url)
-            if self.__handle_initial_response(initial_response):
-                return self
-            headers = self.__get_authenticate_header(initial_response)
-            logger.debug(
-                "Detected authentication methods: "
-                + ", ".join([method for method in headers.keys()])
-            )
-        else:
-            headers = CaseInsensitiveOrderedDict()
-
-        if (
-            "Negotiate" in headers
-            or (authentication_scheme == AuthenticationScheme.NEGOTIATE and _platform_windows)
-            or (authentication_scheme == AuthenticationScheme.KERBEROS and not _platform_windows)
-        ):
+        if "Negotiate" in headers:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
             self._session.auth = NegotiateAuth()
