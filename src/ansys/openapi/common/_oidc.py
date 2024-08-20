@@ -25,7 +25,7 @@ import urllib.parse
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import (  # type: ignore[import-untyped]
+from requests_auth import (  # type: ignore[import-untyped, unused-ignore]
     InvalidGrantRequest,
     OAuth2,
     OAuth2AuthorizationCodePKCE,
