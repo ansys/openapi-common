@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
 import secrets
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import HTTPException, Response, status
 from fastapi.security import HTTPBasicCredentials
 from pydantic import BaseModel
 from starlette.requests import Request
@@ -65,9 +66,6 @@ class ExampleModelPyd(BaseModel):
     Boolean: Optional[bool] = None
 
 
-fastapi_test_app = FastAPI()
-
-
 def return_model(model_id: str, example_model: ExampleModelPyd):
     if model_id == TEST_MODEL_ID:
         response = {
@@ -81,16 +79,51 @@ def return_model(model_id: str, example_model: ExampleModelPyd):
         raise HTTPException(status_code=404, detail="Model not found")
 
 
-@fastapi_test_app.patch("/models/{model_id}")
-async def patch_model(model_id: str, example_model: ExampleModelPyd):
-    return return_model(model_id, example_model)
+class CustomResponseHeaders:
+    """
+    Context manager to manage creating and cleaning up of environment variables that
+    describe how to modify response headers in FastAPI middleware.
 
+    Written to support the use case for testing missing or incomplete
+    www-authenticate headers, where a server may support Basic authentication
+    but not advertise it.
 
-@fastapi_test_app.get("/test_api")
-async def get_test_api():
-    return {"msg": "OK"}
+    Parameters
+    ----------
+    name : str
+        The name of the header to be modified.
+    value : str, optional
+        The value the header should be set to. If this argument is omitted or provided
+        as an empty string, the header will be deleted in the response.
+    """
 
+    HEADER_ENVIRON_ROOT = "OPENAPI_COMMON_INT_TEST_HEADER_"
 
-@fastapi_test_app.get("/")
-async def get_none():
-    return None
+    def __init__(self, name: str, value: Optional[str]) -> None:
+        self._environ_name = f"{self.HEADER_ENVIRON_ROOT}{name}"
+        self._value = value if value is not None else ""
+
+    def __enter__(self) -> None:
+        os.environ[self._environ_name] = self._value
+
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
+        del os.environ[self._environ_name]
+
+    @classmethod
+    def modify_response_headers(cls, response: Response) -> None:
+        """
+        Apply the header changes captured via this context manager.
+
+        This method translates the requested header changes from environment variables
+        to a dictionary of headers, and then applies them to the response.
+        """
+        header_changes = {
+            env.replace(cls.HEADER_ENVIRON_ROOT, "", 1): value if value else None
+            for env, value in os.environ.items()
+            if env.startswith(cls.HEADER_ENVIRON_ROOT)
+        }
+        for header_name, value in header_changes.items():
+            if value is None:
+                del response.headers[header_name.lower()]
+            else:
+                response.headers[header_name.lower()] = value
