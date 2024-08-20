@@ -84,7 +84,7 @@ Api_Client_Factory = TypeVar("Api_Client_Factory", bound="ApiClientFactory")
 class AuthenticationScheme(Enum):
     """Authentication scheme.
 
-    Used to specify an authentication scheme used when connecting to the server.
+    Used to specify an authentication scheme used when connecting to the server with credentials.
     """
 
     AUTO = "auto"
