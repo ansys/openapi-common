@@ -316,6 +316,10 @@ class ApiClientFactory:
         * On Linux, this requires the ``[linux-kerberos]`` extension to be installed and your Kerberos installation
           to be configured correctly.
         """
+        if not (_platform_windows or _linux_kerberos_enabled):
+            raise ImportError(
+                "Kerberos is not enabled. To use it, run `pip install ansys-openapi-common[linux-kerberos]`."
+            )
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
             return self
@@ -323,7 +327,6 @@ class ApiClientFactory:
         logger.debug(
             "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
         )
-
         if "Negotiate" in headers:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
