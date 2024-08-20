@@ -30,10 +30,10 @@ from starlette.requests import Request
 import uvicorn
 
 from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
-
-from .integration.common import (
+from tests.integration.common import (
     TEST_MODEL_ID,
     TEST_PORT,
+    CustomResponseHeaders,
     ExampleModelPyd,
     return_model,
     validate_user_principal,
@@ -45,6 +45,14 @@ TEST_URL = f"http://test-server:{TEST_PORT}"
 TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 
 custom_test_app = FastAPI()
+
+
+@custom_test_app.middleware("http")
+async def modify_response_headers(request: Request, call_next):
+    response = await call_next(request)
+    if response.status_code == 401:
+        CustomResponseHeaders.modify_response_headers(response)
+    return response
 
 
 @custom_test_app.patch("/models/{model_id}")
@@ -97,7 +105,7 @@ class TestNegotiate:
         assert "OK" in resp.text
 
     def test_patch_model(self):
-        from . import models
+        from .. import models
 
         deserialized_response = models.ExampleModel(
             string_property="new_model",
@@ -133,6 +141,9 @@ class TestNegotiate:
 class TestNegotiateFailures:
     @pytest.fixture(autouse=True)
     def server(self):
+        # Stash the original routes
+        original_routes = custom_test_app.router.routes
+
         # Remove all the routes (a bit drastic)
         custom_test_app.router.routes = []
 
@@ -147,6 +158,9 @@ class TestNegotiateFailures:
         proc.terminate()
         while proc.is_alive():
             sleep(1)
+
+        # Restore the original routes
+        custom_test_app.router.routes = original_routes
 
     def test_bad_principal_returns_403(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())

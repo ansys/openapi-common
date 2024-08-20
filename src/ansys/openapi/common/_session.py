@@ -20,8 +20,9 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from enum import Enum
 import os
-from typing import Any, Mapping, Optional, Tuple, TypeVar, Union
+from typing import Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
 import warnings
 
 import requests
@@ -34,7 +35,13 @@ from . import __version__
 from ._api_client import ApiClient
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
-from ._util import SessionConfiguration, generate_user_agent, parse_authenticate, set_session_kwargs
+from ._util import (
+    CaseInsensitiveOrderedDict,
+    SessionConfiguration,
+    generate_user_agent,
+    parse_authenticate,
+    set_session_kwargs,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -72,6 +79,22 @@ else:
 # Required to allow the ApiClientFactory to be subclassed. This ensures that Pylance
 # understands that the subclass is returned by the builder methods instead of the base class
 Api_Client_Factory = TypeVar("Api_Client_Factory", bound="ApiClientFactory")
+
+
+class AuthenticationScheme(Enum):
+    """Authentication scheme.
+
+    Used to specify an authentication scheme used when connecting to the server with credentials.
+    """
+
+    AUTO = "auto"
+    """Use the 401 response WWW-Authenticate header to select the best supported authentication scheme."""
+
+    BASIC = "Basic"
+    """Force the use of Basic authentication, even if more secure options are supported."""
+
+    NTLM = "NTLM"
+    """Force the use of NTLM authentication only. Do not fall back to Basic authentication."""
 
 
 class ApiClientFactory:
@@ -175,23 +198,27 @@ class ApiClientFactory:
         :class:`~ansys.openapi.common.ApiClientFactory`
             Original client factory object.
         """
-        if self.__test_connection():
-            logger.info("Connection successful.")
-            self._configured = True
-            return self
-        assert False, "Connection failures will throw above"
+        self.__test_connection()
+        logger.info("Connection successful.")
+        self._configured = True
+        return self
 
     def with_credentials(
         self: Api_Client_Factory,
         username: str,
         password: str,
         domain: Optional[str] = None,
+        authentication_scheme: Union[
+            Literal[AuthenticationScheme.AUTO],
+            Literal[AuthenticationScheme.BASIC],
+            Literal[AuthenticationScheme.NTLM],
+        ] = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
 
-        This method will attempt to connect to the API and uses the provided ``WWW-Authenticate`` header to determine
-        whether Negotiate, NTLM, or Basic Authentication should be used. The selected authentication method will then be
-        configured for use.
+        The default operation of this method is to attempt to connect to the API and to use the provided
+        ``WWW-Authenticate`` header to determine whether NTLM or Basic Authentication should be used. The selected
+        authentication scheme will then be configured for use.
 
         Parameters
         ----------
@@ -201,52 +228,85 @@ class ApiClientFactory:
             Password for the connection.
         domain : str, optional
             Domain to use for connection if required. The default is ``None``.
+        authentication_scheme : AuthenticationScheme
+            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is
+            :attr:`~.AuthenticationScheme.AUTO` which uses the ``WWW-Authenticate`` header to determine the optimal
+            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.BASIC` or
+            :attr:`~.AuthenticationScheme.NTLM`.
 
         Returns
         -------
         :class:`~ansys.openapi.common.ApiClientFactory`
             Original client factory object.
 
+        Raises
+        ------
+        ConnectionError
+            If the server does not support Basic or NTLM authentication (Windows clients only).
+
         Notes
         -----
         NTLM authentication is not currently supported on Linux.
         """
+        if authentication_scheme == AuthenticationScheme.NTLM and not _platform_windows:
+            raise ValueError("AuthenticationScheme.NTLM is not supported on Linux.")
+
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
             username = f"{domain}\\{username}"
             logger.debug(f"Setting domain for username, connecting as '{username}'.")
 
-        initial_response = self._session.get(self._api_url)
-        if self.__handle_initial_response(initial_response):
-            return self
-        headers = self.__get_authenticate_header(initial_response)
-        logger.debug(
-            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
-        )
-        if "Negotiate" in headers or "NTLM" in headers:
+        if authentication_scheme == AuthenticationScheme.AUTO:
+            initial_response = self._session.get(self._api_url)
+            if self.__handle_initial_response(initial_response):
+                return self
+            headers = self.__get_authenticate_header(initial_response)
+            logger.debug(
+                "Detected authentication methods: "
+                + ", ".join([method for method in headers.keys()])
+            )
+        else:
+            headers = CaseInsensitiveOrderedDict()
+
+        if (
+            "Negotiate" in headers
+            or "NTLM" in headers
+            or authentication_scheme == AuthenticationScheme.NTLM
+        ):
             if _platform_windows:
                 logger.debug("Attempting to connect with NTLM authentication...")
                 self._session.auth = HttpNtlmAuth(username, password)
-                if self.__test_connection():
-                    logger.info("Connection successful.")
-                    self._configured = True
-                    return self
-        if "Basic" in headers:
-            logger.debug("Attempting connection with Basic authentication...")
-            self._session.auth = HTTPBasicAuth(username, password)
-            if self.__test_connection():
+                self.__test_connection()
                 logger.info("Connection successful.")
                 self._configured = True
                 return self
+        if "Basic" in headers or authentication_scheme == AuthenticationScheme.BASIC:
+            logger.debug("Attempting connection with Basic authentication...")
+            self._session.auth = HTTPBasicAuth(username, password)
+            self.__test_connection()
+            logger.info("Connection successful.")
+            self._configured = True
+            return self
         raise ConnectionError("Unable to connect with credentials provided.")
 
     def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
         """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
+        The default operation of this method is to attempt to connect to the API and to use the provided
+        ``WWW-Authenticate`` header to determine if Negotiate authentication is supported by the server. If so,
+        Negotiate will then be used for authentication.
+
+        If Negotiate authentication is not supported by the server, an exception is raised.
+
         Returns
         -------
         :class:`~ansys.openapi.common.ApiClientFactory`
             Current client factory object.
+
+        Raises
+        ------
+        ConnectionError
+            If the server does not support Negotiate authentication.
 
         Notes
         -----
@@ -271,10 +331,10 @@ class ApiClientFactory:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
             self._session.auth = NegotiateAuth()
-            if self.__test_connection():
-                logger.info("Connection successful.")
-                self._configured = True
-                return self
+            self.__test_connection()
+            logger.info("Connection successful.")
+            self._configured = True
+            return self
         raise ConnectionError("Unable to connect with autologon.")
 
     def with_oidc(
@@ -314,14 +374,19 @@ class ApiClientFactory:
 
         return OIDCSessionBuilder(self, session_factory)
 
-    def __test_connection(self) -> bool:
+    def __test_connection(self) -> Literal[True]:
         """Attempt to connect to the API server.
 
-        If this returns a 2XX status code, the method returns ``True``. Otherwise, the method will
+        If the server returns a 2XX status code, the method returns ``True``. Otherwise, the method will
         throw an :obj:`APIConnectionError` object with the status code and the reason phrase. If the
         underlying requests method returns an exception of its own, it is left to propagate as-is
         (for example, a :obj:`~requests.exceptions.SSLException` object if the remote certificate
         is untrusted).
+
+        Returns
+        -------
+        Literal[True]
+            If the test is successful.
 
         Raises
         ------
