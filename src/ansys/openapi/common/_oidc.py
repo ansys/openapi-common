@@ -25,8 +25,6 @@ import urllib.parse
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-
-# noinspection PyUnresolvedReferences
 from requests_auth import (  # type: ignore[import-untyped]
     InvalidGrantRequest,
     OAuth2,
@@ -156,8 +154,8 @@ class OIDCSessionFactory:
             # discard the old one. Otherwise, use the existing refresh token.
             if new_refresh_token is not None:
                 refresh_token = new_refresh_token
-        # noinspection PyProtectedMember
-        OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
+            # noinspection PyProtectedMember
+            OAuth2.token_cache._add_access_token(state, token, expires_in, refresh_token)
         self._authorized_session.auth = self._auth
         return self._authorized_session
 

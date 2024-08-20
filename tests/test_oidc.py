@@ -27,12 +27,7 @@ from urllib.parse import parse_qs
 from covertable import make
 import pytest
 import requests
-
-try:
-    from requests_auth import OAuth2  # type: ignore
-except ImportError:
-    # This class is available in the authentication submodule in versions <8.0.0
-    from requests_auth.authentication import OAuth2  # type: ignore
+from requests_auth import OAuth2
 import requests_mock
 
 from ansys.openapi.common import ApiClientFactory
