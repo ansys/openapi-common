@@ -215,7 +215,7 @@ def test_throws_with_invalid_credentials(auth_mode):
 
 @pytest.mark.skipif(sys.platform != "linux", reason="NTLM only not supported on Linux")
 def test_with_credentials_throws_with_invalid_auth_method():
-    with pytest.raises(ValueError, match="AuthenticationMode.NTLM is not supported on Linux"):
+    with pytest.raises(ValueError, match="AuthenticationScheme.NTLM is not supported on Linux"):
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="NOT_A_TEST_USER",
             password="PASSWORD",
