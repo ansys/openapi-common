@@ -249,7 +249,7 @@ class ApiClientFactory:
         NTLM authentication is not currently supported on Linux.
         """
         if authentication_scheme == AuthenticationScheme.NTLM and not _platform_windows:
-            raise ValueError(f"AuthenticationScheme.NTLM is not supported on Linux.")
+            raise ValueError("AuthenticationScheme.NTLM is not supported on Linux.")
 
         logger.info(f"Setting credentials for user '{username}'.")
         if domain is not None:
