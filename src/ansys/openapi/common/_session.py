@@ -85,6 +85,8 @@ class AuthenticationScheme(Enum):
     """Authentication scheme.
 
     Used to specify an authentication scheme used when connecting to the server with credentials.
+
+    .. versionadded:: 2.1
     """
 
     AUTO = "auto"
@@ -233,6 +235,8 @@ class ApiClientFactory:
             :attr:`~.AuthenticationScheme.AUTO` which uses the ``WWW-Authenticate`` header to determine the optimal
             authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.BASIC` or
             :attr:`~.AuthenticationScheme.NTLM`.
+
+            .. versionadded:: 2.1
 
         Returns
         -------
