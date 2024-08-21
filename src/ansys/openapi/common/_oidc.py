@@ -25,13 +25,11 @@ import urllib.parse
 import keyring
 import requests
 from requests.models import CaseInsensitiveDict
-from requests_auth import (  # type: ignore[import-untyped]
+from requests_auth import (  # type: ignore[import-untyped, unused-ignore]
     InvalidGrantRequest,
+    OAuth2,
     OAuth2AuthorizationCodePKCE,
 )
-
-# This import is optional and has missing type hints, so use a broad ignore statement
-from requests_auth.authentication import OAuth2  # type: ignore
 
 from ._logger import logger
 from ._util import (
@@ -149,10 +147,11 @@ class OIDCSessionFactory:
         except InvalidGrantRequest as excinfo:
             logger.debug(str(excinfo))
             raise ValueError("The provided refresh token was invalid, please request a new token.")
-        with OAuth2.token_cache.forbid_concurrent_missing_token_function_call:
+        # noinspection PyProtectedMember
+        with OAuth2.token_cache._forbid_concurrent_missing_token_function_call:  # type: ignore[unused-ignore]
             # If we were provided with a new refresh token it's likely that the Identity
             # Provider is configured to rotate refresh tokens. Store the new one and
-            # discard the old one. Otherwise use the existing refresh token.
+            # discard the old one. Otherwise, use the existing refresh token.
             if new_refresh_token is not None:
                 refresh_token = new_refresh_token
             # noinspection PyProtectedMember

@@ -27,7 +27,7 @@ from urllib.parse import parse_qs
 from covertable import make
 import pytest
 import requests
-from requests_auth.authentication import OAuth2
+from requests_auth import OAuth2
 import requests_mock
 
 from ansys.openapi.common import ApiClientFactory
