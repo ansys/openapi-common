@@ -6,6 +6,50 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## [2.1.0](https://github.com/ansys/openapi-common/releases/tag/v2.1.0) - 2024-08-21
+
+
+### Added
+
+- Allow authentication scheme to be specified explicitly when connecting with credentials [#638](https://github.com/ansys/openapi-common/pull/638)
+
+
+### Changed
+
+- 548 - CI - Add doc-changelog action [#563](https://github.com/ansys/openapi-common/pull/563)
+- CI - 574 - Update codecov action to v4 [#575](https://github.com/ansys/openapi-common/pull/575)
+- Manually update changelog for 2.0.0 and 2.0.1 releases [#576](https://github.com/ansys/openapi-common/pull/576)
+- Update CNAME to support publishing documentation from this repository [#577](https://github.com/ansys/openapi-common/pull/577)
+- Bump version to 2.1.0 [#578](https://github.com/ansys/openapi-common/pull/578)
+- Remove documentation build parallel execution arguments [#580](https://github.com/ansys/openapi-common/pull/580)
+- Fix labelling workflow [#581](https://github.com/ansys/openapi-common/pull/581)
+- Don't generate changelog fragments for dependabot PRs [#587](https://github.com/ansys/openapi-common/pull/587)
+- Update changelog for 2.0.2 release [#588](https://github.com/ansys/openapi-common/pull/588)
+
+
+### Fixed
+
+- Support requests-auth 8.0.0 [#640](https://github.com/ansys/openapi-common/pull/640)
+
+
+### Dependencies
+
+- Use ansys standard actions [#555](https://github.com/ansys/openapi-common/pull/555)
+- Bump fastapi from 0.110.2 to 0.111.0 [#583](https://github.com/ansys/openapi-common/pull/583)
+- Bump ansys/actions from 5 to 6 [#584](https://github.com/ansys/openapi-common/pull/584)
+- Bump jinja2 from 3.1.3 to 3.1.4 [#585](https://github.com/ansys/openapi-common/pull/585)
+
+
+### Documentation
+
+- Add versionadded directives for new functionality [#647](https://github.com/ansys/openapi-common/pull/647)
+
+
+### Maintenance
+
+- Fix labeller workflow [#634](https://github.com/ansys/openapi-common/pull/634)
+- Use PyPI Trusted Publisher approach for releases [#646](https://github.com/ansys/openapi-common/pull/646)
+
 ## openapi-common 2.0.2, 2024-05-03
 
 ### New features
