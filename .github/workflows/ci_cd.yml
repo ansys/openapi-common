@@ -148,8 +148,6 @@ jobs:
       - uses: ansys/actions/doc-deploy-changelog@v7
         with:
           token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
-          update-main-branch: true
-          update-release-branch: false
 
   release:
     name: "Release"
