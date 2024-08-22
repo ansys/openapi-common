@@ -6,3 +6,6 @@ Heimdal
 Kerberos
 OpenAPI
 THIRDPARTY
+(?i)docstrings?
+subclassed
+Intersphinx

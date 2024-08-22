@@ -1,5 +1,7 @@
 .. _contributing_openapi:
 
+.. currentmodule:: ansys.openapi.common
+
 ==========
 Contribute
 ==========
@@ -37,10 +39,10 @@ Documentation conventions
 
 When contributing to this package, always consider that many docstrings are viewed within
 the context of a package that inherits from classes defined in this package. For example,
-:class:`~ansys.openapi.common.ApiClientFactory` is typically subclassed, and the builder
-methods are shown within the sub-classing package's documentation as part of **that**
-module's subclass. The advice in this section ensures that a sub-classing package can
-build documentation that inherits docstrings from this package.
+:class:`~.ApiClientFactory` is typically subclassed, and the builder methods are shown
+within the sub-classing package's documentation as part of **that** module's subclass.
+The advice in this section ensures that a sub-classing package can build documentation
+that inherits docstrings from this package.
 
 Docstring type references
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -66,11 +68,11 @@ these types via :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`.
 References to this package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Docstrings often contain implicit and explicit references to the package they are
-documenting. One common example of an implicit reference is in ``.. versionadded::``
-directives, where the directive implicitly refers to a version of this package.
-To make these references explicit when they occur outside of this package,
-always use the following approach:
+Docstrings often contain implicit and explicit references to the package
+they are documenting. One common example of an implicit reference is in
+``.. versionadded::`` directives, where the directive implicitly refers to a version
+of this package. To make these references explicit when they occur outside of this
+package, always use the following approach:
 
 .. code-block:: restructuredtext
 
