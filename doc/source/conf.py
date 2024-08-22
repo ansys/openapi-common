@@ -50,6 +50,7 @@ autodoc_typehints_description_target = "documented"
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.11", None),
     "requests": ("https://requests.readthedocs.io/en/latest", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 
 # numpydoc configuration

@@ -65,3 +65,10 @@ build process, which ensures that:
 * When building the documentation for a package that inherits from this package,
   the more generic ``.. tip::`` directive is used, and additional context about
   the change is provided.
+
+.. note::
+
+   The example code includes a link to the documentation for this package via
+   :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`. The Intersphinx
+   mapping for this package should always be set to ``openapi-common`` to
+   ensure the links included in this package are generated correctly.
