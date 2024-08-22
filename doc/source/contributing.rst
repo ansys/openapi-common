@@ -80,7 +80,7 @@ outside of this package, always use the following approach:
 
        .. versionadded:: 2.1
 
-   .. only:: OpenapiCommonStandaloneBuild
+   .. only:: not OpenapiCommonStandaloneBuild
 
        .. tip::
           Added to :class:`~ansys.openapi.common.ClassName` in version 2.1 of
