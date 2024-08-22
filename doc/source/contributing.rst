@@ -68,36 +68,36 @@ these types via :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`.
 References to this package
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Docstrings often contain implicit and explicit references to the package
-they are documenting. One common example of an implicit reference is in
+Docstrings often contain implicit and explicit references to the package they are
+documenting. One common example of an implicit reference is in
 ``.. versionadded::`` directives, where the directive implicitly refers to a version
-of this package. To make these references explicit when they occur outside of this
-package, always use the following approach:
+of the package being documented. To make these references explicit when they occur
+outside of this package, always use the following approach:
 
 .. code-block:: restructuredtext
 
-   .. only:: openapi-common-standalone
+   .. only:: OpenapiCommonStandaloneBuild
 
        .. versionadded:: 2.1
 
-   .. only:: not openapi-common-standalone
+   .. only:: OpenapiCommonStandaloneBuild
 
        .. tip::
-          Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
+          Added to :class:`~ansys.openapi.common.ClassName` in version 2.1 of
+          ``ansys-openapi-common``.
 
-
-The ``openapi-common-standalone`` tag is added automatically during the documentation
-build process, which ensures that:
+Where ``:class:`ansys.openapi.common.ClassName``` is a reference to the relevant
+entity that contains the change. This approach ensures that:
 
 * When building the documentation for this package, the ``.. versionadded::``
   directive is used and *implicitly* refers to version 2.1 of this package.
-* When building the documentation for a package that inherits from this package,
-  the more generic ``.. tip::`` directive is used, and *explicitly* refers to
-  version 2.1 of this package with a hyperlink to provide additional context.
+* When building the documentation for a package that inherits from classes
+  defined in this package, the more generic ``.. tip::`` directive is used,
+  and *explicitly* refers to version 2.1 of this package.
 
 .. note::
 
-   The example code includes a link to the documentation for this package via
-   :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`. The Intersphinx
-   mapping for this package should always be set to ``openapi-common`` to
-   ensure the links included in this package are generated correctly.
+   If the inheriting package has configured
+   :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`, then Sphinx will
+   automatically add a cross-reference to the relevant location in the API
+   documentation for this package.

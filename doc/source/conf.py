@@ -3,10 +3,6 @@ import os
 import sys
 
 from ansys_sphinx_theme import get_version_match
-from sphinx.errors import NoUri
-from sphinx.util import logging
-
-logger = logging.getLogger(__name__)
 
 from ansys.openapi import common
 
@@ -145,19 +141,3 @@ html_theme_options = {
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = "openapicommondoc"
-
-
-# -- Suppress warnings raised by missing xrefs to intersphinx link to this documentation when generating docs --
-def suppress_missing_intersphinx_xrefs(app, env, node, contnode):
-    ref_target = node.attributes["reftarget"]
-    if ref_target.startswith("openapi-common"):
-        ref_doc = node.attributes["refdoc"]
-        logger.info(
-            f"Suppressing warning for missing intersphinx xref from {ref_doc} to {ref_target}"
-        )
-        raise NoUri
-
-
-def setup(app):
-    logger.info("Registering 'suppress_missing_intersphinx_xrefs' callback")
-    app.connect("missing-reference", suppress_missing_intersphinx_xrefs)

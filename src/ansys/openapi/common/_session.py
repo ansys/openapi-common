@@ -93,7 +93,8 @@ class AuthenticationScheme(Enum):
     .. only:: not OpenapiCommonStandaloneBuild
 
         .. tip::
-           Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
+           Added as :class:`~ansys.openapi.common.AuthenticationScheme` in version 2.1 of
+           ``ansys-openapi-common``.
     """
 
     AUTO = "auto"
@@ -243,7 +244,9 @@ class ApiClientFactory:
             .. only:: not OpenapiCommonStandaloneBuild
 
                 .. tip::
-                   Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
+                   Added to
+                   :meth:`ApiClientFactory.with_credentials <ansys.openapi.common.ApiClientFactory.with_credentials>`
+                   in version 2.1 of ``ansys-openapi-common``.
 
         Returns
         -------
