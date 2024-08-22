@@ -39,10 +39,37 @@ When contributing to this package, always consider that many docstrings are view
 the context of a package that inherits from classes defined in this package. For example,
 :class:`~ansys.openapi.common.ApiClientFactory` is typically subclassed, and the builder
 methods are shown within the sub-classing package's documentation as part of **that**
-module's subclass.
+module's subclass. The advice in this section ensures that a sub-classing package can
+build documentation that inherits docstrings from this package.
 
-One common example of where this is important is in ``.. versionadded::`` directives.
-To document that a certain feature was added in version 2.1 of ``ansys.openapi.common``,
+Docstring type references
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In cases where a class is intended to be subclassed, internal type references should be
+fully qualified. For example, instead of::
+
+    Parameters
+    ----------
+    authentication_scheme : AuthenticationScheme
+        The authentication scheme to use.
+
+use::
+
+    Parameters
+    ----------
+    authentication_scheme : ~ansys.openapi.common.AuthenticationScheme
+        The authentication scheme to use.
+
+This ensures that other packages that inherit from this package are able to resolve
+these types via :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`.
+
+References to this package
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Docstrings often contain implicit and explicit references to the package they are
+documenting. One common example of an implicit reference is in ``.. versionadded::``
+directives, where the directive implicitly refers to a version of this package.
+To make these references explicit when they occur outside of this package,
 always use the following approach:
 
 .. code-block:: restructuredtext
@@ -61,10 +88,10 @@ The ``openapi-common-standalone`` tag is added automatically during the document
 build process, which ensures that:
 
 * When building the documentation for this package, the ``.. versionadded::``
-  directive is used.
+  directive is used and *implicitly* refers to version 2.1 of this package.
 * When building the documentation for a package that inherits from this package,
-  the more generic ``.. tip::`` directive is used, and additional context about
-  the change is provided.
+  the more generic ``.. tip::`` directive is used, and *explicitly* refers to
+  version 2.1 of this package with a hyperlink to provide additional context.
 
 .. note::
 

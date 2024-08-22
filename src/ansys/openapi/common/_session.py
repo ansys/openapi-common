@@ -86,11 +86,11 @@ class AuthenticationScheme(Enum):
 
     Used to specify an authentication scheme used when connecting to the server with credentials.
 
-    .. only:: openapi-common-standalone
+    .. only:: OpenapiCommonStandaloneBuild
 
         .. versionadded:: 2.1
 
-    .. only:: not openapi-common-standalone
+    .. only:: not OpenapiCommonStandaloneBuild
 
         .. tip::
            Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
@@ -117,7 +117,7 @@ class ApiClientFactory:
     ----------
     api_url : str
        Base URL of the API server.
-    session_configuration : SessionConfiguration, optional
+    session_configuration : ~ansys.openapi.common.SessionConfiguration, optional
        Additional configuration settings for the requests session.
     """
 
@@ -182,7 +182,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`ApiClient`
+        ~ansys.openapi.common.ApiClient
             Client object that can be used to connect to the server and perform API operations.
 
         Raises
@@ -204,7 +204,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`~ansys.openapi.common.ApiClientFactory`
+        ~ansys.openapi.common.ApiClientFactory
             Original client factory object.
         """
         self.__test_connection()
@@ -236,18 +236,18 @@ class ApiClientFactory:
         authentication_scheme : ~ansys.openapi.common.AuthenticationScheme
             The authentication scheme to use.
 
-            .. only:: openapi-common-standalone
+            .. only:: OpenapiCommonStandaloneBuild
 
                 .. versionadded:: 2.1
 
-            .. only:: not openapi-common-standalone
+            .. only:: not OpenapiCommonStandaloneBuild
 
                 .. tip::
                    Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
 
         Returns
         -------
-        :class:`~ansys.openapi.common.ApiClientFactory`
+        ~ansys.openapi.common.ApiClientFactory
             Original client factory object.
 
         Raises
@@ -311,7 +311,7 @@ class ApiClientFactory:
 
         Returns
         -------
-        :class:`~ansys.openapi.common.ApiClientFactory`
+        ~ansys.openapi.common.ApiClientFactory
             Current client factory object.
 
         Raises
@@ -356,12 +356,12 @@ class ApiClientFactory:
 
         Parameters
         ----------
-        idp_session_configuration : :class:`~ansys.openapi.common.SessionConfiguration`, optional
+        idp_session_configuration : ~ansys.openapi.common.SessionConfiguration, optional
             Additional configuration settings for the requests session when connected to the OpenID identity provider.
 
         Returns
         -------
-        :class:`~ansys.openapi.common.OIDCSessionBuilder`
+        ~ansys.openapi.common.OIDCSessionBuilder
             Builder object to authenticate via OIDC.
 
         Notes
@@ -475,9 +475,9 @@ class OIDCSessionBuilder:
 
     Parameters
     ----------
-    client_factory : ApiClientFactory
+    client_factory : ~ansys.openapi.common.ApiClientFactory
         Parent API client factory object that will be returned once configuration is complete.
-    session_factory : OIDCSessionFactory, optional
+    session_factory : ~ansys.openapi.common.OIDCSessionFactory, optional
         OIDC session factory object that will be configured and used to return an OAuth-supporting session.
     """
 
@@ -501,7 +501,7 @@ class OIDCSessionBuilder:
 
         Returns
         -------
-        :class:`ApiClientFactory`
+        ~ansys.openapi.common.ApiClientFactory
            Original client factory object.
 
         Raises
@@ -530,7 +530,7 @@ class OIDCSessionBuilder:
 
         Returns
         -------
-        :class:`ApiClientFactory`
+        ~ansys.openapi.common.ApiClientFactory
             Original client factory object.
         """
         if self._session_factory is None:
@@ -551,7 +551,7 @@ class OIDCSessionBuilder:
 
         Returns
         -------
-        :class:`ApiClientFactory`
+        ~ansys.openapi.common.ApiClientFactory
             Original client factory object.
         """
         if self._session_factory is None:

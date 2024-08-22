@@ -22,9 +22,8 @@ sys.path.insert(0, os.path.abspath("../src"))
 # The short X.Y version
 release = version = common.__version__
 
-# Add the openapi-common-standalone tag to indicate the docs should be built
-# in standalone mode
-tags.add("openapi-common-standalone")
+# Add a tag to indicate the docs should be built in standalone mode
+tags.add("OpenapiCommonStandaloneBuild")
 
 # -- General configuration ---------------------------------------------------
 extensions = [
