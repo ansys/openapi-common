@@ -86,7 +86,14 @@ class AuthenticationScheme(Enum):
 
     Used to specify an authentication scheme used when connecting to the server with credentials.
 
-    .. versionadded:: 2.1
+    .. only:: openapi-common-standalone
+
+        .. versionadded:: 2.1
+
+    .. only:: not openapi-common-standalone
+
+        .. tip::
+           Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
     """
 
     AUTO = "auto"
@@ -210,11 +217,7 @@ class ApiClientFactory:
         username: str,
         password: str,
         domain: Optional[str] = None,
-        authentication_scheme: Union[
-            Literal[AuthenticationScheme.AUTO],
-            Literal[AuthenticationScheme.BASIC],
-            Literal[AuthenticationScheme.NTLM],
-        ] = AuthenticationScheme.AUTO,
+        authentication_scheme: AuthenticationScheme = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
 
@@ -230,13 +233,17 @@ class ApiClientFactory:
             Password for the connection.
         domain : str, optional
             Domain to use for connection if required. The default is ``None``.
-        authentication_scheme : AuthenticationScheme
-            The authentication scheme to use instead of using the ``WWW-Authenticate`` header. The default is
-            :attr:`~.AuthenticationScheme.AUTO` which uses the ``WWW-Authenticate`` header to determine the optimal
-            authentication scheme. Valid schemes for this method are :attr:`~.AuthenticationScheme.BASIC` or
-            :attr:`~.AuthenticationScheme.NTLM`.
+        authentication_scheme : ~ansys.openapi.common.AuthenticationScheme
+            The authentication scheme to use.
 
-            .. versionadded:: 2.1
+            .. only:: openapi-common-standalone
+
+                .. versionadded:: 2.1
+
+            .. only:: not openapi-common-standalone
+
+                .. tip::
+                   Added to :doc:`ansys-openapi-common <openapi-common:index>` in version 2.1.
 
         Returns
         -------
