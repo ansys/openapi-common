@@ -40,8 +40,8 @@ Documentation conventions
 When contributing to this package, always consider that many docstrings are viewed within
 the context of a package that inherits from classes defined in this package. For example,
 :class:`~.ApiClientFactory` is typically subclassed, and the builder methods are shown
-within the sub-classing package's documentation as part of **that** module's subclass.
-The advice in this section ensures that a sub-classing package can build documentation
+within the subclassing package's documentation as part of **that** module's subclass.
+The advice in this section ensures that a subclassing package can build documentation
 that inherits docstrings from this package.
 
 Docstring type references
