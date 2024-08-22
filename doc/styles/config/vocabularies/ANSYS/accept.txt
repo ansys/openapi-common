@@ -8,4 +8,5 @@ OpenAPI
 THIRDPARTY
 (?i)docstrings?
 subclassed
+subclassing
 Intersphinx
