@@ -98,6 +98,6 @@ entity that contains the change. This approach ensures that:
 .. note::
 
    If the inheriting package has configured
-   :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`, then Sphinx will
-   automatically add a cross-reference to the relevant location in the API
+   :doc:`Intersphinx <sphinx:usage/extensions/intersphinx>`, then Sphinx
+   automatically adds a cross-reference to the relevant location in the API
    documentation for this package.
