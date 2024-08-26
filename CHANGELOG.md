@@ -6,6 +6,18 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## [2.1.1](https://github.com/ansys/openapi-common/releases/tag/v2.1.1) - 2024-08-26
+
+
+### Fixed
+
+- Allow packages to build documentation if they inherit classes in this package [#651](https://github.com/ansys/openapi-common/pull/651)
+
+
+### Documentation
+
+- Prepare 2.1.1 release [#657](https://github.com/ansys/openapi-common/pull/657)
+
 ## [2.1.0](https://github.com/ansys/openapi-common/releases/tag/v2.1.0) - 2024-08-21
 
 
