@@ -18,6 +18,9 @@ sys.path.insert(0, os.path.abspath("../src"))
 # The short X.Y version
 release = version = common.__version__
 
+# Add a tag to indicate the docs should be built in standalone mode
+tags.add("OpenapiCommonStandaloneBuild")
+
 # -- General configuration ---------------------------------------------------
 extensions = [
     "sphinx.ext.autodoc",
@@ -42,6 +45,7 @@ autodoc_typehints_description_target = "documented"
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.11", None),
     "requests": ("https://requests.readthedocs.io/en/latest", None),
+    "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 
 # numpydoc configuration
