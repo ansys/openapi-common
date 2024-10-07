@@ -42,13 +42,13 @@ files = [
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "1.0.11"
+version = "1.1.2"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 optional = false
-python-versions = "<4,>=3.9"
+python-versions = "<4,>=3.10"
 files = [
-    {file = "ansys_sphinx_theme-1.0.11-py3-none-any.whl", hash = "sha256:75c718e407a6b1e868ed5063ba3d1ac93c778195e129253dbaf2367bb87940f5"},
-    {file = "ansys_sphinx_theme-1.0.11.tar.gz", hash = "sha256:a9c3399f71fbdfee08dc97eb6821e660742b7f0c425a3a6f443254a356863ed4"},
+    {file = "ansys_sphinx_theme-1.1.2-py3-none-any.whl", hash = "sha256:16b2132ba78566a37aa19efc7fb769a33fa5790ba04be4ea124ae400dfcefe50"},
+    {file = "ansys_sphinx_theme-1.1.2.tar.gz", hash = "sha256:b43026cc2c39d46112eac2b3733e5714e8612f1b98cbdae1a67375158935c858"},
 ]
 
 [package.dependencies]
@@ -59,8 +59,8 @@ pydata-sphinx-theme = ">=0.15.4,<0.16"
 Sphinx = ">=4.2.0"
 
 [package.extras]
-autoapi = ["sphinx-autoapi (==3.2.1)", "sphinx-design (==0.6.1)", "sphinx-jinja (==2.0.2)"]
-doc = ["Pillow (>=9.0)", "PyGitHub (==2.3.0)", "Sphinx (==8.0.2)", "jupytext (==1.16.4)", "nbsphinx (==0.9.5)", "notebook (==7.2.1)", "numpydoc (==1.8.0)", "pandas (==2.2.2)", "pyvista[jupyter] (==0.44.1)", "requests (==2.32.3)", "sphinx-autoapi (==3.2.1)", "sphinx-copybutton (==0.5.2)", "sphinx-design (==0.6.1)", "sphinx-gallery (==0.17.1)", "sphinx-jinja (==2.0.2)", "sphinx-notfound-page (==1.0.4)"]
+autoapi = ["sphinx-autoapi (==3.3.2)", "sphinx-design (==0.6.1)", "sphinx-jinja (==2.0.2)"]
+doc = ["Pillow (>=9.0)", "PyGitHub (==2.4.0)", "Sphinx (==8.0.2)", "jupytext (==1.16.4)", "nbsphinx (==0.9.5)", "notebook (==7.2.2)", "numpydoc (==1.8.0)", "pandas (==2.2.3)", "pyvista[jupyter] (==0.44.1)", "requests (==2.32.3)", "sphinx-autoapi (==3.3.2)", "sphinx-copybutton (==0.5.2)", "sphinx-design (==0.6.1)", "sphinx-gallery (==0.17.1)", "sphinx-jinja (==2.0.2)", "sphinx-notfound-page (==1.0.4)"]
 
 [[package]]
 name = "anyio"
@@ -1941,4 +1941,4 @@ oidc = ["keyring", "requests_auth"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "2d137f89d674f4ba3eb619dfd83ac2d2808652ca17362d1b0885726ed3d392e9"
+content-hash = "40b187496d1dab81a7adaab1287ea78fe6da53c8016eb86e85185a28b19d34d5"
