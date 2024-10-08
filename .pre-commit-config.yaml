@@ -44,7 +44,7 @@ repos:
   - id: mypy-code
     name: "mypy: checks on code"
     entry: "python -m mypy"
-    language: system
+    language: python
     types: [python]
     require_serial: true
     files: "^(src/)"
