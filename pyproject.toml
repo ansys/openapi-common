@@ -28,6 +28,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 packages = [
   { include = "**/*.py", from = "src" },
@@ -97,7 +98,7 @@ linux-kerberos = [
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py310,py311,py312
+envlist = py310,py311,py312,py313
 isolated_build = True
 requires =
   tox-gh-actions==2.9.1
@@ -107,6 +108,7 @@ python =
     3.10: py310
     3.11: py311
     3.12: py312
+    3.13: py313
 
 [testenv]
 whitelist_externals = poetry
