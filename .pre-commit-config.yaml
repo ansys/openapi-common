@@ -48,7 +48,6 @@ repos:
     types: [python]
     require_serial: true
     files: "^(src/)"
-    additional_dependencies: ["mypy==1.8.0"]
 
 - repo: https://github.com/ansys/pre-commit-hooks
   rev: v0.4.3
