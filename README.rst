@@ -150,7 +150,7 @@ use your system certificate store. This is the most seamless solution, but there
 aware of:
 
 1. The library does not support every platform that is supported by python, so it may not
-be possible for you to use. 
+be possible for you to use.
 
 2. The change to ``requests`` affects every package in your environment, including pip. Make sure you are
 using a virtual environment.
