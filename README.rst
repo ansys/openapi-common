@@ -139,7 +139,7 @@ HTTPS Certificates
 ~~~~~~~~~~~~~~~~~~
 
 The ``requests`` library does not use the system certificate store to verify TLS certificates, it uses the
-``certifi`` package. This means that if your service provides a certificate that is not publically trusted
+``certifi`` package. This means that if your service provides a certificate that is not publicly trusted
 there are two options.
 
 pip-system-certs
