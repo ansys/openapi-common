@@ -138,31 +138,29 @@ Currently only the Authorization Code authentication flow is supported.
 HTTPS Certificates
 ~~~~~~~~~~~~~~~~~~
 
-The ``requests`` library does not use the system certificate store to verify TLS certificates, it uses the
-``certifi`` package. This means that if your service provides a certificate that is not publicly trusted
-there are two options.
+The ``requests`` library uses the ``certifi`` package to verify TLS certificates instead of a local system certificate store. These means only TLS certificates signed by a public CA can be verified by ``requests`` in its default configuration.
+If you need to verify locally-signed TLS certificates, there are two recommended approaches:
 
 pip-system-certs
 ================
 
 The ``pip-system-certs`` library patches the certificate loading mechanism for ``requests`` causing it to
-use your system certificate store. This is the most seamless solution, but there are a two issues to be
-aware of:
+use your system certificate store. This is the simplest solution, but there are two potential limitations:
 
-1. The library does not support every platform that is supported by python, so it may not
-be possible for you to use.
+1. ``pip-system-certs`` does not support every platform that is supported by CPython, so it may not
+be supported on your platform.
 
 2. The change to ``requests`` affects every package in your environment, including pip. Make sure you are
 using a virtual environment.
 
 .. note::
-  If you are using OIDC authentication and your service provides a self-signed certificate you will need
+  If you are using OIDC authentication and your service provides a internally-signed certificate you will need
   to use this option.
 
 Custom certificate store
 ========================
 
-The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate, this will be
+The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate. If provided, this will be
 used to verify the service's TLS certificate instead of the ``certifi`` package.
 
 Platform-specific Kerberos configuration
