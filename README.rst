@@ -135,6 +135,35 @@ Currently only the Authorization Code authentication flow is supported.
      - ``.with_oidc()``
      -
 
+HTTPS Certificates
+~~~~~~~~~~~~~~~~~~
+
+The ``requests`` library uses the ``certifi`` package to verify TLS certificates instead of a local system certificate store.
+These means only TLS certificates signed by a public CA can be verified by ``requests`` in its default configuration. If you
+need to verify internally-signed TLS certificates, there are two recommended approaches:
+
+pip-system-certs
+================
+
+The ``pip-system-certs`` library patches the certificate loading mechanism for ``requests`` causing it to
+use your system certificate store. This is the simplest solution, but there are two potential limitations:
+
+1. ``pip-system-certs`` does not support every platform that is supported by CPython, so it may not
+be supported on your platform.
+
+2. The change to ``requests`` affects every package in your environment, including pip. Make sure you are
+using a virtual environment.
+
+.. note::
+  If you are using OIDC authentication and your service provides a internally-signed certificate you will need
+  to use this option.
+
+Custom certificate store
+========================
+
+The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate. If provided, this will be
+used to verify the service's TLS certificate instead of the ``certifi`` package.
+
 Platform-specific Kerberos configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
