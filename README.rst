@@ -138,8 +138,9 @@ Currently only the Authorization Code authentication flow is supported.
 HTTPS Certificates
 ~~~~~~~~~~~~~~~~~~
 
-The ``requests`` library uses the ``certifi`` package to verify TLS certificates instead of a local system certificate store. These means only TLS certificates signed by a public CA can be verified by ``requests`` in its default configuration.
-If you need to verify locally-signed TLS certificates, there are two recommended approaches:
+The ``requests`` library uses the ``certifi`` package to verify TLS certificates instead of a local system certificate store.
+These means only TLS certificates signed by a public CA can be verified by ``requests`` in its default configuration. If you
+need to verify internally-signed TLS certificates, there are two recommended approaches:
 
 pip-system-certs
 ================
