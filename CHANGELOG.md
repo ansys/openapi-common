@@ -6,6 +6,37 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## [2.2.0](https://github.com/ansys/openapi-common/releases/tag/v2.2.0) - 2024-10-25
+
+
+### Added
+
+- Add support for Python 3.13 [#684](https://github.com/ansys/openapi-common/pull/684)
+
+
+### Fixed
+
+- Add missing required inputs for v8 ansys/actions [#685](https://github.com/ansys/openapi-common/pull/685)
+
+
+### Dependencies
+
+- Drop support for Python 3.9 [#674](https://github.com/ansys/openapi-common/pull/674)
+
+
+### Documentation
+
+- Update Repository URL in pyproject.toml [#665](https://github.com/ansys/openapi-common/pull/665)
+- Add a documentation note about pip-system-certs [#696](https://github.com/ansys/openapi-common/pull/696)
+
+
+### Maintenance
+
+- Fix GitHub Actions syntax for doc-deploy-changelog action [#648](https://github.com/ansys/openapi-common/pull/648)
+- chore: update CHANGELOG for v2.1.1 [#658](https://github.com/ansys/openapi-common/pull/658)
+- Update CONTRIBUTORS and AUTHORS to new format [#679](https://github.com/ansys/openapi-common/pull/679)
+- Prepare 2.2 Release [#697](https://github.com/ansys/openapi-common/pull/697)
+
 ## [2.1.1](https://github.com/ansys/openapi-common/releases/tag/v2.1.1) - 2024-08-26
 
 
