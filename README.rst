@@ -60,9 +60,39 @@ Dependencies
 
 The ``ansys.openapi.common`` package currently supports Python version 3.10 through 3.13.
 
-See the :ref:`User Guide <ref_user_guide>` for platform-specific Kerberos requirements.
-
 .. readme_software_requirements_end
+
+Platform-specific Kerberos configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. readme_kerberos
+
+Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client
+can be installed. OpenAPI-Common has been tested on the platforms that follow.
+If you manage to use it on another platform, consider contributing installation steps for
+your platform by making a pull request.
+
+Ubuntu 20.04
+^^^^^^^^^^^^
+
+Ubuntu requires the ``gssapi`` Python module to be built from source. This requires the
+Kerberos headers, Python headers for the version of Python that you are using, and a
+supported compiler. (GCC works well.)
+
+You should then be able to install this module with the ``[linux-kerberos]`` extra:
+
+.. code-block:: sh
+
+   sudo apt install build-essentials python3.8-dev libkrb5-dev
+   pip install ansys-openapi-common[linux-kerberos]
+
+
+Once the installation completes, ensure that your ``krb5.conf`` file is set up correctly
+for your Kerberos configuration and that you have a valid ``keytab`` file, which is
+normally in ``/etc/krb5.keytab``.
+
+.. readme_kerberos_end
+
 
 Installation
 ------------

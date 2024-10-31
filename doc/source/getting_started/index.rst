@@ -35,3 +35,9 @@ This brief example demonstrates how the client works:
 
 
 The client is now ready and available for use with an OpenAPI client.
+
+Platform-specific Kerberos configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: ../../../README.rst
+      :start-after: readme_kerberos
+      :end-before: readme_kerberos_end

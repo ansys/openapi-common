@@ -14,8 +14,7 @@ to add additional required behavior.
 
 Authentication is configured through the :class:`.ApiClientFactory` object and its
 ``with_xxx()`` methods. If no authentication is required, you can use the
-:meth:`~.ApiClientFactory.with_anonymous()` method. You can provide additional
-configuration with the :class:`~.SessionConfiguration` object.
+:meth:`~.ApiClientFactory.with_anonymous()` method.
 
 .. code:: python
 
@@ -75,6 +74,26 @@ Currently only the Authorization Code authentication flow is supported.
 .. [2] When installed as ``pip install ansys-openapi-common[linux-kerberos]``.
 .. [3] When installed as ``pip install ansys-openapi-common[oidc]``.
 
+
+Session configuration
+---------------------
+You can set all options that are available in Python library *requests* through
+the client with the :class:`~.SessionConfiguration` object. This enables you to
+configure custom SSL certificate validation, send client certificates if your API
+server requires them, and configure many other options.
+
+For example, to send a client certificate with every request:
+
+.. code:: python
+
+   >>> from ansys.openapi.common import SessionConfiguration
+   >>> configuration = SessionConfiguration(
+   ...    client_cert_path='./my-client-cert.pem',
+   ...    client_cert_key='secret-key'
+   ... )
+   >>> client.configuration = configuration
+
+
 HTTPS certificates
 ------------------
 
@@ -101,50 +120,5 @@ using a virtual environment.
 Custom certificate store
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate. If provided, the
+The :class:`~.SessionConfiguration` object allows you to provide a path to a custom CA certificate. If provided, the
 custom CA certificate is used to verify the service's TLS certificate instead of the ``certifi`` package.
-
-Advanced features
------------------
-You can set all options that are available in Python library *requests* through
-the client. This enables you to configure custom SSL certificate validation, send
-client certificates if your API server requires them, and configure many other options.
-
-For example, to send a client certificate with every request:
-
-.. code:: python
-
-   >>> from ansys.openapi.common import SessionConfiguration
-   >>> configuration = SessionConfiguration(
-   ...    client_cert_path='./my-client-cert.pem',
-   ...    client_cert_key='secret-key'
-   ... )
-   >>> client.configuration = configuration
-
-
-Platform-specific Kerberos configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client
-can be installed. OpenAPI-Common has been tested on the platforms that follow.
-If you manage to use it on another platform, consider contributing installation steps for
-your platform by making a pull request.
-
-Ubuntu 20.04
-^^^^^^^^^^^^
-
-Ubuntu requires the ``gssapi`` Python module to be built from source. This requires the
-Kerberos headers, Python headers for the version of Python that you are using, and a
-supported compiler. (GCC works well.)
-
-You should then be able to install this module with the ``[linux-kerberos]`` extra:
-
-.. code-block:: sh
-
-   sudo apt install build-essentials python3.8-dev libkrb5-dev
-   pip install ansys-openapi-common[linux-kerberos]
-
-
-Once the installation completes, ensure that your ``krb5.conf`` file is set up correctly
-for your Kerberos configuration and that you have a valid ``keytab`` file, which is
-normally in ``/etc/krb5.keytab``.
