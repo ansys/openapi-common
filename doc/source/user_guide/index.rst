@@ -75,12 +75,12 @@ Currently only the Authorization Code authentication flow is supported.
 .. [2] When installed as ``pip install ansys-openapi-common[linux-kerberos]``.
 .. [3] When installed as ``pip install ansys-openapi-common[oidc]``.
 
-HTTPS Certificates
+HTTPS certificates
 ------------------
 
 The ``requests`` library uses the ``certifi`` package to verify TLS certificates instead of a local system certificate
 store. These means only TLS certificates signed by a public CA can be verified by ``requests`` in its default
-configuration. If you need to verify internally-signed TLS certificates, there are two recommended approaches:
+configuration. If you need to verify internally signed TLS certificates, there are two recommended approaches:
 
 pip-system-certs
 ~~~~~~~~~~~~~~~~
@@ -95,14 +95,14 @@ be supported on your platform.
 using a virtual environment.
 
 .. note::
-  If you are using OIDC authentication and your service provides a internally-signed certificate you will need
-  to use this option.
+  If you are using OIDC authentication and your service provides a internally signed certificate you must
+  use this option.
 
 Custom certificate store
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate. If provided, this will be
-used to verify the service's TLS certificate instead of the ``certifi`` package.
+The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate. If provided, the
+custom CA certificate is used to verify the service's TLS certificate instead of the ``certifi`` package.
 
 Advanced features
 -----------------

@@ -32,6 +32,7 @@ extensions = [
     "sphinx_copybutton",
     "sphinx.ext.extlinks",
     "sphinx.ext.coverage",
+    "sphinx_design",
 ]
 
 # Sphinx

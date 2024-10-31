@@ -86,7 +86,7 @@ outside of this package, always use the following approach:
           Added to :class:`~ansys.openapi.common.ClassName` in version 2.1 of
           ``ansys-openapi-common``.
 
-Where :class:`ansys.openapi.common.ClassName` is a reference to the relevant
+Where ``:class:`ansys.openapi.common.ClassName``` is a reference to the relevant
 entity that contains the change. This approach ensures that:
 
 * When building the documentation for this package, the ``.. versionadded::``
