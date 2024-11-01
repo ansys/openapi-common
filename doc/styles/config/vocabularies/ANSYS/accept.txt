@@ -10,3 +10,4 @@ THIRDPARTY
 subclassed
 subclassing
 Intersphinx
+pip\-system\-certs

@@ -67,6 +67,7 @@ types-requests = { version = "*" }
 types-python-dateutil = { version = "*" }
 requests_auth = { version = "*" }
 keyring = { version = "*" }
+sphinx-design = "^0.6.0"
 
 [tool.poetry.group.dev-linux]
 optional = true

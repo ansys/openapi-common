@@ -29,143 +29,43 @@
    :alt: pre-commit.ci status
 
 
-Overview
---------
+OpenAPI-Common
+==============
 
-OpenAPI-Common is intended for use with the custom code generation
+..
+   _after-badges
+
+OpenAPI Common is designed for use with the custom code generation
 template in the `PyAnsys project <https://github.com/pyansys>`_.
-It provides the source code for an authentication-aware
-client for OpenAPI client libraries.
+It provides the source code for an authentication-aware client for
+OpenAPI client libraries.
+
+Background
+----------
+A widely used standard for HTTP REST-style APIs is the OpenAPI standard,
+formerly known as Swagger. OpenAPI-Common is designed to be used alongside
+code generation tools to produce client libraries for HTTP APIs.
+
+Because some Ansys products expose HTTP APIs rather than gRPC
+APIs, this Python library provides a common client to consume
+HTTP APIs, minimizing overhead and reducing code duplication.
 
 OpenAPI-Common supports authentication with Basic, Negotiate, NTLM,
 and OpenID Connect. Most features of the underlying requests session
 are exposed for use. Some basic configuration is also provided by default.
 
-Installation
+Dependencies
 ------------
+.. readme_software_requirements
 
-Install the ``openapi-common`` repository with this code:
+The ``ansys.openapi.common`` package currently supports Python version 3.10 through 3.13.
 
-.. code::
-
-   pip install ansys-openapi-common
-
-Alternatively, clone and install the repository with this code:
-
-.. code::
-
-   git clone https://github.com/pyansys/openapi-common
-   cd openapi-common
-   pip install .
-
-
-Usage
------
-
-The API client class is intended to be wrapped by code that implements a client library.
-You should override the ``__init__()`` or ``connect()`` method to add any
-additional behavior that might be required.
-
-Authentication is configured through the ``ApiClientFactory`` object and its ``with_xxx()``
-methods. If no authentication is required, you can use the ``with_anonymous()`` method.
-You can provide additional configuration with the ``SessionConfiguration`` object.
-
-.. code:: python
-
-   >>> from ansys.openapi.common import ApiClientFactory
-   >>> session = ApiClientFactory('https://my-api.com/v1.svc')
-   ...           .with_autologon()
-   ...           .connect()
-   <ApiClient url: https://my-api.com/v1.svc>
-
-
-Authentication schemes
-----------------------
-
-OpenAPI-Common supports API servers configured with no authentication, API keys,
-client certificates, and basic authentication schemes.
-
-Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
-APIs with their Windows credentials and to NTLM where it is supported.
-
-Linux users can make use of Kerberos authentication via the ``[linux-kerberos]`` extra. This
-requires a working installation of either MIT Kerberos or Heimdal, as well as some
-platform-specific build steps. An additional requirement is a correctly configured ``krb5.keytab``
-file on your system.
-
-Windows and Linux users can authenticate with OIDC-enabled APIs by using the ``[oidc]`` extra.
-Currently only the Authorization Code authentication flow is supported.
-
-.. list-table:: Authentication methods by platform
-   :header-rows: 1
-
-   * - Authentication method
-     - Windows
-     - Linux
-     - Builder method
-     - Additional settings
-   * - API Key
-     - ✔️
-     - ✔️
-     - ``.with_anonymous()``
-     - Set the appropriate header in ``api_session_configuration``
-   * - Client Certificate
-     - ✔️
-     - ✔️
-     - Any
-     - Provide ``client_cert_path`` and optionally ``client_cert_key`` in ``api_session_configuration``
-   * - Basic
-     - ✔️
-     - ✔️
-     - ``.with_credentials()``
-     -
-   * - NTLM
-     - ✔️
-     - ❌
-     - ``.with_credentials()``
-     -
-   * - Kerberos
-     - ✔️
-     - ➕ with ``[linux-kerberos]`` extra
-     - ``.with_autologon()``
-     -
-   * - OIDC
-     - ➕ with ``[oidc]`` extra
-     - ➕ with ``[oidc]`` extra
-     - ``.with_oidc()``
-     -
-
-HTTPS Certificates
-~~~~~~~~~~~~~~~~~~
-
-The ``requests`` library uses the ``certifi`` package to verify TLS certificates instead of a local system certificate store.
-These means only TLS certificates signed by a public CA can be verified by ``requests`` in its default configuration. If you
-need to verify internally-signed TLS certificates, there are two recommended approaches:
-
-pip-system-certs
-================
-
-The ``pip-system-certs`` library patches the certificate loading mechanism for ``requests`` causing it to
-use your system certificate store. This is the simplest solution, but there are two potential limitations:
-
-1. ``pip-system-certs`` does not support every platform that is supported by CPython, so it may not
-be supported on your platform.
-
-2. The change to ``requests`` affects every package in your environment, including pip. Make sure you are
-using a virtual environment.
-
-.. note::
-  If you are using OIDC authentication and your service provides a internally-signed certificate you will need
-  to use this option.
-
-Custom certificate store
-========================
-
-The ``SessionConfiguration`` object allows you to provide a path to a custom CA certificate. If provided, this will be
-used to verify the service's TLS certificate instead of the ``certifi`` package.
+.. readme_software_requirements_end
 
 Platform-specific Kerberos configuration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. readme_kerberos
 
 Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client
 can be installed. OpenAPI-Common has been tested on the platforms that follow.
@@ -173,17 +73,17 @@ If you manage to use it on another platform, consider contributing installation 
 your platform by making a pull request.
 
 Ubuntu 20.04
-============
+^^^^^^^^^^^^
 
 Ubuntu requires the ``gssapi`` Python module to be built from source. This requires the
-Kerberos headers, Python headers for the version of Python that you are using (here we have
-installed python3.10 from the deadsnakes ppa), and a supported compiler. (GCC works well.))
+Kerberos headers, Python headers for the version of Python that you are using, and a
+supported compiler. (GCC works well.)
 
-You should then be able to install this module with the ``[linux-kerberos]`` extra.
+You should then be able to install this module with the ``[linux-kerberos]`` extra:
 
-.. code-block:: bash
+.. code-block:: sh
 
-   sudo apt install build-essential python3.10-dev libkrb5-dev
+   sudo apt install build-essentials python3.8-dev libkrb5-dev
    pip install ansys-openapi-common[linux-kerberos]
 
 
@@ -191,7 +91,38 @@ Once the installation completes, ensure that your ``krb5.conf`` file is set up c
 for your Kerberos configuration and that you have a valid ``keytab`` file, which is
 normally in ``/etc/krb5.keytab``.
 
-License
--------
-OpenAPI-Common is provided under the terms of the MIT license. You can find
-the license text in the LICENSE file at the root of the repository.
+.. readme_kerberos_end
+
+
+Installation
+------------
+.. readme_installation
+
+To install the latest OpenAPI-Common release from `PyPI <https://pypi.org/project/ansys-openapi-common/>`_,
+run this command:
+
+.. code::
+
+    pip install ansys-openapi-common
+
+Alternatively, to install the latest development version from the `OpenAPI-Common repository <https://github.com/ansys/openapi-common>`_,
+run this command:
+
+.. code::
+
+    pip install git+https://github.com/ansys/openapi-common.git
+
+
+To install a local *development* version with Git and Poetry, run these commands:
+
+.. code::
+
+    git clone https://github.com/ansys/openapi-common
+    cd openapi-common
+    poetry install
+
+
+The preceding commands install the package in development mode so that you can modify
+it locally. Your changes are reflected in your Python setup after restarting the Python kernel.
+
+.. readme_installation_end
