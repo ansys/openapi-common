@@ -114,7 +114,7 @@ be supported on your platform.
 using a virtual environment.
 
 .. note::
-  If you are using OIDC authentication and your service provides a internally signed certificate you must
+  If you are using OIDC authentication and your service provides an internally signed certificate you must
   use this option.
 
 Custom certificate store
