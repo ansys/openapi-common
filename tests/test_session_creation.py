@@ -269,7 +269,7 @@ def test_can_connect_with_ntlm(mocker, auth_mode):
 
     mocker.patch(
         "os.urandom",
-        return_value=b"\xDE\xAD\xBE\xEF\xDE\xAD\xBE\xEF",
+        return_value=b"\xde\xad\xbe\xef\xde\xad\xbe\xef",
     )
 
     mocker.patch("_session.HttpNtlmAuth", MockNTLMAuth)
