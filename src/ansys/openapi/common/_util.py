@@ -164,7 +164,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
     @staticmethod
     def _render_options(
-        scheme: List[Union[str, List[str]]]
+        scheme: List[Union[str, List[str]]],
     ) -> Optional[Union[str, CaseInsensitiveOrderedDict]]:
         if len(scheme) == 1:
             return None
