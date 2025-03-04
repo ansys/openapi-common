@@ -420,9 +420,11 @@ class TestDeserialization:
             ("SomeValue", "ExampleEnum", "'SomeValue' is not a valid ExampleEnum"),
             (4.5, "ExampleEnum", "4.5 is not a valid ExampleEnum"),
             (4, "ExampleEnum", "4 is not a valid ExampleEnum"),
-        ]
+        ],
     )
-    def test_deserialize_enums_raises_helpful_message_on_wrong_value(self, value, target_enum, expected_error_msg):
+    def test_deserialize_enums_raises_helpful_message_on_wrong_value(
+        self, value, target_enum, expected_error_msg
+    ):
         from . import models
 
         self._client.setup_client(models)
