@@ -429,7 +429,7 @@ class TestDeserialization:
 
         self._client.setup_client(models)
         with pytest.raises(ValueError, match=expected_error_msg):
-            serialized_enum = self._client._ApiClient__deserialize(value, target_enum)
+            _ = self._client._ApiClient__deserialize(value, target_enum)
 
     @pytest.mark.parametrize(
         ("data", "target_type"),
