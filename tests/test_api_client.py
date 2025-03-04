@@ -401,6 +401,34 @@ class TestDeserialization:
         assert isinstance(serialized_enum, models.ExampleEnum)
         assert serialized_enum == models.ExampleEnum.GOOD
 
+    def test_deserialize_int_enum(self):
+        from . import models
+
+        self._client.setup_client(models)
+        value = 200
+        type_ref = "ExampleIntEnum"
+        serialized_enum = self._client._ApiClient__deserialize(value, type_ref)
+        assert isinstance(serialized_enum, models.ExampleIntEnum)
+        assert serialized_enum == models.ExampleIntEnum._200
+
+    @pytest.mark.parametrize(
+        ["value", "target_enum", "expected_error_msg"],
+        [
+            ("200", "ExampleIntEnum", "'200' is not a valid ExampleIntEnum"),
+            (4.5, "ExampleIntEnum", "4.5 is not a valid ExampleIntEnum"),
+            (4, "ExampleIntEnum", "4 is not a valid ExampleIntEnum"),
+            ("SomeValue", "ExampleEnum", "'SomeValue' is not a valid ExampleEnum"),
+            (4.5, "ExampleEnum", "4.5 is not a valid ExampleEnum"),
+            (4, "ExampleEnum", "4 is not a valid ExampleEnum"),
+        ]
+    )
+    def test_deserialize_enums_raises_helpful_message_on_wrong_value(self, value, target_enum, expected_error_msg):
+        from . import models
+
+        self._client.setup_client(models)
+        with pytest.raises(ValueError, match=expected_error_msg):
+            _ = self._client._ApiClient__deserialize(value, target_enum)
+
     @pytest.mark.parametrize(
         ("data", "target_type"),
         (
