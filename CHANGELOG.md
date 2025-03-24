@@ -6,6 +6,14 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## [2.2.2](https://github.com/ansys/openapi-common/releases/tag/v2.2.2) - March 24, 2025
+
+
+### Maintenance
+
+- Add token to GitHub release CI [#761](https://github.com/ansys/openapi-common/pull/761)
+- Prepare 2.2.2 release [#762](https://github.com/ansys/openapi-common/pull/762)
+
 ## [2.2.1](https://github.com/ansys/openapi-common/releases/tag/v2.2.1) - March 24, 2025
 
 
