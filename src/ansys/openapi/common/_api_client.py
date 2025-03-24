@@ -409,7 +409,6 @@ class ApiClient(ApiClientBase):
 
         klass = self.models[klass_name]
         if issubclass(klass, Enum):
-            assert isinstance(data, str)
             return klass(data)
         else:
             assert isinstance(data, (dict, str))
