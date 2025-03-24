@@ -1,4 +1,4 @@
-# Copyright (C) 2022 - 2024 ANSYS, Inc. and/or its affiliates.
+# Copyright (C) 2022 - 2025 ANSYS, Inc. and/or its affiliates.
 # SPDX-License-Identifier: MIT
 #
 #
@@ -22,5 +22,6 @@
 
 from .example_base_model import ExampleBaseModel
 from .example_enum import ExampleEnum
+from .example_int_enum import ExampleIntEnum
 from .example_model import ExampleModel
 from .example_model_with_enum import ExampleModelWithEnum
