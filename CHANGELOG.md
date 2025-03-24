@@ -6,6 +6,19 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## [2.2.1](https://github.com/ansys/openapi-common/releases/tag/v2.2.1) - March 24, 2025
+
+
+### Fixed
+
+- Relax validation on enum values deserialization [#755](https://github.com/ansys/openapi-common/pull/755)
+
+
+### Maintenance
+
+- Update Copyright Year in License Headers [#729](https://github.com/ansys/openapi-common/pull/729)
+- Prepare patch release 2.2.1 [#758](https://github.com/ansys/openapi-common/pull/758)
+
 ## [2.2.0](https://github.com/ansys/openapi-common/releases/tag/v2.2.0) - 2024-10-25
 
 
