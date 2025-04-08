@@ -128,8 +128,25 @@ class OIDCSessionFactory:
         set_session_kwargs(self._authorized_session, self._api_session_configuration)
         logger.info("Configuration complete.")
 
+    def get_session_with_access_token(self, access_token: str) -> requests.Session:
+        """Create a :class:`~requests.Session` object with provided access token.
+
+        This method configures a session with the provided access token, if the token is invalid,
+        or has expired, the session will be unable to authenticate.
+
+        Parameters
+        ----------
+        access_token : str
+            Access token for the API server, typically a Base-64 encoded JSON Web Token.
+        """
+        logger.info("Setting access token...")
+        if access_token is None:
+            raise ValueError("Must provide a value for 'access_token', not None")
+        self._authorized_session.headers["Authorization"] = f"Bearer {access_token}"
+        return self._authorized_session
+
     def get_session_with_provided_token(self, refresh_token: str) -> requests.Session:
-        """Create a :class:`OAuth2Session` object with provided tokens.
+        """Create a :class:`OAuth2Session` object with provided refresh token.
 
         This method configures a session to request an access token with the provided refresh token,
         an access token will be requested immediately.
