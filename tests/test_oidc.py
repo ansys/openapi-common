@@ -197,6 +197,24 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     assert response == configuration
 
 
+def test_setting_access_token_with_no_token_throws():
+    mock_factory = Mock()
+    with pytest.raises(ValueError):
+        OIDCSessionFactory.get_session_with_access_token(mock_factory, None)
+
+
+def test_setting_access_token_sets_access_token():
+    example_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+    expected_header = f"Bearer {example_token}"
+    mock_factory = Mock()
+    mock_factory._authorized_session = requests.Session()
+    session = OIDCSessionFactory.get_session_with_access_token(
+        mock_factory, access_token=example_token
+    )
+
+    assert session.headers["Authorization"] == expected_header
+
+
 def test_setting_refresh_token_with_no_token_throws():
     mock_factory = Mock()
     with pytest.raises(ValueError):
