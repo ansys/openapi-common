@@ -520,7 +520,33 @@ class OIDCSessionBuilder:
 
         return self.with_token(refresh_token=refresh_token)
 
-    def with_token(self, refresh_token: str) -> ApiClientFactory:
+    def with_access_token(self, access_token: str) -> ApiClientFactory:
+        """Use a provided access token to authenticate the session.
+
+        This method configures a session with the provided access token, if the token is invalid,
+        or has expired, the session will be unable to authenticate.
+
+        Parameters
+        ----------
+        access_token : str
+            Access token.
+
+        Returns
+        -------
+        ~ansys.openapi.common.ApiClientFactory
+            Original client factory object.
+
+        .. versionadded:: 2.2.3
+        """
+        if self._session_factory is None:
+            return self._client_factory
+        self._client_factory._session = self._session_factory.get_session_with_access_token(
+            access_token=access_token
+        )
+        self._client_factory._configured = True
+        return self._client_factory
+
+    def with_refresh_token(self, refresh_token: str) -> ApiClientFactory:
         """Use a provided refresh token to authenticate the session.
 
         The refresh token will be used to request a new access token from the Identity Provider,
@@ -535,6 +561,8 @@ class OIDCSessionBuilder:
         -------
         ~ansys.openapi.common.ApiClientFactory
             Original client factory object.
+
+        .. versionadded:: 2.2.3
         """
         if self._session_factory is None:
             return self._client_factory
@@ -543,6 +571,30 @@ class OIDCSessionBuilder:
         )
         self._client_factory._configured = True
         return self._client_factory
+
+    def with_token(self, refresh_token: str) -> ApiClientFactory:
+        """Use a provided refresh token to authenticate the session.
+
+        The refresh token will be used to request a new access token from the Identity Provider,
+        this will be automatically refreshed shortly before expiration.
+
+        Notes
+        -----
+        The signature of this method will change in an upcoming release to allow both access and refresh
+        tokens to be provided. Update usages to provide the ``refresh_token`` keyword argument rather than
+        passing a positional argument.
+
+        Parameters
+        ----------
+        refresh_token : str
+            Refresh token.
+
+        Returns
+        -------
+        ~ansys.openapi.common.ApiClientFactory
+            Original client factory object.
+        """
+        return self.with_refresh_token(refresh_token=refresh_token)
 
     def authorize(self, login_timeout: int = 60) -> ApiClientFactory:
         """Authenticate the user interactively by opening a web browser and waiting for the user to log in.
