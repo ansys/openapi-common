@@ -578,12 +578,6 @@ class OIDCSessionBuilder:
         The refresh token will be used to request a new access token from the Identity Provider,
         this will be automatically refreshed shortly before expiration.
 
-        Notes
-        -----
-        The signature of this method will change in an upcoming release to allow both access and refresh
-        tokens to be provided. Update usages to provide the ``refresh_token`` keyword argument rather than
-        passing a positional argument.
-
         Parameters
         ----------
         refresh_token : str
@@ -593,6 +587,12 @@ class OIDCSessionBuilder:
         -------
         ~ansys.openapi.common.ApiClientFactory
             Original client factory object.
+
+        Notes
+        -----
+        The signature of this method will change in an upcoming release to allow both access and refresh
+        tokens to be provided. Update usages to provide the ``refresh_token`` keyword argument rather than
+        passing a positional argument.
         """
         return self.with_refresh_token(refresh_token=refresh_token)
 
