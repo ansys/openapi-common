@@ -387,7 +387,7 @@ def test_can_connect_with_oidc_using_token():
         assert resp.status_code == 200
 
 
-def test_can_connect_with_oidc_using_token():
+def test_can_connect_with_oidc_using_refresh_token():
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
@@ -445,6 +445,47 @@ def test_can_connect_with_oidc_using_token():
             ApiClientFactory(SECURE_SERVICELAYER_URL)
             .with_oidc()
             .with_token(refresh_token=refresh_token)
+            .connect()
+        )
+        resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
+        assert resp.status_code == 200
+
+
+def test_can_connect_with_oidc_using_access_token():
+    redirect_uri = "https://www.example.com/login/"
+    authority_url = "https://www.example.com/authority/"
+    client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
+    access_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+    well_known_response = json.dumps(
+        {
+            "token_endpoint": f"{authority_url}token",
+            "authorization_endpoint": f"{authority_url}authorization",
+        }
+    )
+    authenticate_header = (
+        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
+    )
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{authority_url}.well-known/openid-configuration",
+            status_code=200,
+            text=well_known_response,
+        )
+        m.get(
+            SECURE_SERVICELAYER_URL,
+            status_code=401,
+            headers={"WWW-Authenticate": authenticate_header},
+        )
+        m.get(
+            SECURE_SERVICELAYER_URL,
+            status_code=200,
+            request_headers={"Authorization": f"Bearer {access_token}"},
+        )
+        session = (
+            ApiClientFactory(SECURE_SERVICELAYER_URL)
+            .with_oidc()
+            .with_access_token(access_token=access_token)
             .connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
