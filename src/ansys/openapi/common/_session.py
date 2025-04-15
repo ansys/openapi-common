@@ -22,7 +22,7 @@
 
 from enum import Enum
 import os
-from typing import Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
 import warnings
 
 import requests
@@ -43,7 +43,6 @@ from ._util import (
     set_session_kwargs,
 )
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from ._util import CaseInsensitiveOrderedDict
 
