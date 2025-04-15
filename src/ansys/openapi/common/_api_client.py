@@ -207,12 +207,16 @@ class ApiClient(ApiClientBase):
         self.last_response = response_data
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
+        deserialized_response = None
         if _preload_content:
             _response_type = response_type
             if response_type_map is not None:
                 _response_type = response_type_map.get(response_data.status_code, None)
 
             return_data = self.deserialize(response_data, _response_type)
+            deserialized_response = return_data
+
+        handle_response(response_data, deserialized_response)
 
         if _return_http_data_only:
             return return_data
@@ -527,83 +531,69 @@ class ApiClient(ApiClientBase):
             timeout setting.
         """
         if method == "GET":
-            return handle_response(
-                self.rest_client.get(
-                    url,
-                    params=query_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    headers=headers,
-                )
+            return self.rest_client.get(
+                url,
+                params=query_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                headers=headers,
             )
         elif method == "HEAD":
-            return handle_response(
-                self.rest_client.head(
-                    url,
-                    params=query_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    headers=headers,
-                )
+            return self.rest_client.head(
+                url,
+                params=query_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                headers=headers,
             )
         elif method == "OPTIONS":
-            return handle_response(
-                self.rest_client.options(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.options(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "POST":
-            return handle_response(
-                self.rest_client.post(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.post(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "PUT":
-            return handle_response(
-                self.rest_client.put(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.put(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "PATCH":
-            return handle_response(
-                self.rest_client.patch(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.patch(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "DELETE":
-            return handle_response(
-                self.rest_client.delete(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.delete(
+                url,
+                params=query_params,
+                headers=headers,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         else:
             raise ValueError(

@@ -23,13 +23,24 @@ from collections import OrderedDict
 import http.cookiejar
 from itertools import chain
 import tempfile
-from typing import Any, Collection, Dict, List, Optional, Tuple, TypedDict, Union, cast
+from typing import (
+    Any,
+    Collection,
+    Dict,
+    List,
+    Optional,
+    Tuple,
+    TypedDict,
+    Union,
+    cast,
+)
 
 import pyparsing as pp
 from pyparsing import Word
 import requests
 from requests.structures import CaseInsensitiveDict
 
+from ._base import DeserializedType
 from ._exceptions import ApiException
 from ._logger import logger
 
@@ -359,7 +370,9 @@ class SessionConfiguration:
         return new
 
 
-def handle_response(response: requests.Response) -> requests.Response:
+def handle_response(
+    response: requests.Response, response_model: DeserializedType = None
+) -> requests.Response:
     """Check the status code of a response.
 
     If the response is 2XX, it is returned as-is. Otherwise an :class:`ApiException` class will be raised.
@@ -373,10 +386,12 @@ def handle_response(response: requests.Response) -> requests.Response:
     ----------
     response : requests.Response
         Response from the API server.
+    response_model: DeserializedType, optional
+        Deserialized response body from the server.
     """
     logger.debug(f"response body: {response.text}")
     if not 200 <= response.status_code <= 299:
-        raise ApiException.from_response(response)
+        raise ApiException.from_response(response, response_model)
     return response
 
 
