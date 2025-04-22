@@ -44,6 +44,8 @@ from ansys.openapi.common import (
     UndefinedObjectWarning,
 )
 
+from .models import ExampleException
+
 TEST_URL = "http://localhost/api/v1.svc"
 UA_STRING = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
 
@@ -653,7 +655,7 @@ class TestRequestDispatch:
             _request_timeout=self.timeout,
         )
 
-    def assert_responses(self, verb, request_mock, handler_mock):
+    def assert_responses(self, verb, request_mock):
         kwarg_assertions = {
             "params": self.query_params,
             "stream": self.stream,
@@ -667,8 +669,6 @@ class TestRequestDispatch:
 
         request_mock.assert_called()
         request_mock.assert_called_once_with(self.url, **kwarg_assertions)
-        handler_mock.assert_called()
-        handler_mock.assert_called_once_with(True)
 
     @pytest.fixture(autouse=True)
     def _blank_client(self):
@@ -681,10 +681,8 @@ class TestRequestDispatch:
         #  function above?
         request_mock = mocker.patch.object(requests.Session, method_call)
         request_mock.return_value = True
-        handler_mock = mocker.patch("ansys.openapi.common._api_client.handle_response")
-        handler_mock.return_value = True
         _ = self.send_request(verb)
-        self.assert_responses(verb, request_mock, handler_mock)
+        self.assert_responses(verb, request_mock)
 
     def test_invalid_verb(self):
         with pytest.raises(ValueError):
@@ -696,11 +694,11 @@ class TestResponseHandling:
 
     @pytest.fixture(autouse=True)
     def _blank_client(self):
-        from .models import example_model
+        from . import models
 
         self._transport = requests.Session()
         self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
-        self._client.setup_client(example_model)
+        self._client.setup_client(models)
         self._adapter = requests_mock.Adapter()
         self._transport.mount(TEST_URL, self._adapter)
 
@@ -777,6 +775,175 @@ class TestResponseHandling:
         assert status_code == 201
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
+
+    def test_get_model_raises_exception_with_deserialized_response(self):
+        """This test represents getting an object from a server which returns a defined exception object when the
+        requested id does not exist."""
+
+        resource_path = "/items"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        exception_text = "Item not found"
+        exception_code = 1
+        stack_trace = [
+            "Source lines",
+            "101: if id_ not in items:",
+            "102:     raise ItemNotFound(id_)",
+        ]
+
+        response = {
+            "ExceptionText": exception_text,
+            "ExceptionCode": exception_code,
+            "StackTrace": stack_trace,
+        }
+        response_type_map = {200: "ExampleModel", 404: "ExampleException"}
+
+        self._adapter.register_uri(
+            "GET",
+            expected_url,
+            status_code=404,
+            json=response,
+            headers={"Content-Type": "application/json"},
+        )
+
+        with pytest.raises(ApiException) as e:
+            _, _, _ = self._client.call_api(
+                resource_path, method, response_type_map=response_type_map
+            )
+
+        assert e.value.status_code == 404
+        assert "Content-Type" in e.value.headers
+        assert e.value.headers["Content-Type"] == "application/json"
+        exception_model = e.value.exception_model
+        assert exception_model is not None
+        assert isinstance(exception_model, ExampleException)
+        assert exception_model.exception_text == exception_text
+        assert exception_model.exception_code == exception_code
+        assert exception_model.stack_trace == stack_trace
+
+    def test_get_model_raises_exception_with_no_deserialized_response(self):
+        """This test represents getting an object from a server which returns a defined exception object when the
+        requested id does not exist."""
+
+        resource_path = "/items"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        exception_text = "Item not found"
+        exception_code = 1
+        stack_trace = [
+            "Source lines",
+            "101: if id_ not in items:",
+            "102:     raise ItemNotFound(id_)",
+        ]
+
+        response = {
+            "ExceptionText": exception_text,
+            "ExceptionCode": exception_code,
+            "StackTrace": stack_trace,
+        }
+        response_type_map = {200: "ExampleModel", 404: "ExampleException"}
+
+        self._adapter.register_uri(
+            "GET",
+            expected_url,
+            status_code=500,
+            json=response,
+            headers={"Content-Type": "application/json"},
+        )
+        with pytest.raises(ApiException) as e:
+            _, _, _ = self._client.call_api(
+                resource_path, method, response_type_map=response_type_map
+            )
+        assert e.value.status_code == 500
+        assert exception_text in e.value.body
+        assert "Content-Type" in e.value.headers
+        assert e.value.headers["Content-Type"] == "application/json"
+
+    def test_get_object_with_preload_false_returns_raw_response(self):
+        """This test represents getting an object from a server where we do not want to deserialize the response
+        immediately"""
+
+        resource_path = "/items/1"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        api_response = {
+            "String": "new_model",
+            "Integer": 1,
+            "ListOfStrings": ["red", "yellow", "green"],
+            "Boolean": False,
+        }
+        response_type_map = {200: "ExampleModel"}
+
+        with requests_mock.Mocker() as m:
+            m.get(
+                expected_url,
+                status_code=200,
+                json=api_response,
+                headers={"Content-Type": "application/json"},
+            )
+            response = self._client.call_api(
+                resource_path,
+                method,
+                response_type_map=response_type_map,
+                _preload_content=False,
+                _return_http_data_only=True,
+            )
+
+        assert isinstance(response, requests.Response)
+        assert response.status_code == 200
+        assert response.text == json.dumps(api_response)
+
+    def test_get_object_with_preload_false_raises_exception(self):
+        """This test represents getting an object from a server where we do not want to deserialize the response
+        immediately, but an exception is returned."""
+
+        resource_path = "/items/1"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        exception_text = "Item not found"
+        exception_code = 1
+        stack_trace = [
+            "Source lines",
+            "101: if id_ not in items:",
+            "102:     raise ItemNotFound(id_)",
+        ]
+
+        api_response = {
+            "ExceptionText": exception_text,
+            "ExceptionCode": exception_code,
+            "StackTrace": stack_trace,
+        }
+
+        response_type_map = {200: "ExampleModel", 404: "ExampleException"}
+
+        with requests_mock.Mocker() as m:
+            m.get(
+                expected_url,
+                status_code=404,
+                json=api_response,
+                reason="Not Found",
+                headers={"Content-Type": "application/json"},
+            )
+            with pytest.raises(ApiException) as e:
+                _ = self._client.call_api(
+                    resource_path,
+                    method,
+                    response_type_map=response_type_map,
+                    _preload_content=False,
+                    _return_http_data_only=True,
+                )
+
+        assert e.value.status_code == 404
+        assert e.value.reason_phrase == "Not Found"
+        assert e.value.body == json.dumps(api_response)
 
     def test_patch_object(self):
         """This test represents updating a value on an existing record using a custom json payload. The new object
@@ -934,11 +1101,7 @@ class TestResponseHandling:
         assert excinfo.value.reason_phrase == "Payload Too Large"
 
 
-_RESPONSE_TYPE_MAP = {
-    200: "ExampleModel",
-    201: "str",
-    202: None,
-}
+_RESPONSE_TYPE_MAP = {200: "ExampleModel", 201: "str", 202: None, 404: "ExampleException"}
 
 
 class TestMultipleResponseTypesHandling:
@@ -965,6 +1128,7 @@ class TestMultipleResponseTypesHandling:
             # Check that response_type is used for deserialization if a response type map is not provided
             (200, None, "ExampleModel", "ExampleModel"),
             (200, None, "str", "str"),
+            (200, None, "ExampleException", "ExampleException"),
             # Check that if both the response_type and response_type_map are provided, the map takes precedence
             (200, _RESPONSE_TYPE_MAP, "str", "ExampleModel"),
             (201, _RESPONSE_TYPE_MAP, "ExampleModel", "str"),
@@ -972,6 +1136,7 @@ class TestMultipleResponseTypesHandling:
             # Even if the map is empty.
             (200, {}, "str", None),
             (200, {}, "ExampleModel", None),
+            (200, {}, "ExampleException", None),
             # If neither are provided, check there is no attempt to deserialize
             (200, None, None, None),
         ],
@@ -1000,6 +1165,55 @@ class TestMultipleResponseTypesHandling:
                 response_type=response_type,
                 response_type_map=response_type_map,
             )
+
+        deserialize_mock.assert_called_once()
+        last_call_pos_args = deserialize_mock.call_args[0]
+        assert last_call_pos_args[1] == expected_type
+
+    @pytest.mark.parametrize(
+        ["response_code", "response_type_map", "response_type", "expected_type"],
+        [
+            # Check that the correct type is used for deserialization when a response type map is provided
+            (404, _RESPONSE_TYPE_MAP, None, "ExampleException"),
+            (400, _RESPONSE_TYPE_MAP, None, None),
+            # Check that response_type is used for deserialization if a response type map is not provided
+            (404, None, "ExampleException", "ExampleException"),
+            (400, None, "ExampleException", "ExampleException"),
+            # Check that if both the response_type and response_type_map are provided, the map takes precedence
+            (404, _RESPONSE_TYPE_MAP, "str", "ExampleException"),
+            (400, _RESPONSE_TYPE_MAP, "str", None),
+            # Even if the map is empty.
+            (404, {}, "str", None),
+            (404, {}, "ExampleException", None),
+            # If neither are provided, check there is no attempt to deserialize
+            (404, None, None, None),
+        ],
+    )
+    def test_response_type_handling_of_exceptions(
+        self,
+        mocker,
+        response_code: int,
+        response_type_map,
+        response_type,
+        expected_type,
+    ):
+        resource_path = "/items"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+        deserialize_mock = mocker.patch.object(ApiClient, "deserialize")
+        with requests_mock.Mocker() as m:
+            m.get(
+                expected_url,
+                status_code=response_code,
+            )
+            with pytest.raises(ApiException) as excinfo:
+                _ = self._client.call_api(
+                    resource_path,
+                    method,
+                    response_type=response_type,
+                    response_type_map=response_type_map,
+                )
 
         deserialize_mock.assert_called_once()
         last_call_pos_args = deserialize_mock.call_args[0]

@@ -20,13 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from requests.structures import CaseInsensitiveDict
 
-MYPY = False
-if MYPY:
+if TYPE_CHECKING:
     import requests
+
+    from ansys.openapi.common._base._types import DeserializedType
 
 
 class ApiConnectionException(Exception):
@@ -74,7 +75,8 @@ class ApiException(Exception):
     """
     Provides the exception to raise when the remote server returns an unsuccessful response.
 
-    For more information about the failure, inspect ``.status_code`` and ``.reason_phrase``.
+    For more information about the failure, inspect ``.status_code`` and ``.reason_phrase``. If the
+    server defines a custom exception model, ``.exception_model`` contains the deserialized response.
 
     Parameters
     ----------
@@ -84,6 +86,8 @@ class ApiException(Exception):
         Description of the response provided by the server.
     body : str, optional
         Content of the response provided by the server. The default is ``None``.
+    exception_model: ModelBase, optional
+        The custom exception model if defined by the server. The default is ``None``.
     headers : CaseInsensitiveDict, optional
         Response headers provided by the server. The default is ``None``.
     """
@@ -91,6 +95,7 @@ class ApiException(Exception):
     status_code: int
     reason_phrase: str
     body: Optional[str]
+    exception_model: "DeserializedType"
     headers: Optional[CaseInsensitiveDict]
 
     def __init__(
@@ -98,20 +103,25 @@ class ApiException(Exception):
         status_code: int,
         reason_phrase: str,
         body: Optional[str] = None,
+        exception_model: "DeserializedType" = None,
         headers: Optional[CaseInsensitiveDict] = None,
     ):
         self.status_code = status_code
         self.reason_phrase = reason_phrase
         self.body = body
+        self.exception_model = exception_model
         self.headers = headers
 
     @classmethod
-    def from_response(cls, http_response: "requests.Response") -> "ApiException":
+    def from_response(
+        cls, http_response: "requests.Response", exception_model: "DeserializedType" = None
+    ) -> "ApiException":
         """Initialize object from a requests.Response object."""
         new = cls(
             status_code=http_response.status_code,
             reason_phrase=http_response.reason,
             body=http_response.text,
+            exception_model=exception_model,
             headers=http_response.headers,
         )
         return new

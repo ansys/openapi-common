@@ -50,7 +50,8 @@ import requests
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException, UndefinedObjectWarning
-from ._util import SessionConfiguration, handle_response
+from ._logger import logger
+from ._util import SessionConfiguration
 
 
 # noinspection DuplicatedCode
@@ -205,6 +206,7 @@ class ApiClient(ApiClientBase):
         )
 
         self.last_response = response_data
+        logger.debug(f"response body: {response_data.text}")
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
         if _preload_content:
@@ -212,7 +214,13 @@ class ApiClient(ApiClientBase):
             if response_type_map is not None:
                 _response_type = response_type_map.get(response_data.status_code, None)
 
-            return_data = self.deserialize(response_data, _response_type)
+            deserialized_response = self.deserialize(response_data, _response_type)
+            if not 200 <= response_data.status_code <= 299:
+                raise ApiException.from_response(response_data, deserialized_response)
+            return_data = deserialized_response
+        else:
+            if not 200 <= response_data.status_code <= 299:
+                raise ApiException.from_response(response_data)
 
         if _return_http_data_only:
             return return_data
@@ -527,83 +535,69 @@ class ApiClient(ApiClientBase):
             timeout setting.
         """
         if method == "GET":
-            return handle_response(
-                self.rest_client.get(
-                    url,
-                    params=query_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    headers=headers,
-                )
+            return self.rest_client.get(
+                url,
+                params=query_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                headers=headers,
             )
         elif method == "HEAD":
-            return handle_response(
-                self.rest_client.head(
-                    url,
-                    params=query_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    headers=headers,
-                )
+            return self.rest_client.head(
+                url,
+                params=query_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                headers=headers,
             )
         elif method == "OPTIONS":
-            return handle_response(
-                self.rest_client.options(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.options(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "POST":
-            return handle_response(
-                self.rest_client.post(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.post(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "PUT":
-            return handle_response(
-                self.rest_client.put(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.put(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "PATCH":
-            return handle_response(
-                self.rest_client.patch(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    files=post_params,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.patch(
+                url,
+                params=query_params,
+                headers=headers,
+                files=post_params,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         elif method == "DELETE":
-            return handle_response(
-                self.rest_client.delete(
-                    url,
-                    params=query_params,
-                    headers=headers,
-                    stream=_preload_content,
-                    timeout=_request_timeout,
-                    data=body,
-                )
+            return self.rest_client.delete(
+                url,
+                params=query_params,
+                headers=headers,
+                stream=_preload_content,
+                timeout=_request_timeout,
+                data=body,
             )
         else:
             raise ValueError(
