@@ -863,6 +863,88 @@ class TestResponseHandling:
         assert "Content-Type" in e.value.headers
         assert e.value.headers["Content-Type"] == "application/json"
 
+    def test_get_object_with_preload_false_returns_raw_response(self):
+        """This test represents getting an object from a server where we do not want to deserialize the response
+        immediately"""
+
+        resource_path = "/items/1"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        api_response = {
+            "String": "new_model",
+            "Integer": 1,
+            "ListOfStrings": ["red", "yellow", "green"],
+            "Boolean": False,
+        }
+        response_type_map = {200: "ExampleModel"}
+
+        with requests_mock.Mocker() as m:
+            m.get(
+                expected_url,
+                status_code=200,
+                json=api_response,
+                headers={"Content-Type": "application/json"},
+            )
+            response = self._client.call_api(
+                resource_path,
+                method,
+                response_type_map=response_type_map,
+                _preload_content=False,
+                _return_http_data_only=True,
+            )
+
+        assert isinstance(response, requests.Response)
+        assert response.status_code == 200
+        assert response.text == json.dumps(api_response)
+
+    def test_get_object_with_preload_false_raises_exception(self):
+        """This test represents getting an object from a server where we do not want to deserialize the response
+        immediately, but an exception is returned."""
+
+        resource_path = "/items/1"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        exception_text = "Item not found"
+        exception_code = 1
+        stack_trace = [
+            "Source lines",
+            "101: if id_ not in items:",
+            "102:     raise ItemNotFound(id_)",
+        ]
+
+        api_response = {
+            "ExceptionText": exception_text,
+            "ExceptionCode": exception_code,
+            "StackTrace": stack_trace,
+        }
+
+        response_type_map = {200: "ExampleModel", 404: "ExampleException"}
+
+        with requests_mock.Mocker() as m:
+            m.get(
+                expected_url,
+                status_code=404,
+                json=api_response,
+                reason="Not Found",
+                headers={"Content-Type": "application/json"},
+            )
+            with pytest.raises(ApiException) as e:
+                _ = self._client.call_api(
+                    resource_path,
+                    method,
+                    response_type_map=response_type_map,
+                    _preload_content=False,
+                    _return_http_data_only=True,
+                )
+
+        assert e.value.status_code == 404
+        assert e.value.reason_phrase == "Not Found"
+        assert e.value.body == json.dumps(api_response)
+
     def test_patch_object(self):
         """This test represents updating a value on an existing record using a custom json payload. The new object
         is returned. This questionable API accepts an ID as a query param and returns the updated object
