@@ -6,6 +6,30 @@ changes for the upcoming release can be found in
 
 <!-- towncrier release notes start -->
 
+## [2.3.0](https://github.com/ansys/openapi-common/releases/tag/v2.3.0) - April 22, 2025
+
+
+### Added
+
+- Support OIDC with a provided Access Token [#773](https://github.com/ansys/openapi-common/pull/773)
+- Deserialize API responses for non 2XX status codes if defined [#778](https://github.com/ansys/openapi-common/pull/778)
+
+
+### Documentation
+
+- Reorganize documentation [#706](https://github.com/ansys/openapi-common/pull/706)
+- Add HTTPS initialism to vale allow list [#709](https://github.com/ansys/openapi-common/pull/709)
+
+
+### Maintenance
+
+- chore: update CHANGELOG for v2.2.0 [#698](https://github.com/ansys/openapi-common/pull/698)
+- Bump version to 2.3 [#699](https://github.com/ansys/openapi-common/pull/699)
+- chore: update CHANGELOG for v2.2.1 [#759](https://github.com/ansys/openapi-common/pull/759)
+- chore: update CHANGELOG for v2.2.2 [#763](https://github.com/ansys/openapi-common/pull/763)
+- docs: Update ``CONTRIBUTORS.md`` with the latest contributors [#771](https://github.com/ansys/openapi-common/pull/771)
+- Revert to pypa/gh-action-pypi-publish for publishing [#777](https://github.com/ansys/openapi-common/pull/777)
+
 ## [2.2.2](https://github.com/ansys/openapi-common/releases/tag/v2.2.2) - March 24, 2025
 
 
