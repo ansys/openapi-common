@@ -50,7 +50,8 @@ import requests
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException, UndefinedObjectWarning
-from ._util import SessionConfiguration, handle_response
+from ._logger import logger
+from ._util import SessionConfiguration
 
 
 # noinspection DuplicatedCode
@@ -205,18 +206,21 @@ class ApiClient(ApiClientBase):
         )
 
         self.last_response = response_data
+        logger.debug(f"response body: {response_data.text}")
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
-        deserialized_response = None
         if _preload_content:
             _response_type = response_type
             if response_type_map is not None:
                 _response_type = response_type_map.get(response_data.status_code, None)
 
-            return_data = self.deserialize(response_data, _response_type)
-            deserialized_response = return_data
-
-        handle_response(response_data, deserialized_response)
+            deserialized_response = self.deserialize(response_data, _response_type)
+            if not 200 <= response_data.status_code <= 299:
+                raise ApiException.from_response(response_data, deserialized_response)
+            return_data = deserialized_response
+        else:
+            if not 200 <= response_data.status_code <= 299:
+                raise ApiException.from_response(response_data)
 
         if _return_http_data_only:
             return return_data

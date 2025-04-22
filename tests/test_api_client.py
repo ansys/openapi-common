@@ -655,7 +655,7 @@ class TestRequestDispatch:
             _request_timeout=self.timeout,
         )
 
-    def assert_responses(self, verb, request_mock, handler_mock):
+    def assert_responses(self, verb, request_mock):
         kwarg_assertions = {
             "params": self.query_params,
             "stream": self.stream,
@@ -681,10 +681,8 @@ class TestRequestDispatch:
         #  function above?
         request_mock = mocker.patch.object(requests.Session, method_call)
         request_mock.return_value = True
-        handler_mock = mocker.patch("ansys.openapi.common._api_client.handle_response")
-        handler_mock.return_value = True
         _ = self.send_request(verb)
-        self.assert_responses(verb, request_mock, handler_mock)
+        self.assert_responses(verb, request_mock)
 
     def test_invalid_verb(self):
         with pytest.raises(ValueError):
@@ -778,9 +776,9 @@ class TestResponseHandling:
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
 
-    def test_get_model_returns_defined_exception(self):
-        """This test getting an object from a server which returns a defined exception object when the requested id does
-        not exist."""
+    def test_get_model_raises_exception_with_deserialized_response(self):
+        """This test represents getting an object from a server which returns a defined exception object when the
+        requested id does not exist."""
 
         resource_path = "/items"
         method = "GET"
@@ -825,9 +823,9 @@ class TestResponseHandling:
         assert exception_model.exception_code == exception_code
         assert exception_model.stack_trace == stack_trace
 
-    def test_get_model_throws_if_no_defined_exception_type(self):
-        """This test getting an object from a server which returns a defined exception object when the requested id does
-        not exist."""
+    def test_get_model_raises_exception_with_no_deserialized_response(self):
+        """This test represents getting an object from a server which returns a defined exception object when the
+        requested id does not exist."""
 
         resource_path = "/items"
         method = "GET"

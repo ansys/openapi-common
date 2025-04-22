@@ -40,10 +40,6 @@ from pyparsing import Word
 import requests
 from requests.structures import CaseInsensitiveDict
 
-from ._base import DeserializedType
-from ._exceptions import ApiException
-from ._logger import logger
-
 
 class CaseInsensitiveOrderedDict(OrderedDict):
     """Preserves order of insertion and is case-insensitive.
@@ -368,31 +364,6 @@ class SessionConfiguration:
         if configuration_dict["max_redirects"] is not None:
             new.max_redirects = configuration_dict["max_redirects"]
         return new
-
-
-def handle_response(
-    response: requests.Response, response_model: DeserializedType = None
-) -> requests.Response:
-    """Check the status code of a response.
-
-    If the response is 2XX, it is returned as-is. Otherwise an :class:`ApiException` class will be raised.
-
-    Throws
-    ------
-    ApiException
-        If the status code was not 2XX.
-
-    Parameters
-    ----------
-    response : requests.Response
-        Response from the API server.
-    response_model: DeserializedType, optional
-        Deserialized response body from the server.
-    """
-    logger.debug(f"response body: {response.text}")
-    if not 200 <= response.status_code <= 299:
-        raise ApiException.from_response(response, response_model)
-    return response
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:
