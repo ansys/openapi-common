@@ -44,7 +44,7 @@ from ansys.openapi.common import (
     UndefinedObjectWarning,
 )
 
-from .models import ExampleException
+from .models import ExampleEnum, ExampleException
 
 TEST_URL = "http://localhost/api/v1.svc"
 UA_STRING = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
@@ -776,6 +776,60 @@ class TestResponseHandling:
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
 
+    def test_get_model_returns_expected_object(self):
+        """This test represents getting an object from a server which is successfully deserialized to an enum-based
+        model."""
+
+        resource_path = "/items"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        response = "Excellent"
+        response_type_map = {200: "ExampleEnum"}
+
+        self._adapter.register_uri(
+            "GET",
+            expected_url,
+            status_code=200,
+            json=response,
+            headers={"Content-Type": "text/plain"},
+        )
+
+        deserialized_response, status_code, headers = self._client.call_api(
+            resource_path, method, response_type_map=response_type_map
+        )
+        assert isinstance(deserialized_response, ExampleEnum)
+        assert response == deserialized_response.value
+        assert status_code == 200
+        assert "Content-Type" in headers
+        assert headers["Content-Type"] == "text/plain"
+
+    def test_get_model_raises_unhandled_deserialization_error_with_invalid_response(self):
+        """This test represents getting an object from a server which returns an invalid value for an enum-based
+        model."""
+
+        resource_path = "/items"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        response = "Pretty Good"
+        response_type_map = {200: "ExampleEnum"}
+
+        self._adapter.register_uri(
+            "GET",
+            expected_url,
+            status_code=200,
+            json=response,
+            headers={"Content-Type": "application/json"},
+        )
+
+        with pytest.raises(ValueError) as e:
+            _, _, _ = self._client.call_api(
+                resource_path, method, response_type_map=response_type_map
+            )
+
     def test_get_model_raises_exception_with_deserialized_response(self):
         """This test represents getting an object from a server which returns a defined exception object when the
         requested id does not exist."""
@@ -824,16 +878,16 @@ class TestResponseHandling:
         assert exception_model.stack_trace == stack_trace
 
     def test_get_model_raises_exception_with_no_deserialized_response(self):
-        """This test represents getting an object from a server which returns a defined exception object when the
-        requested id does not exist."""
+        """This test represents getting an object from a server which returns a response with no corresponding model
+        for deserialization when an internal server error occurs."""
 
         resource_path = "/items"
         method = "GET"
 
         expected_url = TEST_URL + resource_path
 
-        exception_text = "Item not found"
-        exception_code = 404
+        exception_text = "Internal server error."
+        exception_code = 500
         stack_trace = [
             "Source lines",
             "101: if id_ not in items:",
@@ -866,7 +920,7 @@ class TestResponseHandling:
 
     def test_get_model_raises_api_exception_if_deserialization_error(self):
         """This test represents getting an object from a server which returns a defined exception object when the
-        requested id does not exist."""
+        requested id does not exist, but deserialization fails."""
 
         resource_path = "/items"
         method = "GET"
