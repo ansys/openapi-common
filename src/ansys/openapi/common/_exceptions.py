@@ -76,7 +76,8 @@ class ApiException(Exception):
     Provides the exception to raise when the remote server returns an unsuccessful response.
 
     For more information about the failure, inspect ``.status_code`` and ``.reason_phrase``. If the
-    server defines a custom exception model, ``.exception_model`` contains the deserialized response.
+    server defines a custom exception model, ``.exception_model`` contains the deserialized response if the
+    deserialization was successful.
 
     Parameters
     ----------
