@@ -874,7 +874,7 @@ class TestResponseHandling:
         expected_url = TEST_URL + resource_path
 
         exception_text = "Item not found"
-        exception_code = "four oh four"
+        exception_code = "404"  # A string, not an int
         stack_trace = [
             "Source lines",
             "101: if id_ not in items:",
