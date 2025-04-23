@@ -786,7 +786,7 @@ class TestResponseHandling:
         expected_url = TEST_URL + resource_path
 
         exception_text = "Item not found"
-        exception_code = 1
+        exception_code = 404
         stack_trace = [
             "Source lines",
             "101: if id_ not in items:",
@@ -820,7 +820,7 @@ class TestResponseHandling:
         assert exception_model is not None
         assert isinstance(exception_model, ExampleException)
         assert exception_model.exception_text == exception_text
-        assert exception_model.exception_code == exception_code
+        assert exception_model.exception_code.value == exception_code
         assert exception_model.stack_trace == stack_trace
 
     def test_get_model_raises_exception_with_no_deserialized_response(self):
@@ -833,7 +833,7 @@ class TestResponseHandling:
         expected_url = TEST_URL + resource_path
 
         exception_text = "Item not found"
-        exception_code = 1
+        exception_code = 404
         stack_trace = [
             "Source lines",
             "101: if id_ not in items:",
@@ -862,6 +862,49 @@ class TestResponseHandling:
         assert exception_text in e.value.body
         assert "Content-Type" in e.value.headers
         assert e.value.headers["Content-Type"] == "application/json"
+        assert e.value.exception_model is None
+
+    def test_get_model_raises_api_exception_if_deserialization_error(self):
+        """This test represents getting an object from a server which returns a defined exception object when the
+        requested id does not exist."""
+
+        resource_path = "/items"
+        method = "GET"
+
+        expected_url = TEST_URL + resource_path
+
+        exception_text = "Item not found"
+        exception_code = "four oh four"
+        stack_trace = [
+            "Source lines",
+            "101: if id_ not in items:",
+            "102:     raise ItemNotFound(id_)",
+        ]
+
+        response = {
+            "ExceptionText": exception_text,
+            "ExceptionCode": exception_code,
+            "StackTrace": stack_trace,
+        }
+        response_type_map = {200: "ExampleModel", 404: "ExampleException"}
+
+        self._adapter.register_uri(
+            "GET",
+            expected_url,
+            status_code=404,
+            json=response,
+            headers={"Content-Type": "application/json"},
+        )
+
+        with pytest.raises(ApiException) as e:
+            _, _, _ = self._client.call_api(
+                resource_path, method, response_type_map=response_type_map
+            )
+
+        assert e.value.status_code == 404
+        assert "Content-Type" in e.value.headers
+        assert e.value.headers["Content-Type"] == "application/json"
+        assert e.value.exception_model is None
 
     def test_get_object_with_preload_false_returns_raw_response(self):
         """This test represents getting an object from a server where we do not want to deserialize the response

@@ -206,6 +206,8 @@ class ApiClient(ApiClientBase):
         )
 
         self.last_response = response_data
+        successful_response = 200 <= response_data.status_code <= 299
+
         logger.debug(f"response body: {response_data.text}")
 
         return_data: Union[requests.Response, DeserializedType, None] = response_data
@@ -214,10 +216,25 @@ class ApiClient(ApiClientBase):
             if response_type_map is not None:
                 _response_type = response_type_map.get(response_data.status_code, None)
 
-            deserialized_response = self.deserialize(response_data, _response_type)
-            if not 200 <= response_data.status_code <= 299:
+            deserialization_exception: Optional[Exception] = None
+            deserialized_response = None
+            try:
+                deserialized_response = self.deserialize(response_data, _response_type)
+            except (TypeError, KeyError, ValueError) as e:
+                deserialization_exception = e
+
+            # Successfully deserialized a success response
+            if successful_response and not deserialization_exception:
+                return_data = deserialized_response
+
+            # Failed to deserialize a success response
+            elif successful_response and deserialization_exception:
+                raise deserialization_exception
+
+            # Non-success response
+            else:
                 raise ApiException.from_response(response_data, deserialized_response)
-            return_data = deserialized_response
+
         else:
             if not 200 <= response_data.status_code <= 299:
                 raise ApiException.from_response(response_data)

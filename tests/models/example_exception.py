@@ -37,7 +37,7 @@ class ExampleException(ModelBase):
     """
     swagger_types = {
         "exception_text": "str",
-        "exception_code": "int",
+        "exception_code": "ExampleIntEnum",
         "stack_trace": "list[str]",
     }
 
