@@ -825,7 +825,7 @@ class TestResponseHandling:
             headers={"Content-Type": "application/json"},
         )
 
-        with pytest.raises(ValueError) as e:
+        with pytest.raises(ValueError):
             _, _, _ = self._client.call_api(
                 resource_path, method, response_type_map=response_type_map
             )
