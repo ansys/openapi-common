@@ -132,7 +132,7 @@ This is recommended approach for Windows and Linux users. However, there are som
 * The OpenSSL deployment used by Python is not configured to use the system certificate store (common when using
   conda-provided Python).
 
-In these cases, you will continue to see a ``SSLCertVerificationError``, and should provide a CA certificate to
+In these cases, the ``SSLCertVerificationError`` is still raised. Instead, provide the appropriate CA certificate to
 ``requests`` directly.
 
 
@@ -143,12 +143,12 @@ The :class:`~.SessionConfiguration` object allows you to provide a path to a fil
 certificates. The custom CA certificate file is used instead of the ``certifi`` package to verify the service's TLS
 certificate.
 
-If you need to authenticate both internally- and publicly-signed TLS certificates within the same application, you must
+If you need to authenticate both internally- and publicly signed TLS certificates within the same environment, you must
 use a CA bundle which contains both the internal and public CAs used to sign the TLS certificates.
 
 .. note::
 
-   OIDC authentication often requires validating internally- and publicly-signed TLS certificates, since both internal
+   OIDC authentication often requires validating internally- and publicly signed TLS certificates, since both internal
    and public resources are used to authenticate the resource.
 
 CA bundles are often provided by Linux environments which include all trusted public CAs and any internal CAs added to
@@ -166,9 +166,9 @@ For example, to use the system CA bundle in Ubuntu, use the following:
 
    config = SessionConfiguration(cert_store_path=/etc/ssl/certs/ca-certificates.crt)
 
-This allows ``requests`` to correctly validate both internally- and publicly-signed TLS certificates, as long as the
+This allows ``requests`` to correctly validate both internally and publicly signed TLS certificates, as long as the
 internal CA certificate has been added to the system certificate store. If the internal CA certificate has not been
-added to the system certificate store, then you will still see a ``SSLCertVerificationError``, and you should proceed to
+added to the system certificate store, then a ``SSLCertVerificationError`` is still raised, and you should proceed to
 the next section.
 
 
@@ -189,7 +189,7 @@ Where ``/home/username/my_private_ca_certificate.pem`` is the path to the CA cer
 .. note::
 
    The ``cert_store_path`` argument overrides the ``certifi`` CA certificates. Providing a single CA certificate
-   will cause ``requests`` to fail to validate publicly-signed TLS certificates.
+   will cause ``requests`` to fail to validate publicly signed TLS certificates.
 
 
 .. _pip-system-certs: https://gitlab.com/alelec/pip-system-certs
