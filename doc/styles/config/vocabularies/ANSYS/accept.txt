@@ -12,3 +12,5 @@ subclassing
 Intersphinx
 pip\-system\-certs
 HTTPS
+CA
+CAs
