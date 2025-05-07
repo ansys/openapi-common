@@ -188,8 +188,8 @@ Where ``/home/username/my_private_ca_certificate.pem`` is the path to the CA cer
 
 .. note::
 
-   The ``cert_store_path`` argument overrides the ``certifi`` CA certificates. Providing a single CA certificate
-   will cause ``requests`` to fail to validate publicly signed TLS certificates.
+   The ``cert_store_path`` argument overrides the ``certifi`` CA certificates. Providing a single private CA certificate
+   causes ``requests`` to fail to validate publicly signed TLS certificates.
 
 
 .. _pip-system-certs: https://gitlab.com/alelec/pip-system-certs
