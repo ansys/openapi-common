@@ -16,6 +16,9 @@ env:
   LIBRARY_NAME: 'ansys-openapi-common'
   DOCUMENTATION_CNAME: 'openapi.docs.pyansys.com'
 
+permissions:
+  contents: read
+
 jobs:
   code-style:
     name: "Code style"
