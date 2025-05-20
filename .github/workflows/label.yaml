@@ -7,6 +7,8 @@ on:
     paths:
       - '../labels.yml'
 
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
