@@ -45,3 +45,4 @@ effort to facilitate the use of Ansys technologies directly from Python.
    user_guide/index
    api/index
    contributing
+   changelog

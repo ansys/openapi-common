@@ -17,6 +17,7 @@ sys.path.insert(0, os.path.abspath("../src"))
 
 # The short X.Y version
 release = version = common.__version__
+switcher_version = get_version_match(version)
 
 # Add a tag to indicate the docs should be built in standalone mode
 tags.add("OpenapiCommonStandaloneBuild")
@@ -132,11 +133,19 @@ html_theme_options = {
     ],
     "switcher": {
         "json_url": f"https://{cname}/versions.json",
-        "version_match": get_version_match(common.__version__),
+        "version_match": switcher_version,
     },
     "check_switcher": False,
     "logo": "ansys",
 }
+
+linkcheck_ignore = []
+# If we are on a release, we have to ignore the "release" URLs, since it is not
+# available until the release is published.
+if switcher_version != "dev":
+    linkcheck_ignore.append(
+        f"https://github.com/ansys/grantami-recordlists/releases/tag/v{version}"
+    )
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

@@ -1,10 +1,9 @@
 # Changelog
 
-This project uses [towncrier](https://towncrier.readthedocs.io/) and the
-changes for the upcoming release can be found in
-<https://github.com/ansys/openapi-common/tree/main/doc/changelog.d/>.
+This project uses [towncrier](https://towncrier.readthedocs.io/) to generate changelogs.
 
-<!-- towncrier release notes start -->
+The changes for the upcoming release can be found in <https://github.com/ansys/openapi-common/tree/main/doc/changelog.d/>.
+
 
 ## [2.3.0](https://github.com/ansys/openapi-common/releases/tag/v2.3.0) - April 23, 2025
 
