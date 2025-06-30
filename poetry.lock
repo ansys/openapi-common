@@ -1434,6 +1434,7 @@ files = [
 cryptography = "*"
 gssapi = {version = ">=1.6.0", optional = true, markers = "sys_platform != \"win32\" and extra == \"kerberos\""}
 krb5 = {version = ">=0.3.0", optional = true, markers = "sys_platform != \"win32\" and extra == \"kerberos\""}
+sspilib = {version = ">=0.1.0", markers = "sys_platform == \"win32\""}
 
 [package.extras]
 kerberos = ["gssapi (>=1.6.0) ; sys_platform != \"win32\"", "krb5 (>=0.3.0) ; sys_platform != \"win32\""]
@@ -1932,6 +1933,48 @@ files = [
 lint = ["mypy", "ruff (==0.5.5)", "types-docutils"]
 standalone = ["Sphinx (>=5)"]
 test = ["pytest"]
+
+[[package]]
+name = "sspilib"
+version = "0.3.1"
+description = "SSPI API bindings for Python"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+markers = "sys_platform == \"win32\""
+files = [
+    {file = "sspilib-0.3.1-cp310-cp310-macosx_10_12_x86_64.whl", hash = "sha256:c45860bdc4793af572d365434020ff5a1ef78c42a2fc2c7a7d8e44eacaf475b6"},
+    {file = "sspilib-0.3.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:62cc4de547503dec13b81a6af82b398e9ef53ea82c3535418d7d069c7a05d5cd"},
+    {file = "sspilib-0.3.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f782214ae2876fe4e54d1dd54638a2e0877c32d03493926f7f3adf5253cf0e3f"},
+    {file = "sspilib-0.3.1-cp310-cp310-win32.whl", hash = "sha256:d8e54aee722faed9efde96128bc56a5895889b5ed96011ad3c8e87efe8391d40"},
+    {file = "sspilib-0.3.1-cp310-cp310-win_amd64.whl", hash = "sha256:cdaa7bd965951cc6d032555ed87a575edba959338431a6cae3fcbfc174bb6de0"},
+    {file = "sspilib-0.3.1-cp310-cp310-win_arm64.whl", hash = "sha256:08674256a42be6ab0481cb781f4079a46afd6b3ee73ad2569badbc88e556aa4d"},
+    {file = "sspilib-0.3.1-cp311-cp311-macosx_10_12_x86_64.whl", hash = "sha256:3a31991a34d1ac96e6f33981e1d368f56b6cf7863609c8ba681b9e1307721168"},
+    {file = "sspilib-0.3.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:e1c7fb3e40a281cdd0cfa701265fb78981f88d4c55c5e267caa63649aa490fc1"},
+    {file = "sspilib-0.3.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:f57e4384203e96ead5038fc327a695c8c268701a22c870e109ea67fbdcfd2ac0"},
+    {file = "sspilib-0.3.1-cp311-cp311-win32.whl", hash = "sha256:c4745eb177773661211d5bf1dd3ef780a1fe7fbafe1392d3fdd8a5f520ec0fec"},
+    {file = "sspilib-0.3.1-cp311-cp311-win_amd64.whl", hash = "sha256:dfdd841bcd88af16c4f3d9f81f170b696e8ecfa18a4d16a571f755b5e0e8e43e"},
+    {file = "sspilib-0.3.1-cp311-cp311-win_arm64.whl", hash = "sha256:a1d41eb2daf9db3d60414e87f86962db4bb4e0c517794879b0d47f1a17cc58ba"},
+    {file = "sspilib-0.3.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:e3e5163656bd14f0cac2c0dd2c777a272af00cecdba0e98ed5ef28c7185328b0"},
+    {file = "sspilib-0.3.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:86aef2f824db862fb25066df286d2d0d35cf7da85474893eb573870a731b6691"},
+    {file = "sspilib-0.3.1-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8c6d11fd6e47ba964881c8980476354259bf0b570fa32b986697f7681b1fc5be"},
+    {file = "sspilib-0.3.1-cp312-cp312-win32.whl", hash = "sha256:429ecda4c8ee587f734bdfc1fefaa196165bbd1f1c7980e0e49c89b60a6c956e"},
+    {file = "sspilib-0.3.1-cp312-cp312-win_amd64.whl", hash = "sha256:3355cfc5f3d5c257dbab2396d83493330ca952f9c28f3fe964193ababcc8c293"},
+    {file = "sspilib-0.3.1-cp312-cp312-win_arm64.whl", hash = "sha256:2edc804f769dcaf0bdfcde06e0abc47763b58c79f1b7be40f805d33c7fc057fd"},
+    {file = "sspilib-0.3.1-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:89b107704bd1ab84aff76b0b36538790cdfef233d4857b8cfebf53bd43ccf49c"},
+    {file = "sspilib-0.3.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:6c86e12b95bbe01ac89c0bd1083d01286fe3b0b4ecd63d4c03d4b39d7564a11f"},
+    {file = "sspilib-0.3.1-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dea04c7da5fef0bf2e94c9e7e0ffdf52588b706c4df63c733c60c70731f334ba"},
+    {file = "sspilib-0.3.1-cp313-cp313-win32.whl", hash = "sha256:89ccacb390b15e2e807e20b8ae7e96f4724ff1fa2f48b1ba0f7d18ccc9b0d581"},
+    {file = "sspilib-0.3.1-cp313-cp313-win_amd64.whl", hash = "sha256:21a26264df883ff6d367af60fdeb42476c7efb1dbfc5818970ac39edec3912e2"},
+    {file = "sspilib-0.3.1-cp313-cp313-win_arm64.whl", hash = "sha256:44b89f866e0d14c8393dbc5a49c59296dd7b83a7ca97a0f9d6bd49cc46a04498"},
+    {file = "sspilib-0.3.1-cp39-cp39-macosx_10_12_x86_64.whl", hash = "sha256:3c8914db71560cac25476a9f7c17412ccaecc441e798ad018492d2a488a1289c"},
+    {file = "sspilib-0.3.1-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:656a15406eacde8cf933ec7282094bbfa0d489db3ebfef492308f3036c843f30"},
+    {file = "sspilib-0.3.1-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8bb8d4504f2c98053ac924a5e1675d21955fcb309bd7247719fd09ce22ac37db"},
+    {file = "sspilib-0.3.1-cp39-cp39-win32.whl", hash = "sha256:35168f39c6c1db9205eb02457d01175b7de32af543c7a51d657d1c12515fe422"},
+    {file = "sspilib-0.3.1-cp39-cp39-win_amd64.whl", hash = "sha256:6fa91c59af0b4e0b4e9f90908289977fe0240be63eee8b40a934abd424e9c3ba"},
+    {file = "sspilib-0.3.1-cp39-cp39-win_arm64.whl", hash = "sha256:2812930555f693d4cffa0961c5088a4094889d1863d998c59162aa867dfc6be0"},
+    {file = "sspilib-0.3.1.tar.gz", hash = "sha256:6df074ee54e3bd9c1bccc84233b1ceb846367ba1397dc52b5fae2846f373b154"},
+]
 
 [[package]]
 name = "starlette"
