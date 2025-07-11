@@ -144,6 +144,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ build-library ]
     if: github.event_name == 'push' && !contains(github.ref, 'refs/tags')
+    permissions:
+      contents: write
     steps:
       - uses: ansys/actions/doc-deploy-dev@8d3e4946f36c2a7d447b92e34b1022a5c9dc77a7  # v10.0.12
         with:
@@ -202,6 +204,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: release
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
+    permissions:
+      contents: write
     steps:
       - uses: ansys/actions/doc-deploy-stable@8d3e4946f36c2a7d447b92e34b1022a5c9dc77a7  # v10.0.12
         with:
