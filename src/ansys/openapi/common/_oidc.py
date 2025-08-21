@@ -75,7 +75,6 @@ class OIDCSessionFactory:
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
-        self._initial_session = initial_session
         self._api_url = initial_response.url
 
         logger.debug("Creating OIDC session handler...")
@@ -91,6 +90,10 @@ class OIDCSessionFactory:
         self._idp_session_configuration = OIDCSessionFactory._override_idp_header(
             idp_session_configuration.get_configuration_for_requests()
         )
+
+        self._oauth_requests_session = initial_session
+        set_session_kwargs(self._oauth_requests_session, self._idp_session_configuration)
+
         self._well_known_parameters = self._fetch_and_parse_well_known(
             self._authenticate_parameters["authority"]
         )
@@ -115,7 +118,7 @@ class OIDCSessionFactory:
             ),
             client_id=self._authenticate_parameters["clientid"],
             scope=scopes,
-            session=self._initial_session,
+            session=self._oauth_requests_session,
         )
 
         # If using Auth0 we cannot provide an audience with requests
@@ -280,12 +283,10 @@ class OIDCSessionFactory:
             URL referencing the OpenID identity provider's well-known endpoint.
         """
         logger.info(f"Fetching configuration information from Identity Provider {url}")
-        set_session_kwargs(self._initial_session, self._idp_session_configuration)
         if not url.endswith("/"):
             url += "/"
         well_known_endpoint = urllib.parse.urljoin(url, ".well-known/openid-configuration")
-        authority_response = self._initial_session.get(well_known_endpoint)
-        set_session_kwargs(self._initial_session, self._api_session_configuration)
+        authority_response = self._oauth_requests_session.get(well_known_endpoint)
 
         logger.debug("Received configuration:")
         oidc_configuration = CaseInsensitiveDict(
