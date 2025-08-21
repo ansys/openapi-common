@@ -121,7 +121,7 @@ def test_valid_well_known_parsed_correctly(authority_url):
             text=response,
         )
         mock_factory = Mock()
-        mock_factory._initial_session = requests.Session()
+        mock_factory._oauth_requests_session = requests.Session()
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
         output = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, authority_url)
@@ -143,7 +143,7 @@ def test_missing_well_known_parameters_throws(missing_parameter):
             text=response,
         )
         mock_factory = Mock()
-        mock_factory._initial_session = requests.Session()
+        mock_factory._oauth_requests_session = requests.Session()
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
         with pytest.raises(ConnectionError) as exception_info:
@@ -163,7 +163,7 @@ def test_multiple_missing_well_known_parameters_throws():
             text=response,
         )
         mock_factory = Mock()
-        mock_factory._initial_session = requests.Session()
+        mock_factory._oauth_requests_session = requests.Session()
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
         with pytest.raises(ConnectionError) as exception_info:
