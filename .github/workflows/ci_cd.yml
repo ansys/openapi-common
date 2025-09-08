@@ -24,7 +24,7 @@ jobs:
     name: "Code style"
     runs-on: windows-latest
     steps:
-      - uses: ansys/actions/code-style@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+      - uses: ansys/actions/code-style@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
          python-version: ${{ env.MAIN_PYTHON_VERSION }}
          skip-install: "false"
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: PyAnsys documentation style checks
-        uses: ansys/actions/doc-style@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+        uses: ansys/actions/doc-style@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ignore-changelogd: true
@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Run Ansys documentation building action"
-        uses: ansys/actions/doc-build@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+        uses: ansys/actions/doc-build@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           check-links: false
           sphinxopts: "-W --keep-going"
@@ -61,7 +61,7 @@ jobs:
            os: [ubuntu-latest, windows-latest]
            python-version: ['3.10', '3.11', '3.12', '3.13']
     steps:
-      - uses: ansys/actions/build-wheelhouse@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+      - uses: ansys/actions/build-wheelhouse@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           operating-system: ${{ matrix.os }}
@@ -133,7 +133,7 @@ jobs:
       id-token: write
       attestations: write
     steps:
-      - uses: ansys/actions/build-library@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+      - uses: ansys/actions/build-library@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           library-name: ${{ env.LIBRARY_NAME }}
           python-version: ${{ env.MAIN_PYTHON_VERSION }}
@@ -147,7 +147,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: ansys/actions/doc-deploy-dev@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+      - uses: ansys/actions/doc-deploy-dev@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           cname: ${{ env.DOCUMENTATION_CNAME }}
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -163,7 +163,7 @@ jobs:
       contents: write
       pull-requests: write
     steps:
-      - uses: ansys/actions/doc-deploy-changelog@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+      - uses: ansys/actions/doc-deploy-changelog@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           token: ${{ secrets.PYANSYS_CI_BOT_TOKEN }}
           bot-user: ${{ secrets.PYANSYS_CI_BOT_USERNAME }}
@@ -193,7 +193,7 @@ jobs:
         packages-dir: ${{ env.LIBRARY_NAME }}-artifacts
         skip-existing: false
 
-    - uses: ansys/actions/release-github@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+    - uses: ansys/actions/release-github@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
       name: "Release to GitHub"
       with:
         library-name: ${{ env.LIBRARY_NAME }}
@@ -207,7 +207,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: ansys/actions/doc-deploy-stable@1096998b81f7ebdea116b683e11f3a8bda759ca6  # v10.0.14
+      - uses: ansys/actions/doc-deploy-stable@33399106dc8b62d83c8aad1fb2c333c8055df180  # v10.0.20
         with:
           cname: ${{ env.DOCUMENTATION_CNAME }}
           token: ${{ secrets.GITHUB_TOKEN }}
