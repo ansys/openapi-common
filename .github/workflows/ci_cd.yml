@@ -48,6 +48,8 @@ jobs:
         with:
           check-links: false
           sphinxopts: "-W --keep-going"
+          optional-dependencies-name: ''
+          group-dependencies-name: 'doc'
 
   build-wheelhouse:
     name: "Build wheelhouse for latest Python versions"
