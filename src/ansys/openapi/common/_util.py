@@ -36,7 +36,6 @@ from typing import (
 )
 
 import pyparsing as pp
-from pyparsing import Word
 import requests
 from requests.structures import CaseInsensitiveDict
 
@@ -137,17 +136,17 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         token68_char = "-._~+/" + pp.nums + pp.alphas
 
         token = pp.Word(token_char)
-        token68 = pp.Combine(pp.Word(token68_char) + pp.ZeroOrMore(Word("=")))
+        token68 = pp.Combine(pp.Word(token68_char) + pp.ZeroOrMore(pp.Word("=")))
 
         name = pp.Word(pp.alphas, pp.alphanums)
-        value = pp.quotedString.setParseAction(pp.removeQuotes)
+        value = pp.quoted_string.set_parse_action(pp.remove_quotes)
         name_value_pair = name + pp.Suppress("=") + value
 
-        params = pp.Dict(pp.delimitedList(pp.Group(name_value_pair)))
+        params = pp.Dict(pp.delimited_list(pp.Group(name_value_pair)))
 
         credentials = token + (params ^ token68) ^ token
 
-        self.auth_parser = pp.delimitedList(credentials("schemes*"), delim=", ")
+        self.auth_parser = pp.delimited_list(credentials("schemes*"), delim=", ")
 
     def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
         """Parse a given header's content and return a dictionary of authentication methods and parameters or tokens.
