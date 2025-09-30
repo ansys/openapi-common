@@ -143,6 +143,9 @@ show_missing = true
 testpaths = [
     "tests",
 ]
+filterwarnings = [
+	"error",
+]
 
 [tool.pydocstyle]
 convention = "numpy"
