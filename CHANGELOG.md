@@ -5,6 +5,14 @@ This project uses [towncrier](https://towncrier.readthedocs.io/) to generate cha
 The changes for the upcoming release can be found in <https://github.com/ansys/openapi-common/tree/main/doc/changelog.d/>.
 
 
+## [2.3.2](https://github.com/ansys/openapi-common/releases/tag/v2.3.2) - September 30, 2025
+
+
+### Dependencies
+
+- Update remaining pep8-compliant pyparsing references [#880](https://github.com/ansys/openapi-common/pull/880)
+- Prepare release 2.3.2 [#881](https://github.com/ansys/openapi-common/pull/881)
+
 ## [2.3.1](https://github.com/ansys/openapi-common/releases/tag/v2.3.1) - September 30, 2025
 
 
