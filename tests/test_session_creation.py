@@ -36,8 +36,8 @@ from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
     AuthenticationScheme,
-    SessionConfiguration,
     AuthenticationWarning,
+    SessionConfiguration,
 )
 
 SERVICELAYER_URL = "http://localhost/mi_servicelayer"
@@ -156,10 +156,14 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
 @pytest.mark.parametrize(
     ["auth_mode", "expect_warning"],
     [
-        (AuthenticationScheme.AUTO, pytest.warns(AuthenticationWarning, match="Continuing without credentials")),
+        (
+            AuthenticationScheme.AUTO,
+            pytest.warns(AuthenticationWarning, match="Continuing without credentials"),
+        ),
         (AuthenticationScheme.BASIC, nullcontext()),
         pytest.param(
-            AuthenticationScheme.NTLM, nullcontext(),
+            AuthenticationScheme.NTLM,
+            nullcontext(),
             marks=pytest.mark.skipif(
                 sys.platform != "win32", reason="NTLM only available on Windows"
             ),
