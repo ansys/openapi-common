@@ -20,6 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from contextlib import nullcontext
 from functools import wraps
 import json
 import os
@@ -35,6 +36,7 @@ from ansys.openapi.common import (
     ApiClientFactory,
     ApiConnectionException,
     AuthenticationScheme,
+    AuthenticationWarning,
     SessionConfiguration,
 )
 
@@ -152,27 +154,31 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
 # In Auto mode, the single call is during the initial request to retrieve the header
 # In Basic and NTLM modes, the single call is the test request
 @pytest.mark.parametrize(
-    "auth_mode",
+    ["auth_mode", "expect_warning"],
     [
-        AuthenticationScheme.AUTO,
-        AuthenticationScheme.BASIC,
+        (
+            AuthenticationScheme.AUTO,
+            pytest.warns(AuthenticationWarning, match="Continuing without credentials"),
+        ),
+        (AuthenticationScheme.BASIC, nullcontext()),
         pytest.param(
             AuthenticationScheme.NTLM,
+            nullcontext(),
             marks=pytest.mark.skipif(
                 sys.platform != "win32", reason="NTLM only available on Windows"
             ),
         ),
     ],
 )
-def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode):
+def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode, expect_warning):
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
-
-        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER",
-            password="PASSWORD",
-            authentication_scheme=auth_mode,
-        )
+        with expect_warning:
+            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+                username="TEST_USER",
+                password="PASSWORD",
+                authentication_scheme=auth_mode,
+            )
         assert m.called_once
 
 
@@ -306,8 +312,8 @@ def test_can_connect_with_negotiate():
 def test_only_called_once_with_autologon_when_anonymous_is_ok():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
-
-        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+        with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
+            _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
         assert m.called_once
 
 
@@ -318,8 +324,8 @@ def test_can_connect_with_oidc():
 def test_only_called_once_with_oidc_when_anonymous_is_ok():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=200)
-
-        _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
+        with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
+            _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
         assert m.called_once
 
 
