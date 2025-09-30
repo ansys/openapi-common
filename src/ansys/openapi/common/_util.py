@@ -142,11 +142,11 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         value = pp.quoted_string.set_parse_action(pp.remove_quotes)
         name_value_pair = name + pp.Suppress("=") + value
 
-        params = pp.Dict(pp.delimited_list(pp.Group(name_value_pair)))
+        params = pp.Dict(pp.DelimitedList(pp.Group(name_value_pair)))
 
         credentials = token + (params ^ token68) ^ token
 
-        self.auth_parser = pp.delimited_list(credentials("schemes*"), delim=", ")
+        self.auth_parser = pp.DelimitedList(credentials("schemes*"), delim=", ")
 
     def parse_header(self, value: str) -> CaseInsensitiveOrderedDict:
         """Parse a given header's content and return a dictionary of authentication methods and parameters or tokens.
@@ -159,7 +159,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
             Contents of a ``WWW-Authenticate`` header.
         """
         try:
-            parsed_value = self.auth_parser.parseString(value, parseAll=True)
+            parsed_value = self.auth_parser.parse_string(value, parse_all=True)
         except pp.ParseException as exception_info:
             raise ValueError("Failed to parse value").with_traceback(exception_info.__traceback__)
         output = CaseInsensitiveOrderedDict({})
