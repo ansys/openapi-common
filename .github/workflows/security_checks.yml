@@ -22,7 +22,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           auditing-level: 'high'
           trust-ansys-actions: true
-  
+
   check-vulnerabilities:
     name: "Check library vulnerabilities"
     runs-on: ubuntu-latest
