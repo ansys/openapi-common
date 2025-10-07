@@ -1,0 +1,6 @@
+﻿ApiConnectionException
+======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoexception:: ApiConnectionException
