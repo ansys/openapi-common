@@ -1,4 +1,4 @@
-name: night
+name: Weekly Security Checks
 
 on:
   schedule:

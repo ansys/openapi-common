@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+        with:
+          persist-credentials: false
       - uses: micnncim/action-label-syncer@3abd5ab72fda571e69fffd97bd4e0033dd5f495c  # v1.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -29,7 +31,7 @@ jobs:
     name: Set labels
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: write  # to allow the Action to add labels to PRs
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -40,6 +42,7 @@ jobs:
         repo-token: ${{ secrets.GITHUB_TOKEN }}
 
   commenter:
+    name: "Recommend labelling manually"
     runs-on: ubuntu-latest
     steps:
     - name: Suggest to add labels
@@ -59,8 +62,8 @@ jobs:
     name: "Create changelog fragment"
     needs: [labeler]
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write  # to allow the Action to push to the PR branch
+      pull-requests: write  # to allow the Action to update the target PR
     runs-on: ubuntu-latest
     if: ${{ !startsWith( github.event.pull_request.head.ref, 'dependabot/') && !(startsWith(github.event.pull_request.head.ref, 'pre-commit-ci-update-config')) }}
     steps:

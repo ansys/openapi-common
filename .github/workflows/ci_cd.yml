@@ -56,8 +56,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     needs: code-style
     permissions:
-      id-token: write
-      attestations: write
+      id-token: write  # Required for Sigstore
+      attestations: write  # Required to generate attestation
     strategy:
        matrix:
            os: [ubuntu-latest, windows-latest]
@@ -76,12 +76,12 @@ jobs:
     needs: build-wheelhouse
     permissions:
       contents: read
-      packages: read
+      packages: read  # to allow the Action to pull from GitHub Packages container registry - required for kdc-server
     services:
       # Label used to access the service container
       kdc-server:
         # Github container registry address
-        image: ghcr.io/ansys/kdc-container:v0.2
+        image: ghcr.io/ansys/kdc-container@sha256:af669430229c13a35f106b531868fb8bd7c53731b8de858b1fe9b21a62ae747d  # v0.2
         credentials:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
@@ -94,15 +94,21 @@ jobs:
           - 88:88/udp
 
     container:
-      image: python:${{ matrix.python-version }}
+      image: python@sha:${{ matrix.image-sha }}  # official python images from DockerHub
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        image-sha: 
+          - eebca922adbff26c092545ebe3783c37623f30ffda618559d3cede33d7d468a9  # 3.10
+          - 16e9aaa3fdc728525d4bf3ce02fc311a18c87222005facc3e3c2a5795d297fe1  # 3.11
+          - c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce  # 3.12
+          - a7f3b1fe09b0845ef2e7b675ea3539062dc286bdc82d17da0caae58b03b67543  # 3.13
 
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+      with:
+        persist-credentials: false
 
     - name: Configure host kerberos
       run: |
@@ -121,7 +127,7 @@ jobs:
       run: tox -- --with-kerberos
 
     - name: Upload coverage report
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7  # v5.5.1
       if: ${{ github.actor != 'dependabot[bot]' }}
       with:
         fail_ci_if_error: true
@@ -132,8 +138,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ doc-build, tests ]
     permissions:
-      id-token: write
-      attestations: write
+      id-token: write  # Required for Sigstore
+      attestations: write  # Required to generate attestation
     steps:
       - uses: ansys/actions/build-library@c2fa7c93f6883114e0e643599431b33d29f0b13f  # v10.1.4
         with:
@@ -147,7 +153,7 @@ jobs:
     needs: [ build-library ]
     if: github.event_name == 'push' && !contains(github.ref, 'refs/tags')
     permissions:
-      contents: write
+      contents: write  # to allow the Action to push to the gh-pages branch
     steps:
       - uses: ansys/actions/doc-deploy-dev@c2fa7c93f6883114e0e643599431b33d29f0b13f  # v10.1.4
         with:
@@ -162,8 +168,8 @@ jobs:
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     runs-on: ubuntu-latest
     permissions:
-      contents: write
-      pull-requests: write
+      contents: write  # to allow the Action to push to the repo
+      pull-requests: write  # to allow the Action to create a PR if needed
     steps:
       - uses: ansys/actions/doc-deploy-changelog@c2fa7c93f6883114e0e643599431b33d29f0b13f  # v10.1.4
         with:
@@ -178,8 +184,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     permissions:
-      id-token: write
-      contents: write
+      id-token: write  # Required for trusted publisher auth to PyPI
+      contents: write  # to allow the Action to upload a release asset
     steps:
     - name: "Download the library artifacts from build-library step"
       uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
@@ -207,7 +213,7 @@ jobs:
     needs: release
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags')
     permissions:
-      contents: write
+      contents: write  # to allow the Action to push to the gh-pages branch
     steps:
       - uses: ansys/actions/doc-deploy-stable@c2fa7c93f6883114e0e643599431b33d29f0b13f  # v10.1.4
         with:
