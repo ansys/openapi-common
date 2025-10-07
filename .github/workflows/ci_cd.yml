@@ -94,7 +94,7 @@ jobs:
           - 88:88/udp
 
     container:
-      image: python@sha:${{ matrix.image-sha }}  # official python images from DockerHub
+      image: python@sha256:${{ matrix.image-sha }}  # official python images from DockerHub
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
