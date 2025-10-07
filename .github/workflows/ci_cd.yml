@@ -99,7 +99,7 @@ jobs:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
-        image-sha: 
+        image-sha:
           - eebca922adbff26c092545ebe3783c37623f30ffda618559d3cede33d7d468a9  # 3.10
           - 16e9aaa3fdc728525d4bf3ce02fc311a18c87222005facc3e3c2a5795d297fe1  # 3.11
           - c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce  # 3.12
