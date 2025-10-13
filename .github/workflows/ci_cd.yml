@@ -71,7 +71,7 @@ jobs:
           attest-provenance: true
 
   tests:
-    name: Unit test on supported platforms
+    name: Unit test on supported platforms - ${{ fromJson(matrix.image).name }}
     runs-on: ubuntu-latest
     needs: build-wheelhouse
     permissions:
@@ -94,16 +94,16 @@ jobs:
           - 88:88/udp
 
     container:
-      image: python@sha256:${{ matrix.image-sha }}  # official python images from DockerHub
+      image: python@sha256:${{ fromJson(matrix.image).hash }}  # official python images from DockerHub
       volumes:
         - /tmp/keytabs:/tmp/keytabs
     strategy:
       matrix:
-        image-sha:
-          - eebca922adbff26c092545ebe3783c37623f30ffda618559d3cede33d7d468a9  # 3.10
-          - 16e9aaa3fdc728525d4bf3ce02fc311a18c87222005facc3e3c2a5795d297fe1  # 3.11
-          - c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce  # 3.12
-          - a7f3b1fe09b0845ef2e7b675ea3539062dc286bdc82d17da0caae58b03b67543  # 3.13
+        image:
+          - '{"name": "3.10", "hash": "eebca922adbff26c092545ebe3783c37623f30ffda618559d3cede33d7d468a9"}'
+          - '{"name": "3.11", "hash": "16e9aaa3fdc728525d4bf3ce02fc311a18c87222005facc3e3c2a5795d297fe1"}'
+          - '{"name": "3.12", "hash": "c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce"}'
+          - '{"name": "3.13", "hash": "a7f3b1fe09b0845ef2e7b675ea3539062dc286bdc82d17da0caae58b03b67543"}'
 
     steps:
     - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
