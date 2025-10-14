@@ -71,7 +71,7 @@ jobs:
           attest-provenance: true
 
   tests:
-    name: Unit test on supported platforms - ${{ fromJson(matrix.image).name }}
+    name: Unit test on supported platforms (${{ fromJson(matrix.image).name }})
     runs-on: ubuntu-latest
     needs: build-wheelhouse
     permissions:
