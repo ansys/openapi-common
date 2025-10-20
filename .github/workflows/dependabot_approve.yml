@@ -13,18 +13,17 @@ jobs:
     # Checking the repository will prevent your Action run happening on forked repos
     if: ${{ (github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'pre-commit-ci[bot]') && github.repository == 'ansys/openapi-common' }}
     steps:
-      - name: Dependabot metadata
+      - name: "Dependabot metadata"
         id: metadata
         uses: dependabot/fetch-metadata@d7267f607e9d3fb96fc2fbe83e0af444713e90b7
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Approve a PR if not already approved
+
+      - name: "Approve a PR if not already approved"
         run: |
-          gh pr checkout "$PR_URL" # sets the upstream metadata for `gh pr status`
-          if [ "$(gh pr status --json reviewDecision -q .currentBranch.reviewDecision)" != "APPROVED" ];
-          then gh pr review --approve "$PR_URL"
+          if [ "$(gh pr list --repo ${{github.repository}} --json 'author,number,reviewDecision' -q '.[] | select(.number==${{github.event.number}}).reviewDecision)'" == "REVIEW_REQUIRED" ];
+          then gh pr review --approve "${{github.event.pull_request.html_url}}"
           else echo "PR already approved, skipping additional approvals to minimize emails/notification noise.";
           fi
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
