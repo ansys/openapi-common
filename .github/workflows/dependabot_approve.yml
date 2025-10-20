@@ -21,7 +21,7 @@ jobs:
 
       - name: "Approve a PR if not already approved"
         run: |
-          if [ "$(gh pr list --repo ${{github.repository}} --json 'author,number,reviewDecision' -q '.[] | select(.number==${{github.event.number}}).reviewDecision)'" == "REVIEW_REQUIRED" ];
+          if [ "$(gh pr list --repo ${{github.repository}} --json 'author,number,reviewDecision' -q '.[] | select(.number==${{github.event.number}}).reviewDecision')" == "REVIEW_REQUIRED" ];
           then gh pr review --approve "${{github.event.pull_request.html_url}}"
           else echo "PR already approved, skipping additional approvals to minimize emails/notification noise.";
           fi
