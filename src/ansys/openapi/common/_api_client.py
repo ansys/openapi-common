@@ -393,33 +393,51 @@ class ApiClient(ApiClientBase):
 
         list_match = self.LIST_MATCH_REGEX.match(klass_name)
         if list_match is not None:
-            assert isinstance(data, list)
+            if not isinstance(data, list):
+                raise TypeError(
+                    f"Expected list for deserializing to {klass_name}, got {type(data)}"
+                )
             sub_kls = list_match.group(1)
             return [self.__deserialize(sub_data, sub_kls) for sub_data in data]
 
         dict_match = self.DICT_MATCH_REGEX.match(klass_name)
         if dict_match is not None:
-            assert isinstance(data, dict)
+            if not isinstance(data, dict):
+                raise TypeError(
+                    f"Expected dict for deserializing to {klass_name}, got {type(data)}"
+                )
             sub_kls = dict_match.group(2)
             return {k: self.__deserialize(v, sub_kls) for k, v in data.items()}
 
         if klass_name in self.NATIVE_TYPES_MAPPING:
             klass = self.NATIVE_TYPES_MAPPING[klass_name]
             if klass in self.PRIMITIVE_TYPES:
-                assert isinstance(data, (str, int, float, bool, bytes))
+                if not isinstance(data, (str, int, float, bool, bytes)):
+                    raise TypeError(
+                        f"Expected primitive type for deserializing to {klass_name}, got {type(data)}"
+                    )
                 return self.__deserialize_primitive(data, klass)
             elif klass == datetime.date:
-                assert isinstance(data, str)
+                if not isinstance(data, str):
+                    raise TypeError(
+                        f"Expected string for deserializing to {klass_name}, got {type(data)}"
+                    )
                 return self.__deserialize_date(data)
             elif klass == datetime.datetime:
-                assert isinstance(data, str)
+                if not isinstance(data, str):
+                    raise TypeError(
+                        f"Expected string for deserializing to {klass_name}, got {type(data)}"
+                    )
                 return self.__deserialize_datetime(data)
 
         klass = self.models[klass_name]
         if issubclass(klass, Enum):
             return klass(data)
         else:
-            assert isinstance(data, (dict, str))
+            if not isinstance(data, (dict, str)):
+                raise TypeError(
+                    f"Expected dict or string for deserializing to {klass_name}, got {type(data)}"
+                )
             return self.__deserialize_model(data, klass)
 
     def call_api(
