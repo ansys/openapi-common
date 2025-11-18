@@ -24,6 +24,7 @@ import datetime
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import sys
 import tempfile
@@ -51,6 +52,7 @@ UA_STRING = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Fi
 
 VERBS_WITH_BODY = ["DELETE", "PUT", "POST", "PATCH", "OPTIONS"]
 VERBS_WITH_FILE_PARAMS = ["PUT", "POST", "PATCH", "OPTIONS"]
+
 
 @pytest.fixture
 def blank_client():
@@ -364,14 +366,9 @@ class TestDeserialization:
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
 
-    @pytest.mark.parametrize("value", [
-        [("Boolean", False)],
-        (("Boolean", False),),
-        1,
-        1.0,
-        True,
-        b"foo"
-    ])
+    @pytest.mark.parametrize(
+        "value", [[("Boolean", False)], (("Boolean", False),), 1, 1.0, True, b"foo"]
+    )
     def test_deserialize_model_with_incorrect_value_type_raises_type_error(self, value):
         from . import models
 
@@ -475,56 +472,60 @@ class TestDeserialization:
             output = self._client._ApiClient__deserialize(data, "object")
         assert output == data
 
-    @pytest.mark.parametrize(("type_name, value"), [
-        ("list[str]", ("foo")),
-        ("list[str]", "foo"),
-        ("list[str]", 1),
-        ("list[str]", 1.0),
-        ("list[str]", b"foo"),
-        ("list[str]", True),
-        ("list[str]", datetime.date.today()),
-        ("dict(str, int)", ["foo"]),
-        ("dict(str, int)", ("foo")),
-        ("dict(str, int)", 1),
-        ("dict(str, int)", 1.0),
-        ("dict(str, int)", b"foo"),
-        ("dict(str, int)", True),
-        ("dict(str, int)", datetime.date.today()),
-        ("str", ["foo"]),
-        ("str", ("foo",)),
-        ("str", datetime.date.today()),
-        ("int", [1]),
-        ("int", (1,)),
-        ("int", datetime.date.today()),
-        ("float", [1.0]),
-        ("float", (1.0,)),
-        ("float", datetime.date.today()),
-        ("bool", [True]),
-        ("bool", (True,)),
-        ("bool", datetime.date.today()),
-        ("bytes", [b"foo"]),
-        ("bytes", (b"foo",)),
-        ("bytes", datetime.date.today()),
-        ("datetime", ["2023-01-01T00:00:00Z"]),
-        ("datetime", ("2023-01-01T00:00:00Z",)),
-        ("datetime", datetime.datetime.now()),
-        ("datetime", 1),
-        ("datetime", 1.0),
-        ("datetime", True),
-        ("datetime", b"2023-01-01T00:00:00Z"),
-        ("date", ["2023-01-01"]),
-        ("date", ("2023-01-01",)),
-        ("date", datetime.date.today()),
-        ("date", 1),
-        ("date", 1.0),
-        ("date", True),
-        ("date", b"2023-01-01"),
-    ])
+    @pytest.mark.parametrize(
+        ("type_name, value"),
+        [
+            ("list[str]", ("foo")),
+            ("list[str]", "foo"),
+            ("list[str]", 1),
+            ("list[str]", 1.0),
+            ("list[str]", b"foo"),
+            ("list[str]", True),
+            ("list[str]", datetime.date.today()),
+            ("dict(str, int)", ["foo"]),
+            ("dict(str, int)", ("foo")),
+            ("dict(str, int)", 1),
+            ("dict(str, int)", 1.0),
+            ("dict(str, int)", b"foo"),
+            ("dict(str, int)", True),
+            ("dict(str, int)", datetime.date.today()),
+            ("str", ["foo"]),
+            ("str", ("foo",)),
+            ("str", datetime.date.today()),
+            ("int", [1]),
+            ("int", (1,)),
+            ("int", datetime.date.today()),
+            ("float", [1.0]),
+            ("float", (1.0,)),
+            ("float", datetime.date.today()),
+            ("bool", [True]),
+            ("bool", (True,)),
+            ("bool", datetime.date.today()),
+            ("bytes", [b"foo"]),
+            ("bytes", (b"foo",)),
+            ("bytes", datetime.date.today()),
+            ("datetime", ["2023-01-01T00:00:00Z"]),
+            ("datetime", ("2023-01-01T00:00:00Z",)),
+            ("datetime", datetime.datetime.now()),
+            ("datetime", 1),
+            ("datetime", 1.0),
+            ("datetime", True),
+            ("datetime", b"2023-01-01T00:00:00Z"),
+            ("date", ["2023-01-01"]),
+            ("date", ("2023-01-01",)),
+            ("date", datetime.date.today()),
+            ("date", 1),
+            ("date", 1.0),
+            ("date", True),
+            ("date", b"2023-01-01"),
+        ],
+    )
     def test_deserialize_wrong_type_raises_type_error_simple(self, type_name, value):
         with pytest.raises(TypeError) as e:
             _ = self._client._ApiClient__deserialize(value, type_name)
         assert type_name in str(e.value)
         assert str(type(value)) in str(e.value)
+
 
 class TestResponseParsing:
     from requests.adapters import HTTPAdapter
