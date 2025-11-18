@@ -21,10 +21,8 @@
 # SOFTWARE.
 
 import datetime
-import itertools
 import json
 import os
-import re
 from pathlib import Path
 import secrets
 import sys
