@@ -106,7 +106,7 @@ jobs:
           - '{"name": "3.13", "hash": "a7f3b1fe09b0845ef2e7b675ea3539062dc286bdc82d17da0caae58b03b67543"}'
 
     steps:
-    - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8  # v5.0.0
+    - uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3  # v6.0.0
       with:
         persist-credentials: false
 
