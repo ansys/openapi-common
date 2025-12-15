@@ -57,14 +57,14 @@ files = [
 
 [[package]]
 name = "ansys-sphinx-theme"
-version = "1.6.3"
+version = "1.6.4"
 description = "A theme devised by ANSYS, Inc. for Sphinx documentation."
 optional = false
 python-versions = "<4,>=3.10"
 groups = ["doc"]
 files = [
-    {file = "ansys_sphinx_theme-1.6.3-py3-none-any.whl", hash = "sha256:5bc501e160d824fce37ea176eb8120be460419846276ec507c36dca1a984097b"},
-    {file = "ansys_sphinx_theme-1.6.3.tar.gz", hash = "sha256:167f3d1111be45f5fd9303f257ffb1bfa6ba0afa87e22c2fa83791e41b405314"},
+    {file = "ansys_sphinx_theme-1.6.4-py3-none-any.whl", hash = "sha256:f7f28df5e69d7093febdd561118c88ea574bafdce691a049153e372b7aabd794"},
+    {file = "ansys_sphinx_theme-1.6.4.tar.gz", hash = "sha256:beb49095bc0bc2dd9a3a1f79e9ee4ddd727d0ade62080ca5a8ac5e87a2f9e267"},
 ]
 
 [package.dependencies]
@@ -2407,4 +2407,4 @@ oidc = ["keyring", "requests_auth"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "0628a1fd0672493ad51a90020ae6c2c0915257d6945be7b5debb911fb6ab7b26"
+content-hash = "96934a21d463b84c7f47c756d6923ed1b9d72952f81e476a953a5ec49999461e"
