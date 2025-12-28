@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import typing
 from collections import OrderedDict
 import http.cookiejar
 from itertools import chain
@@ -97,7 +98,12 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         return type(self)(self)
 
     @classmethod
-    def fromkeys(cls, keys: Collection[str], v: Optional[Any] = None) -> "CaseInsensitiveOrderedDict":  # type: ignore[override]
+    @typing.no_type_check
+    def fromkeys(
+        cls,
+        keys: Collection[str],
+        v: Optional[Any] = None,
+    ) -> "CaseInsensitiveOrderedDict":
         """Override fromkeys to use lower-case keys."""
         return cast("CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v))
 

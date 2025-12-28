@@ -58,7 +58,7 @@ Dependencies
 ------------
 .. readme_software_requirements
 
-The ``ansys.openapi.common`` package currently supports Python version 3.10 through 3.13.
+The ``ansys.openapi.common`` package currently supports Python version 3.10 through 3.14.
 
 .. readme_software_requirements_end
 
@@ -113,13 +113,13 @@ run this command:
     pip install git+https://github.com/ansys/openapi-common.git
 
 
-To install a local *development* version with Git and Poetry, run these commands:
+To install a local *development* version with Git and uv, run these commands:
 
 .. code::
 
     git clone https://github.com/ansys/openapi-common
     cd openapi-common
-    poetry install
+    uv sync
 
 
 The preceding commands install the package in development mode so that you can modify
