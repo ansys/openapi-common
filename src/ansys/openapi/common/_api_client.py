@@ -619,8 +619,7 @@ class ApiClient(ApiClientBase):
             )
         else:
             raise ValueError(
-                "http method must be `GET`, `HEAD`, `OPTIONS`,"
-                " `POST`, `PATCH`, `PUT`, or `DELETE`."
+                "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
             )
 
     @staticmethod

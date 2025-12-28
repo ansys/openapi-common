@@ -16,4 +16,4 @@ bug:
 
 dependencies:
 - changed-files:
-  - any-glob-to-any-file: ['poetry.lock']
+  - any-glob-to-any-file: ['uv.lock']
