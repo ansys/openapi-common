@@ -164,7 +164,7 @@ For example, to use the system CA bundle in Ubuntu, use the following:
 
    from ansys.openapi.common import SessionConfiguration
 
-   config = SessionConfiguration(cert_store_path=/etc/ssl/certs/ca-certificates.crt)
+   config = SessionConfiguration(cert_store_path="/etc/ssl/certs/ca-certificates.crt")
 
 This allows ``requests`` to correctly validate both internally and publicly signed TLS certificates, as long as the
 internal CA certificate has been added to the system certificate store. If the internal CA certificate has not been
