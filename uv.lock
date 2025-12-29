@@ -87,6 +87,7 @@ doc = [
     { name = "numpydoc" },
     { name = "sphinx" },
     { name = "sphinx-copybutton" },
+    { name = "sphinx-design" },
     { name = "sphinx-notfound-page" },
 ]
 
@@ -126,6 +127,7 @@ doc = [
     { name = "numpydoc", specifier = "==1.10.0" },
     { name = "sphinx", specifier = "==8.1.3" },
     { name = "sphinx-copybutton", specifier = "==0.5.2" },
+    { name = "sphinx-design", specifier = "==0.6.1" },
     { name = "sphinx-notfound-page", specifier = "==1.1.0" },
 ]
 
