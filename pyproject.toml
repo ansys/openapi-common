@@ -94,6 +94,9 @@ exclude = ["doc/source"]
 # Ignore `F401` (unused imports) in all `__init__.py` files.
 "__init__.py" = ["F401"]
 
+[tool.ty.src]
+include = ["src"]
+
 [tool.coverage.run]
 omit = [
   "**/_base/*"
