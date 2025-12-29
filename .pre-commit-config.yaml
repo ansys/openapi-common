@@ -38,7 +38,6 @@ repos:
       entry: uv run ty check
       language: python
       types: [python]
-      pass_filenames: true
 
 - repo: https://github.com/ansys/pre-commit-hooks
   rev: v0.5.2
