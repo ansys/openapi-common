@@ -42,6 +42,7 @@ dependencies = [
   "requests-ntlm>=1.1,<2.0",
   "pyparsing>=3.2,<3.3",
   "python-dateutil>=2.9",
+
 ]
 
 [dependency-groups]
@@ -54,12 +55,12 @@ dev = [
     "requests-mock",
     "pytest-mock",
     "covertable",
-    "mypy>=1.8.0",
     "types-requests",
     "types-python-dateutil",
     "requests_auth",
     "keyring",
-    "sphinx-design>=0.6.0"
+    "ty (>=0.0.7,<0.0.8)",
+    "ruff (>=0.14.10,<0.15.0)",
 ]
 doc = [
     "ansys-sphinx-theme==1.6.4",
@@ -111,20 +112,6 @@ filterwarnings = [
 
 [tool.pydocstyle]
 convention = "numpy"
-
-[tool.mypy]
-warn_return_any = true
-warn_unused_configs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-disallow_untyped_defs = true
-no_implicit_optional = true
-check_untyped_defs = true
-show_error_codes = true
-files = "src"
-explicit_package_bases = true
-mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
-namespace_packages = true
 
 [tool.towncrier]
 package = "ansys.openapi.common"
