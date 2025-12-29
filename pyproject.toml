@@ -96,6 +96,7 @@ exclude = ["doc/source"]
 
 [tool.ty.src]
 include = ["src"]
+exclude = ["tests", "doc"]
 
 [tool.coverage.run]
 omit = [
