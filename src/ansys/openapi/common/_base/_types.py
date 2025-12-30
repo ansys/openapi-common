@@ -22,8 +22,8 @@
 
 import abc
 import datetime
-from enum import Enum
 import pprint
+from enum import Enum
 from typing import Any, Dict, List, Literal, Mapping, Optional, Tuple, Union
 
 import requests
@@ -65,16 +65,12 @@ class ModelBase(metaclass=abc.ABCMeta):
         for attr in self.swagger_types.keys():
             value = getattr(self, attr)
             if isinstance(value, list):
-                result[attr] = [
-                    item.to_dict() if hasattr(item, "to_dict") else item for item in value
-                ]
+                result[attr] = [item.to_dict() if hasattr(item, "to_dict") else item for item in value]
             elif hasattr(value, "to_dict"):
                 result[attr] = value.to_dict()
             elif isinstance(value, dict):
                 result[attr] = {
-                    item_key: (
-                        item_value.to_dict() if hasattr(item_value, "to_dict") else item_value
-                    )
+                    item_key: (item_value.to_dict() if hasattr(item_value, "to_dict") else item_value)
                     for item_key, item_value in value.items()
                 }  # type: ignore
             elif isinstance(value, Enum):

@@ -22,12 +22,13 @@
 
 import datetime
 import hashlib
-from enum import Enum
 import json
 import mimetypes
 import os
 import re
 import tempfile
+import warnings
+from enum import Enum
 from io import BytesIO, IOBase
 from types import ModuleType
 from typing import (
@@ -43,10 +44,9 @@ from typing import (
     Union,
 )
 from urllib.parse import quote
-import warnings
 
-from dateutil.parser import parse
 import requests
+from dateutil.parser import parse
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException, UndefinedObjectWarning
@@ -149,9 +149,7 @@ class ApiClient(ApiClientBase):
         header_params: Union[Dict[str, Union[str, int]], None] = None,
         body: Optional[Any] = None,
         post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[
-            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
-        ] = None,
+        files: Optional[Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]] = None,
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
@@ -163,15 +161,11 @@ class ApiClient(ApiClientBase):
         header_params = header_params or {}
         if header_params:
             header_params_sanitized = self.sanitize_for_serialization(header_params)
-            header_params = dict(
-                self.parameters_to_tuples(header_params_sanitized, collection_formats)
-            )
+            header_params = dict(self.parameters_to_tuples(header_params_sanitized, collection_formats))
 
         # path parameters
         if path_params:
-            resource_path = self.__handle_path_params(
-                resource_path, path_params, collection_formats
-            )
+            resource_path = self.__handle_path_params(resource_path, path_params, collection_formats)
 
         # query parameters
         query_params_str = ""
@@ -308,9 +302,7 @@ class ApiClient(ApiClientBase):
 
         return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
 
-    def deserialize(
-        self, response: requests.Response, response_type: Optional[str]
-    ) -> DeserializedType:
+    def deserialize(self, response: requests.Response, response_type: Optional[str]) -> DeserializedType:
         """Deserialize the response into an object.
 
         Based on the type of response, the appropriate object is created for use.
@@ -388,24 +380,21 @@ class ApiClient(ApiClientBase):
                 "the raw data as a dictionary. Check your OpenAPI definition and ensure "
                 "all types are fully defined.",
                 UndefinedObjectWarning,
+                stacklevel=2,
             )
             return data
 
         list_match = self.LIST_MATCH_REGEX.match(klass_name)
         if list_match is not None:
             if not isinstance(data, list):
-                raise TypeError(
-                    f"Expected list for deserializing to {klass_name}, got {type(data)}"
-                )
+                raise TypeError(f"Expected list for deserializing to {klass_name}, got {type(data)}")
             sub_kls = list_match.group(1)
             return [self.__deserialize(sub_data, sub_kls) for sub_data in data]
 
         dict_match = self.DICT_MATCH_REGEX.match(klass_name)
         if dict_match is not None:
             if not isinstance(data, dict):
-                raise TypeError(
-                    f"Expected dict for deserializing to {klass_name}, got {type(data)}"
-                )
+                raise TypeError(f"Expected dict for deserializing to {klass_name}, got {type(data)}")
             sub_kls = dict_match.group(2)
             return {k: self.__deserialize(v, sub_kls) for k, v in data.items()}
 
@@ -413,21 +402,15 @@ class ApiClient(ApiClientBase):
             klass = self.NATIVE_TYPES_MAPPING[klass_name]
             if klass in self.PRIMITIVE_TYPES:
                 if not isinstance(data, (str, int, float, bool, bytes)):
-                    raise TypeError(
-                        f"Expected primitive type for deserializing to {klass_name}, got {type(data)}"
-                    )
+                    raise TypeError(f"Expected primitive type for deserializing to {klass_name}, got {type(data)}")
                 return self.__deserialize_primitive(data, klass)
             elif klass == datetime.date:
                 if not isinstance(data, str):
-                    raise TypeError(
-                        f"Expected string for deserializing to {klass_name}, got {type(data)}"
-                    )
+                    raise TypeError(f"Expected string for deserializing to {klass_name}, got {type(data)}")
                 return self.__deserialize_date(data)
             elif klass == datetime.datetime:
                 if not isinstance(data, str):
-                    raise TypeError(
-                        f"Expected string for deserializing to {klass_name}, got {type(data)}"
-                    )
+                    raise TypeError(f"Expected string for deserializing to {klass_name}, got {type(data)}")
                 return self.__deserialize_datetime(data)
 
         klass = self.models[klass_name]
@@ -435,9 +418,7 @@ class ApiClient(ApiClientBase):
             return klass(data)
         else:
             if not isinstance(data, (dict, str)):
-                raise TypeError(
-                    f"Expected dict or string for deserializing to {klass_name}, got {type(data)}"
-                )
+                raise TypeError(f"Expected dict or string for deserializing to {klass_name}, got {type(data)}")
             return self.__deserialize_model(data, klass)
 
     def call_api(
@@ -520,9 +501,7 @@ class ApiClient(ApiClientBase):
         url: str,
         query_params: Optional[str] = None,
         headers: Optional[Dict] = None,
-        post_params: Optional[
-            Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]
-        ] = None,
+        post_params: Optional[Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]] = None,
         body: Optional[Any] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
@@ -618,9 +597,7 @@ class ApiClient(ApiClientBase):
                 data=body,
             )
         else:
-            raise ValueError(
-                "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
-            )
+            raise ValueError("http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`.")
 
     @staticmethod
     def parameters_to_tuples(
@@ -661,9 +638,7 @@ class ApiClient(ApiClientBase):
     @staticmethod
     def prepare_post_parameters(
         post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[
-            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
-        ] = None,
+        files: Optional[Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]] = None,
     ) -> Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]:
         """Build form parameters.
 
@@ -849,7 +824,7 @@ class ApiClient(ApiClientBase):
             raise ApiException(
                 status_code=0,
                 reason_phrase=f"Failed to parse `{value}` as date object",
-            )
+            ) from None
 
     @staticmethod
     def __deserialize_datetime(value: str) -> datetime.datetime:
@@ -866,11 +841,9 @@ class ApiClient(ApiClientBase):
             raise ApiException(
                 status_code=0,
                 reason_phrase=f"Failed to parse `{value}` as datetime object",
-            )
+            ) from None
 
-    def __deserialize_model(
-        self, data: Union[Dict, str], klass: Type[ModelBase]
-    ) -> Union[ModelBase, Dict, str]:
+    def __deserialize_model(self, data: Union[Dict, str], klass: Type[ModelBase]) -> Union[ModelBase, Dict, str]:
         """Deserialize model representation to model.
 
         Given a model type and the serialized data, deserialize into an instance of the model class.
@@ -893,21 +866,13 @@ class ApiClient(ApiClientBase):
         kwargs = {}
         if klass.swagger_types is not None:
             for attr, attr_type in klass.swagger_types.items():
-                if (
-                    data is not None
-                    and klass.attribute_map[attr] in data
-                    and isinstance(data, (list, dict))
-                ):
+                if data is not None and klass.attribute_map[attr] in data and isinstance(data, (list, dict)):
                     value = data[klass.attribute_map[attr]]
                     kwargs[attr] = self.__deserialize(value, attr_type)
 
         instance = klass(**kwargs)
 
-        if (
-            isinstance(instance, dict)
-            and klass.swagger_types is not None
-            and isinstance(data, dict)
-        ):
+        if isinstance(instance, dict) and klass.swagger_types is not None and isinstance(data, dict):
             for key, value in data.items():
                 if key not in klass.swagger_types:
                     instance[key] = value

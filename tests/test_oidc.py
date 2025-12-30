@@ -24,11 +24,11 @@ import json
 from unittest.mock import MagicMock, Mock
 from urllib.parse import parse_qs
 
-from covertable import make
 import pytest
 import requests
-from requests_auth import OAuth2
 import requests_mock
+from covertable import make
+from requests_auth import OAuth2
 
 from ansys.openapi.common import ApiClientFactory
 from ansys.openapi.common._oidc import OIDCSessionFactory
@@ -80,11 +80,7 @@ def test_no_bearer_throws(authenticate_parsing_fixture):
 @pytest.mark.parametrize("missing_argument", REQUIRED_HEADERS.keys())
 def test_missing_parameters_throws(authenticate_parsing_fixture, missing_argument):
     response = authenticate_parsing_fixture
-    pairs = [
-        "=".join([k, '"{}"'.format(v)])
-        for k, v in REQUIRED_HEADERS.items()
-        if k != missing_argument
-    ]
+    pairs = ["=".join([k, '"{}"'.format(v)]) for k, v in REQUIRED_HEADERS.items() if k != missing_argument]
     response.headers["WWW-Authenticate"] = "Bearer {0}".format(", ".join(pairs))
     exception_info = try_parse_and_assert_failed(response)
     assert missing_argument in str(exception_info.value)
@@ -173,9 +169,7 @@ def test_multiple_missing_well_known_parameters_throws():
             assert header_value in str(exception_info.value)
 
 
-@pytest.mark.parametrize(
-    "accept, content_type", make([[None, "application/xml"], [None, "application/xml"]])
-)
+@pytest.mark.parametrize("accept, content_type", make([[None, "application/xml"], [None, "application/xml"]]))
 def test_override_idp_configuration(accept, content_type):
     configuration = {}
     if accept:
@@ -208,9 +202,7 @@ def test_setting_access_token_sets_access_token():
     expected_header = f"Bearer {example_token}"
     mock_factory = Mock()
     mock_factory._authorized_session = requests.Session()
-    session = OIDCSessionFactory.get_session_with_access_token(
-        mock_factory, access_token=example_token
-    )
+    session = OIDCSessionFactory.get_session_with_access_token(mock_factory, access_token=example_token)
 
     assert session.headers["Authorization"] == expected_header
 
@@ -235,9 +227,7 @@ def test_invalid_refresh_token_throws():
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
     redirect_uri = "https://www.example.com/login/"
-    authenticate_header = (
-        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
-    )
+    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",

@@ -51,9 +51,7 @@ def test_defaults():
 
 
 def test_cert_path_returns_str():
-    output = SessionConfiguration(
-        client_cert_path=CLIENT_CERT_PATH
-    ).get_configuration_for_requests()
+    output = SessionConfiguration(client_cert_path=CLIENT_CERT_PATH).get_configuration_for_requests()
     assert output["cert"] == CLIENT_CERT_PATH
 
 

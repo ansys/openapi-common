@@ -19,10 +19,10 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from collections import OrderedDict
 import http.cookiejar
-from itertools import chain
 import tempfile
+from collections import OrderedDict
+from itertools import chain
 from typing import (
     Any,
     Dict,
@@ -76,8 +76,8 @@ class CaseInsensitiveOrderedDict(OrderedDict[KT, VT]):
         mapping: Iterable[tuple[KT, VT]] = (), **kwargs: VT | None
     ) -> Generator[tuple[KT, VT], Any, None]:
         if hasattr(mapping, "items"):
-            mapping = getattr(mapping, "items")()
-        return ((k.lower(), v) for k, v in chain(mapping, getattr(kwargs, "items")()))
+            mapping = mapping.items()
+        return ((k.lower(), v) for k, v in chain(mapping, kwargs.items()))
 
     def __init__(self, mapping: Iterable[tuple[KT, VT]] = (), **kwargs: VT) -> None:
         super().__init__(self._process_args(mapping, **kwargs))
@@ -123,15 +123,11 @@ class CaseInsensitiveOrderedDict(OrderedDict[KT, VT]):
     @overload
     def update(self, m: SupportsKeysAndGetItem[KT, VT], /) -> None: ...
     @overload
-    def update(
-        self: SupportsGetItem[str, VT], m: SupportsKeysAndGetItem[str, VT], /, **kwargs: VT
-    ) -> None: ...
+    def update(self: SupportsGetItem[str, VT], m: SupportsKeysAndGetItem[str, VT], /, **kwargs: VT) -> None: ...
     @overload
     def update(self, m: Iterable[tuple[KT, VT]], /) -> None: ...
     @overload
-    def update(
-        self: SupportsGetItem[str, VT], m: Iterable[tuple[str, VT]], /, **kwargs: VT
-    ) -> None: ...
+    def update(self: SupportsGetItem[str, VT], m: Iterable[tuple[str, VT]], /, **kwargs: VT) -> None: ...
     @overload
     def update(self: SupportsGetItem[str, VT], **kwargs: VT) -> None: ...
 
@@ -151,15 +147,11 @@ class CaseInsensitiveOrderedDict(OrderedDict[KT, VT]):
 
     @classmethod
     @overload
-    def fromkeys(
-        cls, iterable: Iterable[KT], value: None = None
-    ) -> "CaseInsensitiveOrderedDict[KT, Any | None]": ...
+    def fromkeys(cls, iterable: Iterable[KT], value: None = None) -> "CaseInsensitiveOrderedDict[KT, Any | None]": ...
 
     @classmethod
     @overload
-    def fromkeys(
-        cls, iterable: Iterable[KT], value: VT
-    ) -> "CaseInsensitiveOrderedDict[KT, VT]": ...
+    def fromkeys(cls, iterable: Iterable[KT], value: VT) -> "CaseInsensitiveOrderedDict[KT, VT]": ...
 
     @classmethod
     def fromkeys(
@@ -168,9 +160,7 @@ class CaseInsensitiveOrderedDict(OrderedDict[KT, VT]):
         v: Optional[VT] = None,
     ) -> "CaseInsensitiveOrderedDict[KT, VT]":
         """Override fromkeys to use lower-case keys."""
-        return cast(
-            "CaseInsensitiveOrderedDict[KT, VT]", super().fromkeys((k.lower() for k in keys), v)
-        )
+        return cast("CaseInsensitiveOrderedDict[KT, VT]", super().fromkeys((k.lower() for k in keys), v))
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
@@ -181,8 +171,8 @@ class Singleton(type):
     """
     Metaclass that adds Singleton behaviour.
 
-    When derived classes are created for the first time, they are added to the ``._instances`` property. Further instances of the
-    class will fetch the existing instance, rather than creating a new one.
+    When derived classes are created for the first time, they are added to the ``._instances`` property. Further
+    instances of the class will fetch the existing instance, rather than creating a new one.
     """
 
     _instances: Dict[type, object] = {}
@@ -232,7 +222,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         try:
             parsed_value = self.auth_parser.parse_string(value, parse_all=True)
         except pp.ParseException as exception_info:
-            raise ValueError("Failed to parse value").with_traceback(exception_info.__traceback__)
+            raise ValueError("Failed to parse value") from exception_info
         output = CaseInsensitiveOrderedDict({})
         for scheme in parsed_value.schemes:
             output[scheme[0]] = AuthenticateHeaderParser._render_options(scheme)
@@ -247,9 +237,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         if isinstance(scheme[1], str):
             return scheme[1]
         scheme_options = scheme[1:]
-        return CaseInsensitiveOrderedDict(
-            ((option_pair[0], option_pair[1]) for option_pair in scheme_options)
-        )
+        return CaseInsensitiveOrderedDict(((option_pair[0], option_pair[1]) for option_pair in scheme_options))
 
 
 def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
@@ -422,9 +410,7 @@ class SessionConfiguration:
             elif isinstance(verify, bool):
                 new.verify_ssl = verify
             else:
-                raise ValueError(
-                    f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'."
-                )
+                raise ValueError(f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'.")
         if configuration_dict["cookies"] is not None:
             new.cookies = configuration_dict["cookies"]
         if configuration_dict["proxies"] is not None:
@@ -456,6 +442,4 @@ def generate_user_agent(package_name: str, package_version: str) -> str:
     python_implementation = platform.python_implementation()
     python_version = platform.python_version()
     os_version = platform.platform()
-    return (
-        f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"
-    )
+    return f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"

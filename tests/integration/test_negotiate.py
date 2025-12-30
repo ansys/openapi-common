@@ -20,14 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from multiprocessing import Process
 import sys
+from multiprocessing import Process
 from time import sleep
 
-from fastapi import FastAPI
 import pytest
-from starlette.requests import Request
 import uvicorn
+from fastapi import FastAPI
+from starlette.requests import Request
 
 from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
 from tests.integration.common import (
