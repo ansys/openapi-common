@@ -29,6 +29,7 @@ from typing import (
     Generator,
     Iterable,
     List,
+    Mapping,
     Optional,
     Protocol,
     Tuple,
@@ -73,9 +74,10 @@ class CaseInsensitiveOrderedDict(OrderedDict[KT, VT]):
 
     @staticmethod
     def _process_args(
-        mapping: Iterable[tuple[KT, VT]] = (), **kwargs: VT | None
-    ) -> Generator[tuple[KT, VT], Any, None]:
+        mapping: Iterable[tuple[KT, VT]] | Mapping[KT, VT] = (), **kwargs: VT
+    ) -> Generator[tuple[str, VT], None, None]:
         if hasattr(mapping, "items"):
+            mapping = cast(Mapping[KT, VT], mapping)
             mapping = mapping.items()
         return ((k.lower(), v) for k, v in chain(mapping, kwargs.items()))
 
