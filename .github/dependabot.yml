@@ -6,6 +6,9 @@
 version: 2
 updates:
   - package-ecosystem: "pip" # See documentation for possible values
+    cooldown:
+      default-days: 5
+      semver-patch-days: 3
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
@@ -14,6 +17,9 @@ updates:
       - "dependencies"
 
   - package-ecosystem: "github-actions"
+    cooldown:
+      default-days: 5
+      semver-patch-days: 3
     directory: "/"
     schedule:
       interval: "weekly"
