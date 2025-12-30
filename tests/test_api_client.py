@@ -21,13 +21,14 @@
 # SOFTWARE.
 
 import datetime
+import io
 import json
 import os
 from pathlib import Path
 import secrets
 import sys
 import tempfile
-from typing import IO, Dict, Iterable, List, Tuple, Union
+from typing import IO, Dict, Iterable, List, Tuple
 import uuid
 
 import pytest
@@ -1447,47 +1448,65 @@ class TestStaticMethods:
         for text_parameter in text_parameters:
             assert text_parameter in output
 
-    @staticmethod
-    def _check_file_contents(
-        output: Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]],
-        file_count: int,
-        file_names: Iterable[str],
-        file_contents: Iterable[bytes],
-    ):
-        assert len(list(output)) == file_count
-
-        file_tuples = [parameter[1] for parameter in output if parameter[0] == "post_body"]
-        for file_name, file_content in zip(file_names, file_contents):
-            matched_parameter = [
-                entry for entry in file_tuples if entry[0] == os.path.basename(file_name)
-            ]
-            assert len(matched_parameter) == 1
-            assert matched_parameter[0][1] == file_content
-            assert matched_parameter[0][2] is not None
-
     @pytest.mark.parametrize("file_parameter_count", (0, 1, 2))
-    def test_prepare_post_parameters_with_file_names(self, file_context, file_parameter_count):
+    def test_prepare_post_parameters_with_file_names(
+        self, mocker, file_context, file_parameter_count
+    ):
         file_names, file_contents = file_context(file_parameter_count)
         file_dict = {"post_body": file_names}
 
-        output = ApiClient.prepare_post_parameters(None, file_dict)
-
-        TestStaticMethods._check_file_contents(
-            output, file_parameter_count, file_names, file_contents
+        mock_process_file = mocker.patch.object(
+            ApiClient, "_process_file", return_value=("filename", "content", "mimetype")
         )
+
+        output = list(ApiClient.prepare_post_parameters(None, file_dict))
+
+        assert len(output) == file_parameter_count
+        assert mock_process_file.call_count == file_parameter_count
 
     @pytest.mark.parametrize("file_parameter_count", (1, 2, 3))
     def test_prepare_post_parameters_with_file_handles(
-        self, opened_file_context, file_parameter_count
+        self, mocker, opened_file_context, file_parameter_count
     ):
         file_handles, file_names, file_contents = opened_file_context(file_parameter_count)
         file_dict = {"post_body": file_handles}
 
-        output = ApiClient.prepare_post_parameters(None, file_dict)
-
-        TestStaticMethods._check_file_contents(
-            output, file_parameter_count, file_names, file_contents
+        mock_process_file = mocker.patch.object(
+            ApiClient, "_process_file", return_value=("filename", "content", "mimetype")
         )
+
+        output = list(ApiClient.prepare_post_parameters(None, file_dict))
+
+        assert len(output) == file_parameter_count
+        assert mock_process_file.call_count == file_parameter_count
+        for handle in file_handles:
+            mock_process_file.assert_any_call(handle)
+
+
+class TestProcessFile:
+    """Test the _process_file static method on the ApiClient class."""
+
+    class NamedBytesIO(io.BytesIO):
+        """BytesIO with a settable name attribute for testing."""
+
+        def __init__(self, content: bytes, name: str):
+            super().__init__(content)
+            self._name = name
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+    class NamedStringIO(io.StringIO):
+        """StringIO with a settable name attribute for testing."""
+
+        def __init__(self, content: str, name: str):
+            super().__init__(content)
+            self._name = name
+
+        @property
+        def name(self) -> str:
+            return self._name
 
     @pytest.mark.parametrize(
         ("file_name", "mime_type"),
@@ -1500,6 +1519,7 @@ class TestStaticMethods:
         ],
     )
     def test_process_file(self, file_name: str, mime_type: str):
+        """Test that real files have correct MIME type validation."""
         if sys.platform == "win32" and file_name == "test.csv":
             pytest.skip("Excel interferes with CSV mime type detection on windows")
         file_path = Path(__file__).parent / "files" / file_name
@@ -1507,3 +1527,118 @@ class TestStaticMethods:
             filename, _, mimetype = ApiClient._process_file(fp)
             assert filename == file_name
             assert mimetype == mime_type
+
+    def test_process_file_buffered_reader(self):
+        """Test with a binary, buffered reader (e.g., from open(file, 'rb'))."""
+        content = b"buffered reader content"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            with open(temp_file_path, "rb") as buffered_reader:
+                assert isinstance(buffered_reader, io.BufferedReader)
+                filename, file_data, mimetype = ApiClient._process_file(buffered_reader)
+                assert filename == os.path.basename(temp_file_path)
+                assert file_data == content
+                assert mimetype == "application/octet-stream"
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_process_file_fileio(self):
+        """Test with a binary, unbuffered reader (e.g., io.FileIO)."""
+        content = secrets.token_bytes(32)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            with io.FileIO(temp_file_path, "r") as file_io:
+                filename, file_data, mimetype = ApiClient._process_file(file_io)
+                assert filename == os.path.basename(temp_file_path)
+                assert file_data == content
+                assert mimetype == "application/octet-stream"
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_process_file_textiowrapper(self):
+        """Test with a text, buffered reader (e.g., from open(file, 'r'))."""
+        content = "text content for wrapper"
+        with tempfile.NamedTemporaryFile(
+            mode="w", delete=False, suffix=".txt", encoding="utf-8"
+        ) as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            with open(temp_file_path, "r", encoding="utf-8") as text_reader:
+                assert isinstance(text_reader, io.TextIOWrapper)
+                filename, file_data, mimetype = ApiClient._process_file(text_reader)
+                assert filename == os.path.basename(temp_file_path)
+                assert file_data == content
+                assert mimetype == "text/plain"
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_process_file_bytesio_with_name(self):
+        """Test with an in-memory binary buffer with a name."""
+        content = b"some binary data"
+        file_name = "test.bin"
+        bytes_io = self.NamedBytesIO(content, file_name)
+
+        filename, file_data, mimetype = ApiClient._process_file(bytes_io)
+
+        assert filename == file_name
+        assert file_data == content
+        assert mimetype == "application/octet-stream"
+
+    def test_process_file_bytesio_without_name(self):
+        """Test with an in-memory binary buffer without a name."""
+        content = b"some other binary data"
+        bytes_io = io.BytesIO(content)
+
+        filename, file_data, mimetype = ApiClient._process_file(bytes_io)
+
+        import hashlib
+
+        expected_filename = hashlib.sha256(content).hexdigest()
+        assert filename == expected_filename
+        assert file_data == content
+        assert mimetype == "application/octet-stream"
+
+    def test_process_file_stringio_with_name(self):
+        """Test with an in-memory text buffer with a name."""
+        content = "some text data"
+        file_name = "test.txt"
+        string_io = self.NamedStringIO(content, file_name)
+
+        filename, file_data, mimetype = ApiClient._process_file(string_io)
+
+        assert filename == file_name
+        assert file_data == content
+        assert mimetype == "text/plain"
+
+    def test_process_file_stringio_without_name(self):
+        """Test with an in-memory text buffer without a name."""
+        content = "some other text data"
+        string_io = io.StringIO(content)
+
+        filename, file_data, mimetype = ApiClient._process_file(string_io)
+
+        import hashlib
+
+        expected_filename = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert filename == expected_filename
+        assert file_data == content
+        assert mimetype == "text/plain"
+
+    def test_process_file_resets_seek(self):
+        """Test that _process_file reads from the beginning of the stream."""
+        content = b"seekable content"
+        file_name = "seek.txt"
+        bytes_io = self.NamedBytesIO(content, file_name)
+        bytes_io.read(4)  # move cursor
+
+        _, file_data, _ = ApiClient._process_file(bytes_io)
+
+        assert file_data == content

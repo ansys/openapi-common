@@ -148,8 +148,7 @@ class _Unset:
     def __bool__() -> Literal[False]:
         return False
 
-    @staticmethod
-    def __repr__() -> Literal["<Unset>"]:
+    def __repr__(self) -> Literal["<Unset>"]:
         return "<Unset>"
 
 

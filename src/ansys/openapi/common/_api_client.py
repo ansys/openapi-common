@@ -21,17 +21,18 @@
 # SOFTWARE.
 
 import datetime
+import hashlib
 from enum import Enum
 import json
 import mimetypes
 import os
 import re
 import tempfile
+from io import BytesIO, IOBase
 from types import ModuleType
 from typing import (
     IO,
     Any,
-    Callable,
     Dict,
     Iterable,
     List,
@@ -40,7 +41,6 @@ from typing import (
     Tuple,
     Type,
     Union,
-    cast,
 )
 from urllib.parse import quote
 import warnings
@@ -685,23 +685,40 @@ class ApiClient(ApiClientBase):
             for parameter, file_entry in files.items():
                 if not file_entry:
                     continue
-                file_names = file_entry if isinstance(file_entry, list) else [file_entry]
-                for file_name in file_names:
-                    if hasattr(file_name, "read"):
-                        param = ApiClient._process_file(cast(IO, file_name))
+                if isinstance(file_entry, (str, bytes, IOBase, IO)):
+                    file_items = [file_entry]
+                else:
+                    file_items = file_entry
+                for file_item in file_items:
+                    if isinstance(file_item, IO) or isinstance(file_item, IOBase):
+                        param = ApiClient._process_file(file_item)
                         params.append((parameter, param))
-                    else:
-                        with open(file_name, "rb") as f:
-                            param = ApiClient._process_file(f)
-                            params.append((parameter, param))
+                        continue
+                    if isinstance(file_item, bytes):
+                        param = ApiClient._process_file(BytesIO(file_item))
+                        params.append((parameter, param))
+                        continue
+                    with open(file_item, mode="rb") as f:
+                        param = ApiClient._process_file(f)
+                        params.append((parameter, param))
 
         return params
 
     @staticmethod
-    def _process_file(fp: IO) -> Tuple[str, Union[str, bytes], str]:
-        filename = os.path.basename(fp.name)
+    def _process_file(fp: IO | IOBase) -> Tuple[str, Union[str, bytes], str]:
+        if fp.seekable():
+            fp.seek(0)
         file_data = fp.read()
-        mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+        mimetype = "application/octet-stream"
+        if hasattr(fp, "name") and fp.name:
+            raw_filename = str(fp.name)
+            filename = os.path.basename(raw_filename)
+            mimetype = mimetypes.guess_type(raw_filename)[0] or "application/octet-stream"
+        else:
+            hash_input = file_data.encode("utf-8") if isinstance(file_data, str) else file_data
+            filename = hashlib.sha256(hash_input).hexdigest()
+            if isinstance(file_data, str):
+                mimetype = "text/plain"
         return filename, file_data, mimetype
 
     @staticmethod
@@ -789,9 +806,7 @@ class ApiClient(ApiClientBase):
         return path
 
     @staticmethod
-    def __deserialize_primitive(
-        data: PrimitiveType, klass: Callable[[PrimitiveType], PrimitiveType]
-    ) -> PrimitiveType:
+    def __deserialize_primitive(data: PrimitiveType, klass: Type[PrimitiveType]) -> PrimitiveType:
         """Deserialize to the primitive type.
 
         Parameters
@@ -897,9 +912,14 @@ class ApiClient(ApiClientBase):
                 if key not in klass.swagger_types:
                     instance[key] = value
         try:
-            klass_name = instance.get_real_child_model(data)  # type: ignore[arg-type]
+            if not isinstance(data, dict):
+                raise NotImplementedError
+            klass_name = instance.get_real_child_model(data)
             if klass_name:
-                instance = self.__deserialize(data, klass_name)  # type: ignore[assignment]
+                subklass = self.models[klass_name]
+                if isinstance(subklass, type(Enum)):
+                    raise NotImplementedError
+                instance = self.__deserialize_model(data, subklass)
         except NotImplementedError:
             pass
 
