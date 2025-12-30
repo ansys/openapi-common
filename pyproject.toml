@@ -88,15 +88,29 @@ linux-kerberos = [
 packages = ["src/ansys"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 exclude = ["doc/source"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "B", "B9", "D", "I"]
+ignore = ["B024"]
 
 [tool.ruff.lint.per-file-ignores]
 # Ignore `F401` (unused imports) in all `__init__.py` files.
 "__init__.py" = ["F401"]
+"tests/*" = ["D", "E501"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "numpy"
+
+[tool.ruff.lint.flake8-bugbear]
+# Allow default arguments like, e.g., `data: List[str] = fastapi.Query(None)`.
+extend-immutable-calls = ["fastapi.Depends"]
+
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 16. High value set due to the complexity of
+# the deserialization code. Would be worth trying to refactor it to reduce this level.
+max-complexity = 16
 
 [tool.ty.src]
 include = ["src"]
