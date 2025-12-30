@@ -23,10 +23,10 @@
 from multiprocessing import Process
 from time import sleep
 
-from fastapi import Depends, FastAPI, Request
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pytest
 import uvicorn
+from fastapi import Depends, FastAPI, Request
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from ansys.openapi.common import (
     ApiClientFactory,
@@ -87,24 +87,18 @@ def run_server():
 class BasicTestCases:
     def test_can_connect(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=auth_mode
-        ).connect()
+        _ = client_factory.with_credentials(TEST_USER, TEST_PASS, authentication_scheme=auth_mode).connect()
 
     def test_invalid_user_return_401(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
         with pytest.raises(ApiConnectionException) as exception_info:
-            _ = client_factory.with_credentials(
-                "eve", "password", authentication_scheme=auth_mode
-            ).connect()
+            _ = client_factory.with_credentials("eve", "password", authentication_scheme=auth_mode).connect()
         assert exception_info.value.response.status_code == 401
         assert "Unauthorized" in exception_info.value.response.reason
 
     def test_get_health_returns_200_ok(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=auth_mode
-        ).connect()
+        client = client_factory.with_credentials(TEST_USER, TEST_PASS, authentication_scheme=auth_mode).connect()
 
         resp = client.request("GET", TEST_URL + "/test_api")
         assert resp.status_code == 200
@@ -129,9 +123,7 @@ class BasicTestCases:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=auth_mode
-        ).connect()
+        client = client_factory.with_credentials(TEST_USER, TEST_PASS, authentication_scheme=auth_mode).connect()
         client.setup_client(models)
 
         response = client.call_api(

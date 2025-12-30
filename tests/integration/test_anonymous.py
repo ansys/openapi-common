@@ -23,9 +23,9 @@
 from multiprocessing import Process
 from time import sleep
 
-from fastapi import FastAPI
 import pytest
 import uvicorn
+from fastapi import FastAPI
 
 from ansys.openapi.common import ApiClientFactory, AuthenticationWarning, SessionConfiguration
 from tests.integration.common import (

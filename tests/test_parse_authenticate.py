@@ -70,7 +70,7 @@ def test_negotiate_with_token(test_input, expected):
     assert obtained == CaseInsensitiveOrderedDict(expected)
 
 
-@pytest.mark.parametrize("test_input, expected", zip(test_challenges, test_outcomes))
+@pytest.mark.parametrize("test_input, expected", zip(test_challenges, test_outcomes, strict=True))
 def test_multiple_challenges(test_input, expected):
     obtained = parse_authenticate(test_input)
     assert obtained == expected

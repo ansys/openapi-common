@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import Optional
 import urllib.parse
+from typing import Optional
 
 import keyring
 import requests
@@ -94,27 +94,19 @@ class OIDCSessionFactory:
         self._oauth_requests_session = initial_session
         set_session_kwargs(self._oauth_requests_session, self._idp_session_configuration)
 
-        self._well_known_parameters = self._fetch_and_parse_well_known(
-            self._authenticate_parameters["authority"]
-        )
+        self._well_known_parameters = self._fetch_and_parse_well_known(self._authenticate_parameters["authority"])
 
         self._add_api_audience_if_set()
 
         logger.info("Configuring session...")
-        scopes = (
-            self._authenticate_parameters["scope"]
-            if "scope" in self._authenticate_parameters
-            else []
-        )
+        scopes = self._authenticate_parameters["scope"] if "scope" in self._authenticate_parameters else []
 
         self._auth = OAuth2AuthorizationCodePKCE(
             authorization_url=self._well_known_parameters["authorization_endpoint"],
             token_url=self._well_known_parameters["token_endpoint"],
             redirect_uri_port=32284,
             audience=(
-                self._authenticate_parameters["apiAudience"]
-                if "apiAudience" in self._authenticate_parameters
-                else None
+                self._authenticate_parameters["apiAudience"] if "apiAudience" in self._authenticate_parameters else None
             ),
             client_id=self._authenticate_parameters["clientid"],
             scope=scopes,
@@ -166,7 +158,7 @@ class OIDCSessionFactory:
             state, token, expires_in, new_refresh_token = self._auth.refresh_token(refresh_token)
         except InvalidGrantRequest as excinfo:
             logger.debug(str(excinfo))
-            raise ValueError("The provided refresh token was invalid, please request a new token.")
+            raise ValueError("The provided refresh token was invalid, please request a new token.") from None
         # noinspection PyProtectedMember
         with OAuth2.token_cache._forbid_concurrent_missing_token_function_call:  # type: ignore[unused-ignore]
             # If we were provided with a new refresh token it's likely that the Identity
@@ -179,9 +171,7 @@ class OIDCSessionFactory:
         self._authorized_session.auth = self._auth
         return self._authorized_session
 
-    def get_session_with_stored_token(
-        self, token_name: str = "ansys-openapi-common-oidc"
-    ) -> requests.Session:
+    def get_session_with_stored_token(self, token_name: str = "ansys-openapi-common-oidc") -> requests.Session:
         """Create a :class:`OAuth2Session` object with a stored token.
 
         This method uses a token stored in the system keyring to authenticate the session. It requires a correctly
@@ -203,9 +193,7 @@ class OIDCSessionFactory:
 
         return self.get_session_with_provided_token(refresh_token=refresh_token)
 
-    def get_session_with_interactive_authorization(
-        self, login_timeout: int = 60
-    ) -> requests.Session:
+    def get_session_with_interactive_authorization(self, login_timeout: int = 60) -> requests.Session:
         """Create a :class:`OAuth2Session` object, authorizing the user via the system web browser.
 
         Parameters
@@ -237,12 +225,9 @@ class OIDCSessionFactory:
         authenticate_parameters = parse_authenticate(auth_header)
         if "bearer" not in authenticate_parameters:
             logger.debug(
-                "Detected authentication methods: "
-                + ", ".join([method for method in authenticate_parameters.keys()])
+                "Detected authentication methods: " + ", ".join([method for method in authenticate_parameters.keys()])
             )
-            raise ConnectionError(
-                "Unable to connect with OpenID Connect: not supported on this server."
-            )
+            raise ConnectionError("Unable to connect with OpenID Connect: not supported on this server.")
 
         mandatory_headers = ["redirecturi", "authority", "clientid"]
         missing_headers = []
@@ -254,8 +239,7 @@ class OIDCSessionFactory:
             if header_name not in bearer_parameters:
                 missing_headers.append(header_name)
         logger.debug(
-            "Detected bearer configuration headers: "
-            + ", ".join([parameter for parameter in bearer_parameters.keys()])
+            "Detected bearer configuration headers: " + ", ".join([parameter for parameter in bearer_parameters.keys()])
         )
 
         if len(missing_headers) > 1:
@@ -289,9 +273,7 @@ class OIDCSessionFactory:
         authority_response = self._oauth_requests_session.get(well_known_endpoint)
 
         logger.debug("Received configuration:")
-        oidc_configuration = CaseInsensitiveDict(
-            authority_response.json()
-        )  # type: CaseInsensitiveDict
+        oidc_configuration = CaseInsensitiveDict(authority_response.json())  # type: CaseInsensitiveDict
 
         mandatory_parameters = ["authorization_endpoint", "token_endpoint"]
         missing_headers = []

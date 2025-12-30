@@ -20,10 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from enum import Enum
 import os
-from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
 import warnings
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -126,9 +126,7 @@ class ApiClientFactory:
     _auth_header: "CaseInsensitiveOrderedDict"
     _configured: bool
 
-    def __init__(
-        self, api_url: str, session_configuration: Optional[SessionConfiguration] = None
-    ) -> None:
+    def __init__(self, api_url: str, session_configuration: Optional[SessionConfiguration] = None) -> None:
         self._session = requests.Session()
         self._api_url = api_url
         self._configured = False
@@ -143,12 +141,10 @@ class ApiClientFactory:
         self._session_configuration = session_configuration
 
         logger.debug(
-            f"Setting requests session parameter 'max_retries' "
-            f"with value '{self._session_configuration.retry_count}'"
+            f"Setting requests session parameter 'max_retries' with value '{self._session_configuration.retry_count}'"
         )
         logger.debug(
-            f"Setting requests session parameter 'timeout' "
-            f"with value '{self._session_configuration.request_timeout}'"
+            f"Setting requests session parameter 'timeout' with value '{self._session_configuration.request_timeout}'"
         )
 
         retry_strategy = Retry(
@@ -274,18 +270,11 @@ class ApiClientFactory:
             if self.__handle_initial_response(initial_response):
                 return self
             headers = self.__get_authenticate_header(initial_response)
-            logger.debug(
-                "Detected authentication methods: "
-                + ", ".join([method for method in headers.keys()])
-            )
+            logger.debug("Detected authentication methods: " + ", ".join([method for method in headers.keys()]))
         else:
             headers = CaseInsensitiveOrderedDict()
 
-        if (
-            "Negotiate" in headers
-            or "NTLM" in headers
-            or authentication_scheme == AuthenticationScheme.NTLM
-        ):
+        if "Negotiate" in headers or "NTLM" in headers or authentication_scheme == AuthenticationScheme.NTLM:
             if _platform_windows:
                 logger.debug("Attempting to connect with NTLM authentication...")
                 self._session.auth = HttpNtlmAuth(username, password)
@@ -337,9 +326,7 @@ class ApiClientFactory:
         if self.__handle_initial_response(initial_response):
             return self
         headers = self.__get_authenticate_header(initial_response)
-        logger.debug(
-            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
-        )
+        logger.debug("Detected authentication methods: " + ", ".join([method for method in headers.keys()]))
         if "Negotiate" in headers:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
@@ -412,9 +399,7 @@ class ApiClientFactory:
         else:
             raise ApiConnectionException(resp)
 
-    def __handle_initial_response(
-        self, initial_response: requests.Response
-    ) -> "Optional[ApiClientFactory]":
+    def __handle_initial_response(self, initial_response: requests.Response) -> "Optional[ApiClientFactory]":
         """Verify that an initial 401 response is returned if we expect to require authentication.
 
         If a 2XX response is returned, then all is well, but we will not use any authentication in
@@ -441,7 +426,8 @@ class ApiClientFactory:
                 AuthenticationWarning(
                     "Credentials were provided but server accepts anonymous "
                     "connections. Continuing without credentials."
-                )
+                ),
+                stacklevel=2,
             )
             logger.info("Connection successful.")
             self._configured = True
@@ -539,9 +525,7 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = self._session_factory.get_session_with_access_token(
-            access_token=access_token
-        )
+        self._client_factory._session = self._session_factory.get_session_with_access_token(access_token=access_token)
         self._client_factory._configured = True
         return self._client_factory
 
@@ -610,9 +594,7 @@ class OIDCSessionBuilder:
         """
         if self._session_factory is None:
             return self._client_factory
-        self._client_factory._session = (
-            self._session_factory.get_session_with_interactive_authorization(login_timeout)
-        )
+        self._client_factory._session = self._session_factory.get_session_with_interactive_authorization(login_timeout)
         self._client_factory._configured = True
         return self._client_factory
 

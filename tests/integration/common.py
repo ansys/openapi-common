@@ -45,7 +45,7 @@ def validate_user_principal(request: Request, valid_principal: str):
         else:
             raise HTTPException(status_code=403, detail="Forbidden")
     except KeyError:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+        raise HTTPException(status_code=401, detail="Unauthorized") from None
 
 
 def validate_user_basic(credentials: HTTPBasicCredentials) -> None:

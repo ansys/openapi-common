@@ -43,7 +43,9 @@ class ApiConnectionException(Exception):
     """
 
     def __init__(self, response: "requests.Response"):
-        exception_message = f"Request url '{response.url}' failed with reason {response.status_code}: {response.reason}."
+        exception_message = (
+            f"Request url '{response.url}' failed with reason {response.status_code}: {response.reason}."
+        )
         if response.text:
             exception_message += f"\n{response.text}"
         super().__init__(exception_message)

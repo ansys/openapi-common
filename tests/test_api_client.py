@@ -21,19 +21,20 @@
 # SOFTWARE.
 
 import datetime
+import io
 import json
 import os
-from pathlib import Path
 import secrets
 import sys
 import tempfile
-from typing import IO, Dict, Iterable, List, Tuple, Union
 import uuid
+from pathlib import Path
+from typing import IO, Dict, Iterable, List, Tuple
 
 import pytest
 import requests
-from requests.packages.urllib3.response import HTTPResponse
 import requests_mock
+from requests.packages.urllib3.response import HTTPResponse
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _FakeConnection, _IOReader
 
@@ -80,9 +81,7 @@ class TestParameterHandling:
         id_ = str(uuid.uuid4())
         name = "TestResource"
         multiple_path = "/resource/{id}/name/{name}"
-        result = self._client._ApiClient__handle_path_params(
-            multiple_path, {"id": id_, "name": name}, None
-        )
+        result = self._client._ApiClient__handle_path_params(multiple_path, {"id": id_, "name": name}, None)
         assert multiple_path.replace("{id}", id_).replace("{name}", name) == result
 
     def test_path_with_naughty_characters(self):
@@ -160,7 +159,7 @@ class TestSerialization:
         assert isinstance(serialized_list, list)
         assert len(serialized_list) == len(self._test_value_list)
         for value, source_value, type_ in zip(
-            serialized_list, self._test_value_list, self._test_value_types
+            serialized_list, self._test_value_list, self._test_value_types, strict=True
         ):
             assert isinstance(value, type_)
             assert value == source_value
@@ -170,14 +169,12 @@ class TestSerialization:
         serialized_tuple = self._client.sanitize_for_serialization(source_tuple)
         assert isinstance(serialized_tuple, tuple)
         assert len(serialized_tuple) == len(source_tuple)
-        for value, source_value, type_ in zip(
-            serialized_tuple, source_tuple, self._test_value_types
-        ):
+        for value, source_value, type_ in zip(serialized_tuple, source_tuple, self._test_value_types, strict=True):
             assert isinstance(value, type_)
             assert value == source_value
 
     def test_serialize_dict(self):
-        source_dict = {k.__name__: v for k, v in zip(self._test_value_types, self._test_value_list)}
+        source_dict = {k.__name__: v for k, v in zip(self._test_value_types, self._test_value_list, strict=True)}
         serialized_dict = self._client.sanitize_for_serialization(source_dict)
         assert isinstance(serialized_dict, dict)
         assert len(serialized_dict.keys()) == len(self._test_value_list)
@@ -282,9 +279,7 @@ class TestDeserialization:
     def test_deserialize_none(self):
         assert self._client._ApiClient__deserialize(None, "") is None
 
-    @pytest.mark.parametrize(
-        ("value", "type_"), (("foo", str), (int(2), int), (2.0, float), (True, bool))
-    )
+    @pytest.mark.parametrize(("value", "type_"), (("foo", str), (int(2), int), (2.0, float), (True, bool)))
     def test_deserialize_primitive(self, value, type_):
         type_ref = type_.__name__
         deserialized_primitive = self._client._ApiClient__deserialize(value, type_ref)
@@ -365,9 +360,7 @@ class TestDeserialization:
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
 
-    @pytest.mark.parametrize(
-        "value", [[("Boolean", False)], (("Boolean", False),), 1, 1.0, True, b"foo"]
-    )
+    @pytest.mark.parametrize("value", [[("Boolean", False)], (("Boolean", False),), 1, 1.0, True, b"foo"])
     def test_deserialize_model_with_incorrect_value_type_raises_type_error(self, value):
         from . import models
 
@@ -437,9 +430,7 @@ class TestDeserialization:
             (4, "ExampleEnum", "4 is not a valid ExampleEnum"),
         ],
     )
-    def test_deserialize_enums_raises_helpful_message_on_wrong_value(
-        self, value, target_enum, expected_error_msg
-    ):
+    def test_deserialize_enums_raises_helpful_message_on_wrong_value(self, value, target_enum, expected_error_msg):
         from . import models
 
         self._client.setup_client(models)
@@ -742,7 +733,7 @@ class TestRequestDispatch:
         self._transport = requests.Session()
         self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
 
-    @pytest.mark.parametrize(("verb", "method_call"), (zip(verbs, method_names)))
+    @pytest.mark.parametrize(("verb", "method_call"), (zip(verbs, method_names, strict=True)))
     def test_request_dispatch(self, mocker, verb, method_call):
         # TODO: Can we move the logic deciding which parameters must be provided into the test, rather than the
         #  function above?
@@ -785,9 +776,7 @@ class TestResponseHandling:
             content="OK".encode("utf-8"),
             headers={"Content-Type": "text/plain"},
         )
-        response, status_code, headers = self._client.call_api(
-            resource_path, method, response_type=None
-        )
+        response, status_code, headers = self._client.call_api(resource_path, method, response_type=None)
 
         assert response is None
         assert status_code == 200
@@ -876,9 +865,7 @@ class TestResponseHandling:
         )
 
         with pytest.raises(ApiException) as e:
-            _, _, _ = self._client.call_api(
-                resource_path, method, response_type_map=response_type_map
-            )
+            _, _, _ = self._client.call_api(resource_path, method, response_type_map=response_type_map)
 
         assert e.value.status_code == 404
         assert "Content-Type" in e.value.headers
@@ -922,9 +909,7 @@ class TestResponseHandling:
             headers={"Content-Type": "application/json"},
         )
         with pytest.raises(ApiException) as e:
-            _, _, _ = self._client.call_api(
-                resource_path, method, response_type_map=response_type_map
-            )
+            _, _, _ = self._client.call_api(resource_path, method, response_type_map=response_type_map)
         assert e.value.status_code == 500
         assert exception_text in e.value.body
         assert "Content-Type" in e.value.headers
@@ -1115,7 +1100,7 @@ class TestResponseHandling:
         file_contents_list = []
 
         def create_files_for_test(file_count: int) -> Tuple[List[str], List[bytes]]:
-            for file_index in range(0, file_count):
+            for _ in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
                 file_contents = secrets.token_bytes(256)
@@ -1274,7 +1259,7 @@ class TestMultipleResponseTypesHandling:
                 expected_url,
                 status_code=response_code,
             )
-            with pytest.raises(ApiException) as excinfo:
+            with pytest.raises(ApiException):
                 _ = self._client.call_api(
                     resource_path,
                     method,
@@ -1383,7 +1368,7 @@ class TestStaticMethods:
         def create_files_for_test(
             file_count: int,
         ) -> Tuple[Iterable[str], Iterable[bytes]]:
-            for file_index in range(0, file_count):
+            for _ in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
                 file_contents = secrets.token_bytes(32)
@@ -1407,7 +1392,7 @@ class TestStaticMethods:
         def create_files_for_test(
             file_count: int,
         ) -> Tuple[Iterable[IO], Iterable[str], Iterable[bytes]]:
-            for file_index in range(0, file_count):
+            for _ in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
                 file_contents = secrets.token_bytes(32)
@@ -1447,47 +1432,61 @@ class TestStaticMethods:
         for text_parameter in text_parameters:
             assert text_parameter in output
 
-    @staticmethod
-    def _check_file_contents(
-        output: Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]],
-        file_count: int,
-        file_names: Iterable[str],
-        file_contents: Iterable[bytes],
-    ):
-        assert len(list(output)) == file_count
-
-        file_tuples = [parameter[1] for parameter in output if parameter[0] == "post_body"]
-        for file_name, file_content in zip(file_names, file_contents):
-            matched_parameter = [
-                entry for entry in file_tuples if entry[0] == os.path.basename(file_name)
-            ]
-            assert len(matched_parameter) == 1
-            assert matched_parameter[0][1] == file_content
-            assert matched_parameter[0][2] is not None
-
     @pytest.mark.parametrize("file_parameter_count", (0, 1, 2))
-    def test_prepare_post_parameters_with_file_names(self, file_context, file_parameter_count):
+    def test_prepare_post_parameters_with_file_names(self, mocker, file_context, file_parameter_count):
         file_names, file_contents = file_context(file_parameter_count)
         file_dict = {"post_body": file_names}
 
-        output = ApiClient.prepare_post_parameters(None, file_dict)
-
-        TestStaticMethods._check_file_contents(
-            output, file_parameter_count, file_names, file_contents
+        mock_process_file = mocker.patch.object(
+            ApiClient, "_process_file", return_value=("filename", "content", "mimetype")
         )
 
+        output = list(ApiClient.prepare_post_parameters(None, file_dict))
+
+        assert len(output) == file_parameter_count
+        assert mock_process_file.call_count == file_parameter_count
+
     @pytest.mark.parametrize("file_parameter_count", (1, 2, 3))
-    def test_prepare_post_parameters_with_file_handles(
-        self, opened_file_context, file_parameter_count
-    ):
+    def test_prepare_post_parameters_with_file_handles(self, mocker, opened_file_context, file_parameter_count):
         file_handles, file_names, file_contents = opened_file_context(file_parameter_count)
         file_dict = {"post_body": file_handles}
 
-        output = ApiClient.prepare_post_parameters(None, file_dict)
-
-        TestStaticMethods._check_file_contents(
-            output, file_parameter_count, file_names, file_contents
+        mock_process_file = mocker.patch.object(
+            ApiClient, "_process_file", return_value=("filename", "content", "mimetype")
         )
+
+        output = list(ApiClient.prepare_post_parameters(None, file_dict))
+
+        assert len(output) == file_parameter_count
+        assert mock_process_file.call_count == file_parameter_count
+        for handle in file_handles:
+            mock_process_file.assert_any_call(handle)
+
+
+class TestProcessFile:
+    """Test the _process_file static method on the ApiClient class."""
+
+    class NamedBytesIO(io.BytesIO):
+        """BytesIO with a settable name attribute for testing."""
+
+        def __init__(self, content: bytes, name: str):
+            super().__init__(content)
+            self._name = name
+
+        @property
+        def name(self) -> str:
+            return self._name
+
+    class NamedStringIO(io.StringIO):
+        """StringIO with a settable name attribute for testing."""
+
+        def __init__(self, content: str, name: str):
+            super().__init__(content)
+            self._name = name
+
+        @property
+        def name(self) -> str:
+            return self._name
 
     @pytest.mark.parametrize(
         ("file_name", "mime_type"),
@@ -1500,6 +1499,7 @@ class TestStaticMethods:
         ],
     )
     def test_process_file(self, file_name: str, mime_type: str):
+        """Test that real files have correct MIME type validation."""
         if sys.platform == "win32" and file_name == "test.csv":
             pytest.skip("Excel interferes with CSV mime type detection on windows")
         file_path = Path(__file__).parent / "files" / file_name
@@ -1507,3 +1507,116 @@ class TestStaticMethods:
             filename, _, mimetype = ApiClient._process_file(fp)
             assert filename == file_name
             assert mimetype == mime_type
+
+    def test_process_file_buffered_reader(self):
+        """Test with a binary, buffered reader (e.g., from open(file, 'rb'))."""
+        content = b"buffered reader content"
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            with open(temp_file_path, "rb") as buffered_reader:
+                assert isinstance(buffered_reader, io.BufferedReader)
+                filename, file_data, mimetype = ApiClient._process_file(buffered_reader)
+                assert filename == os.path.basename(temp_file_path)
+                assert file_data == content
+                assert mimetype == "application/octet-stream"
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_process_file_fileio(self):
+        """Test with a binary, unbuffered reader (e.g., io.FileIO)."""
+        content = secrets.token_bytes(32)
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".bin") as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            with io.FileIO(temp_file_path, "r") as file_io:
+                filename, file_data, mimetype = ApiClient._process_file(file_io)
+                assert filename == os.path.basename(temp_file_path)
+                assert file_data == content
+                assert mimetype == "application/octet-stream"
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_process_file_textiowrapper(self):
+        """Test with a text, buffered reader (e.g., from open(file, 'r'))."""
+        content = "text content for wrapper"
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".txt", encoding="utf-8") as temp_file:
+            temp_file.write(content)
+            temp_file_path = temp_file.name
+
+        try:
+            with open(temp_file_path, "r", encoding="utf-8") as text_reader:
+                assert isinstance(text_reader, io.TextIOWrapper)
+                filename, file_data, mimetype = ApiClient._process_file(text_reader)
+                assert filename == os.path.basename(temp_file_path)
+                assert file_data == content
+                assert mimetype == "text/plain"
+        finally:
+            os.unlink(temp_file_path)
+
+    def test_process_file_bytesio_with_name(self):
+        """Test with an in-memory binary buffer with a name."""
+        content = b"some binary data"
+        file_name = "test.bin"
+        bytes_io = self.NamedBytesIO(content, file_name)
+
+        filename, file_data, mimetype = ApiClient._process_file(bytes_io)
+
+        assert filename == file_name
+        assert file_data == content
+        assert mimetype == "application/octet-stream"
+
+    def test_process_file_bytesio_without_name(self):
+        """Test with an in-memory binary buffer without a name."""
+        content = b"some other binary data"
+        bytes_io = io.BytesIO(content)
+
+        filename, file_data, mimetype = ApiClient._process_file(bytes_io)
+
+        import hashlib
+
+        expected_filename = hashlib.sha256(content).hexdigest()
+        assert filename == expected_filename
+        assert file_data == content
+        assert mimetype == "application/octet-stream"
+
+    def test_process_file_stringio_with_name(self):
+        """Test with an in-memory text buffer with a name."""
+        content = "some text data"
+        file_name = "test.txt"
+        string_io = self.NamedStringIO(content, file_name)
+
+        filename, file_data, mimetype = ApiClient._process_file(string_io)
+
+        assert filename == file_name
+        assert file_data == content
+        assert mimetype == "text/plain"
+
+    def test_process_file_stringio_without_name(self):
+        """Test with an in-memory text buffer without a name."""
+        content = "some other text data"
+        string_io = io.StringIO(content)
+
+        filename, file_data, mimetype = ApiClient._process_file(string_io)
+
+        import hashlib
+
+        expected_filename = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        assert filename == expected_filename
+        assert file_data == content
+        assert mimetype == "text/plain"
+
+    def test_process_file_resets_seek(self):
+        """Test that _process_file reads from the beginning of the stream."""
+        content = b"seekable content"
+        file_name = "seek.txt"
+        bytes_io = self.NamedBytesIO(content, file_name)
+        bytes_io.read(4)  # move cursor
+
+        _, file_data, _ = ApiClient._process_file(bytes_io)
+
+        assert file_data == content

@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from contextlib import nullcontext
-from functools import wraps
 import json
 import os
 import sys
+from contextlib import nullcontext
+from functools import wraps
 from urllib.parse import parse_qs
 
 import pytest
@@ -98,9 +98,7 @@ def test_can_connect_with_basic():
             status_code=200,
             request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
         )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD"
-        )
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(username="TEST_USER", password="PASSWORD")
 
 
 def test_can_connect_with_pre_emptive_basic():
@@ -164,9 +162,7 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
         pytest.param(
             AuthenticationScheme.NTLM,
             nullcontext(),
-            marks=pytest.mark.skipif(
-                sys.platform != "win32", reason="NTLM only available on Windows"
-            ),
+            marks=pytest.mark.skipif(sys.platform != "win32", reason="NTLM only available on Windows"),
         ),
     ],
 )
@@ -189,9 +185,7 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode, expect_warn
         AuthenticationScheme.BASIC,
         pytest.param(
             AuthenticationScheme.NTLM,
-            marks=pytest.mark.skipif(
-                sys.platform != "win32", reason="NTLM only available on Windows"
-            ),
+            marks=pytest.mark.skipif(sys.platform != "win32", reason="NTLM only available on Windows"),
         ),
     ],
 )
@@ -296,9 +290,7 @@ def test_can_connect_with_ntlm(mocker, auth_mode):
 
         configuration = SessionConfiguration()
         configuration.verify_ssl = False
-        _ = ApiClientFactory(
-            SERVICELAYER_URL, session_configuration=configuration
-        ).with_credentials(
+        _ = ApiClientFactory(SERVICELAYER_URL, session_configuration=configuration).with_credentials(
             username="IIS_Test",
             password="rosebud",
             authentication_scheme=auth_mode,
@@ -334,9 +326,7 @@ def test_can_connect_with_oidc_using_token():
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
-    authenticate_header = (
-        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
-    )
+    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",
@@ -384,10 +374,7 @@ def test_can_connect_with_oidc_using_token():
             request_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
         )
         session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
-            .with_token(refresh_token=refresh_token)
-            .connect()
+            ApiClientFactory(SECURE_SERVICELAYER_URL).with_oidc().with_token(refresh_token=refresh_token).connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
         assert resp.status_code == 200
@@ -398,9 +385,7 @@ def test_can_connect_with_oidc_using_refresh_token():
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     refresh_token = "RrRNWQCQok6sXRn8eAGY4QXus1zq8fk9ZfDN-BeWEmUes"
-    authenticate_header = (
-        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
-    )
+    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
     well_known_response = json.dumps(
         {
             "token_endpoint": f"{authority_url}token",
@@ -448,10 +433,7 @@ def test_can_connect_with_oidc_using_refresh_token():
             request_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
         )
         session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
-            .with_token(refresh_token=refresh_token)
-            .connect()
+            ApiClientFactory(SECURE_SERVICELAYER_URL).with_oidc().with_token(refresh_token=refresh_token).connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
         assert resp.status_code == 200
@@ -468,9 +450,7 @@ def test_can_connect_with_oidc_using_access_token():
             "authorization_endpoint": f"{authority_url}authorization",
         }
     )
-    authenticate_header = (
-        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
-    )
+    authenticate_header = f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
 
     with requests_mock.Mocker() as m:
         m.get(
@@ -489,10 +469,7 @@ def test_can_connect_with_oidc_using_access_token():
             request_headers={"Authorization": f"Bearer {access_token}"},
         )
         session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
-            .with_access_token(access_token=access_token)
-            .connect()
+            ApiClientFactory(SECURE_SERVICELAYER_URL).with_oidc().with_access_token(access_token=access_token).connect()
         )
         resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
         assert resp.status_code == 200
@@ -502,9 +479,7 @@ def test_neither_basic_nor_ntlm_throws():
     with requests_mock.Mocker() as m:
         m.get(SERVICELAYER_URL, status_code=401, headers={"WWW-Authenticate": "Bearer"})
         with pytest.raises(ConnectionError) as exception_info:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-                username="TEST_USER", password="PASSWORD"
-            )
+            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(username="TEST_USER", password="PASSWORD")
         assert "Unable to connect with credentials" in str(exception_info.value)
 
 

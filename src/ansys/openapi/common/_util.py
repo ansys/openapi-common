@@ -19,28 +19,51 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from collections import OrderedDict
 import http.cookiejar
-from itertools import chain
 import tempfile
+from collections import OrderedDict
+from itertools import chain
 from typing import (
     Any,
-    Collection,
     Dict,
+    Generator,
+    Iterable,
     List,
+    Mapping,
     Optional,
+    Protocol,
     Tuple,
     TypedDict,
+    TypeVar,
     Union,
     cast,
+    overload,
 )
 
 import pyparsing as pp
 import requests
 from requests.structures import CaseInsensitiveDict
 
+KT = TypeVar("KT", bound=str)
+VT = TypeVar("VT")
+_T = TypeVar("_T")
 
-class CaseInsensitiveOrderedDict(OrderedDict):
+
+class SupportsKeysAndGetItem(Protocol[KT, VT]):
+    """Protocol for objects that support .keys() and __getitem__()."""
+
+    def keys(self) -> Iterable[KT]: ...
+
+    def __getitem__(self, key: KT, /) -> VT: ...
+
+
+class SupportsGetItem(Protocol[KT, VT]):
+    """Protocol for objects that support __getitem__()."""
+
+    def __getitem__(self, key: KT, /) -> VT: ...
+
+
+class CaseInsensitiveOrderedDict(OrderedDict[KT, VT]):
     """Preserves order of insertion and is case-insensitive.
 
     This class is intended for use when parsing ``WWW-Authenticate`` headers where odd combinations of entries
@@ -50,56 +73,96 @@ class CaseInsensitiveOrderedDict(OrderedDict):
     __slots__ = ()
 
     @staticmethod
-    def _process_args(mapping: Any = (), **kwargs: Any) -> Any:
+    def _process_args(
+        mapping: Iterable[tuple[KT, VT]] | Mapping[KT, VT] = (), **kwargs: VT
+    ) -> Generator[tuple[str, VT], None, None]:
         if hasattr(mapping, "items"):
-            mapping = getattr(mapping, "items")()
-        return ((k.lower(), v) for k, v in chain(mapping, getattr(kwargs, "items")()))
+            mapping = cast(Mapping[KT, VT], mapping)
+            mapping = mapping.items()
+        return ((k.lower(), v) for k, v in chain(mapping, kwargs.items()))
 
-    def __init__(self, mapping: Any = (), **kwargs: Any) -> None:
+    def __init__(self, mapping: Iterable[tuple[KT, VT]] = (), **kwargs: VT) -> None:
         super().__init__(self._process_args(mapping, **kwargs))
 
-    def __getitem__(self, k: str) -> Any:
+    def __getitem__(self, k: KT) -> VT:
         """Override __getitem__ to retrieve lower-case key."""
         return super().__getitem__(k.lower())
 
-    def __setitem__(self, k: str, v: Any) -> None:
+    def __setitem__(self, k: KT, v: VT) -> None:
         """Override __setitem__ to store lower-case key."""
         return super().__setitem__(k.lower(), v)
 
-    def __delitem__(self, k: str) -> None:
+    def __delitem__(self, k: KT) -> None:
         """Override __delitem__ to delete lower-case key."""
         return super().__delitem__(k.lower())
 
-    def get(self, k: str, default: Optional[Any] = None) -> Any:
+    def get(self, k: KT, default: Optional[VT] = None) -> VT:
         """Override get to retrieve lower-case key."""
         return super().get(k.lower(), default)
 
-    def setdefault(self, k: str, default: Optional[Any] = None) -> Any:
+    @overload
+    def setdefault(self, key: KT, default: None = None) -> VT | None: ...
+
+    @overload
+    def setdefault(self, key: KT, default: VT) -> VT: ...
+
+    def setdefault(self, k: KT, default: VT | None = None) -> VT | None:
         """Override setdefault to use lower-case key."""
         return super().setdefault(k.lower(), default)
 
-    def pop(self, k: str, v: Any = object()) -> Any:
+    @overload
+    def pop(self, key: KT) -> VT: ...
+
+    @overload
+    def pop(self, key: KT, default: VT) -> VT: ...
+
+    def pop(self, k: KT, v: VT | None = None) -> VT:
         """Override pop to use lower-case key."""
         if v is object():
             return super().pop(k.lower())
         return super().pop(k.lower(), v)
 
-    def update(self, mapping: Any = (), **kwargs: Any) -> None:  # type: ignore[override]
+    @overload
+    def update(self, m: SupportsKeysAndGetItem[KT, VT], /) -> None: ...
+    @overload
+    def update(self: SupportsGetItem[str, VT], m: SupportsKeysAndGetItem[str, VT], /, **kwargs: VT) -> None: ...
+    @overload
+    def update(self, m: Iterable[tuple[KT, VT]], /) -> None: ...
+    @overload
+    def update(self: SupportsGetItem[str, VT], m: Iterable[tuple[str, VT]], /, **kwargs: VT) -> None: ...
+    @overload
+    def update(self: SupportsGetItem[str, VT], **kwargs: VT) -> None: ...
+
+    def update(self, mapping: Iterable[tuple[KT, VT]] = (), **kwargs: VT) -> None:
         """Override update to use lower-case key."""
         super().update(self._process_args(mapping, **kwargs))
 
-    def __contains__(self, k: str) -> bool:  # type: ignore[override]
+    def __contains__(self, k: object) -> bool:
         """Override __contains__ to use lower-case key."""
+        if not isinstance(k, str):
+            return False
         return super().__contains__(k.lower())
 
-    def copy(self) -> "CaseInsensitiveOrderedDict":
+    def copy(self) -> "CaseInsensitiveOrderedDict[KT, VT]":
         """Override copy."""
         return type(self)(self)
 
     @classmethod
-    def fromkeys(cls, keys: Collection[str], v: Optional[Any] = None) -> "CaseInsensitiveOrderedDict":  # type: ignore[override]
+    @overload
+    def fromkeys(cls, iterable: Iterable[KT], value: None = None) -> "CaseInsensitiveOrderedDict[KT, Any | None]": ...
+
+    @classmethod
+    @overload
+    def fromkeys(cls, iterable: Iterable[KT], value: VT) -> "CaseInsensitiveOrderedDict[KT, VT]": ...
+
+    @classmethod
+    def fromkeys(
+        cls,
+        keys: Iterable[KT],
+        v: Optional[VT] = None,
+    ) -> "CaseInsensitiveOrderedDict[KT, VT]":
         """Override fromkeys to use lower-case keys."""
-        return cast("CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v))
+        return cast("CaseInsensitiveOrderedDict[KT, VT]", super().fromkeys((k.lower() for k in keys), v))
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
@@ -110,8 +173,8 @@ class Singleton(type):
     """
     Metaclass that adds Singleton behaviour.
 
-    When derived classes are created for the first time, they are added to the ``._instances`` property. Further instances of the
-    class will fetch the existing instance, rather than creating a new one.
+    When derived classes are created for the first time, they are added to the ``._instances`` property. Further
+    instances of the class will fetch the existing instance, rather than creating a new one.
     """
 
     _instances: Dict[type, object] = {}
@@ -161,7 +224,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         try:
             parsed_value = self.auth_parser.parse_string(value, parse_all=True)
         except pp.ParseException as exception_info:
-            raise ValueError("Failed to parse value").with_traceback(exception_info.__traceback__)
+            raise ValueError("Failed to parse value") from exception_info
         output = CaseInsensitiveOrderedDict({})
         for scheme in parsed_value.schemes:
             output[scheme[0]] = AuthenticateHeaderParser._render_options(scheme)
@@ -176,9 +239,7 @@ class AuthenticateHeaderParser(metaclass=Singleton):
         if isinstance(scheme[1], str):
             return scheme[1]
         scheme_options = scheme[1:]
-        return CaseInsensitiveOrderedDict(
-            {option_pair[0]: option_pair[1] for option_pair in scheme_options}
-        )
+        return CaseInsensitiveOrderedDict(((option_pair[0], option_pair[1]) for option_pair in scheme_options))
 
 
 def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
@@ -351,9 +412,7 @@ class SessionConfiguration:
             elif isinstance(verify, bool):
                 new.verify_ssl = verify
             else:
-                raise ValueError(
-                    f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'."
-                )
+                raise ValueError(f"Invalid 'verify' field. Must be str or bool, not '{type(verify)}'.")
         if configuration_dict["cookies"] is not None:
             new.cookies = configuration_dict["cookies"]
         if configuration_dict["proxies"] is not None:
@@ -385,6 +444,4 @@ def generate_user_agent(package_name: str, package_version: str) -> str:
     python_implementation = platform.python_implementation()
     python_version = platform.python_version()
     os_version = platform.platform()
-    return (
-        f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"
-    )
+    return f"{package_name}/{package_version} {python_implementation}/{python_version} ({os_version})"
