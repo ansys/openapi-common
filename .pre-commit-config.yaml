@@ -31,14 +31,6 @@ repos:
     additional_dependencies: [tomli]
     files: "^(src/)"
 
-- repo: local
-  hooks:
-    - id: ty
-      name: ty-check
-      entry: uv run ty check
-      language: python
-      types: [python]
-
 - repo: https://github.com/ansys/pre-commit-hooks
   rev: v0.5.2
   hooks:
