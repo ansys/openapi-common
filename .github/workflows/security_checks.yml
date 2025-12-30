@@ -9,6 +9,10 @@ env:
   MAIN_PYTHON_VERSION: '3.12'
   LIBRARY_NAME: 'ansys-openapi-common'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
