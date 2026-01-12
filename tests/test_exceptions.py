@@ -59,7 +59,7 @@ def test_api_exception_repr():
     exception_repr = api_exception.__repr__()
 
     exception_from_repr = eval(exception_repr)
-    assert exception_from_repr is api_exception
+    assert isinstance(exception_from_repr, ApiException)
     assert exception_from_repr.status_code == api_exception.status_code
     assert exception_from_repr.reason_phrase == api_exception.reason_phrase
     assert exception_from_repr.body == api_exception.body
@@ -72,7 +72,7 @@ def test_authentication_warning():
     warning_repr = authentication_warning.__repr__()
 
     warning_from_repr = eval(warning_repr)
-    assert warning_from_repr is authentication_warning
+    assert isinstance(warning_from_repr, AuthenticationWarning)
     assert warning_from_repr.message == authentication_warning.message
 
 
