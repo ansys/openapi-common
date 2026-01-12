@@ -19,7 +19,6 @@ updates:
   - package-ecosystem: "github-actions"
     cooldown:
       default-days: 5
-      semver-patch-days: 3
     directory: "/"
     schedule:
       interval: "weekly"
