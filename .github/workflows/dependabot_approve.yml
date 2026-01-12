@@ -17,12 +17,6 @@ jobs:
     # Checking the repository will prevent your Action run happening on forked repos
     if: ${{ (github.event.pull_request.user.login == 'dependabot[bot]' || github.event.pull_request.user.login == 'pre-commit-ci[bot]') && github.repository == 'ansys/openapi-common' }}
     steps:
-      - name: "Dependabot metadata"
-        id: metadata
-        uses: dependabot/fetch-metadata@21025c705c08248db411dc16f3619e6b5f9ea21a
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
-
       - name: "Approve a PR if not already approved"
         run: |
           FILTER=".[] | select(.number==$EVENT_NUMBER).reviewDecision"
