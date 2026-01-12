@@ -289,9 +289,7 @@ class OIDCSessionFactory:
         authority_response = self._oauth_requests_session.get(well_known_endpoint)
 
         logger.debug("Received configuration:")
-        oidc_configuration = CaseInsensitiveDict(
-            authority_response.json()
-        )  # type: CaseInsensitiveDict
+        oidc_configuration = CaseInsensitiveDict(authority_response.json())  # type: CaseInsensitiveDict
 
         mandatory_parameters = ["authorization_endpoint", "token_endpoint"]
         missing_headers = []

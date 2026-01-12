@@ -1274,7 +1274,7 @@ class TestMultipleResponseTypesHandling:
                 expected_url,
                 status_code=response_code,
             )
-            with pytest.raises(ApiException) as excinfo:
+            with pytest.raises(ApiException):
                 _ = self._client.call_api(
                     resource_path,
                     method,
