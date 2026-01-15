@@ -40,7 +40,7 @@ dependencies = [
   "requests>=2.26",
   "requests-negotiate-sspi>=0.5.2,<0.6; sys_platform == 'win32'",
   "requests-ntlm>=1.1,<2.0",
-  "pyparsing>=3.2,<3.3",
+  "pyparsing>=3.2,<3.4",
   "python-dateutil>=2.9",
 ]
 
