@@ -104,10 +104,10 @@ jobs:
     strategy:
       matrix:
         image:
-          - '{"name": "3.10", "hash": "eebca922adbff26c092545ebe3783c37623f30ffda618559d3cede33d7d468a9"}'
-          - '{"name": "3.11", "hash": "16e9aaa3fdc728525d4bf3ce02fc311a18c87222005facc3e3c2a5795d297fe1"}'
-          - '{"name": "3.12", "hash": "c1a5d356638cc86bd865d9019efbc34a6b0c3ad15a21e5ab4eb57bd2d1c3f7ce"}'
-          - '{"name": "3.13", "hash": "a7f3b1fe09b0845ef2e7b675ea3539062dc286bdc82d17da0caae58b03b67543"}'
+          - '{"name": "3.10", "hash": "5d05efdeffc712e5a134f8add70b7bdf0ddd3cb241c0f39c04b79df8a173b84f"}'
+          - '{"name": "3.11", "hash": "358fbe1d87faacef3d64760dc0ab915d3b6389eaa152bba133a3d74770f4f04c"}'
+          - '{"name": "3.12", "hash": "82b148d4accffcc6ab22fcb35a036c4c008fde218a65d075891914794e1ccf77"}'
+          - '{"name": "3.13", "hash": "ab8274497b1ada14b32e4c7e514a321ee5a45c53b78245f48650e6ecbd377345"}'
           - '{"name": "3.14", "hash": "37cba1153c7a3cd4477640ce0f976f7460308f812bc29d7149532e352a97ac8b"}'
 
     steps:
