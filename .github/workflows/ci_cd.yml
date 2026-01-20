@@ -108,7 +108,7 @@ jobs:
           - '{"name": "3.11", "hash": "358fbe1d87faacef3d64760dc0ab915d3b6389eaa152bba133a3d74770f4f04c"}'
           - '{"name": "3.12", "hash": "82b148d4accffcc6ab22fcb35a036c4c008fde218a65d075891914794e1ccf77"}'
           - '{"name": "3.13", "hash": "ab8274497b1ada14b32e4c7e514a321ee5a45c53b78245f48650e6ecbd377345"}'
-          - '{"name": "3.14", "hash": "37cba1153c7a3cd4477640ce0f976f7460308f812bc29d7149532e352a97ac8b"}'
+          - '{"name": "3.14", "hash": "e5aaa64cde4d6ddf80895aa98c51ab02a8122622bb4a882f816784ef32c30a19"}'
 
     steps:
     - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
