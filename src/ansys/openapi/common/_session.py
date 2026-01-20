@@ -67,7 +67,7 @@ if os.name == "nt":
 else:
     try:
         # noinspection PyUnresolvedReferences
-        from requests_gssapi import HttpNegotiateAuth as NegotiateAuth  # type: ignore
+        from requests_gssapi import HTTPSPNEGOAuth as NegotiateAuth  # type: ignore
 
         _linux_kerberos_enabled = True
     except ImportError:
