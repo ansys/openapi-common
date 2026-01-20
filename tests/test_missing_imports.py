@@ -71,7 +71,7 @@ class TestMissingExtras:
 
     @pytest.mark.skipif(os.name == "nt", reason="Test only applies to linux")
     def test_create_autologon_on_linux_with_no_extra_throws(self, mocker):
-        self.blocked_import = "requests_kerberos"
+        self.blocked_import = "requests_gssapi"
         mocker.patch("builtins.__import__", side_effect=self.mocked_import)
 
         from ansys.openapi.common import ApiClientFactory
