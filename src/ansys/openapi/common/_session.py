@@ -61,13 +61,13 @@ except ImportError:
 
 if os.name == "nt":
     # noinspection PyUnresolvedReferences
-    from requests_negotiate_sspi import HttpNegotiateAuth as NegotiateAuth  # type: ignore
+    from requests_gssapi import HttpNegotiateAuth as NegotiateAuth  # type: ignore
 
     _platform_windows = True
 else:
     try:
         # noinspection PyUnresolvedReferences
-        from requests_kerberos import HTTPKerberosAuth as NegotiateAuth  # type: ignore
+        from requests_gssapi import HttpNegotiateAuth as NegotiateAuth
 
         _linux_kerberos_enabled = True
     except ImportError:
