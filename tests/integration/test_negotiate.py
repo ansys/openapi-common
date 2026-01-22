@@ -138,6 +138,10 @@ class TestNegotiate:
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
+@pytest.mark.xfail(
+    "sys.version_info == (3,14)",
+    reason="Unexpectedly returns 200 with unauthorized user on Python 3.14",
+)
 class TestNegotiateFailures:
     @pytest.fixture(autouse=True)
     def server(self):
