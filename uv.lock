@@ -55,7 +55,7 @@ dependencies = [
 
 [package.optional-dependencies]
 linux-kerberos = [
-    { name = "requests-gssapi", marker = "sys_platform == 'linux'" },
+    { name = "requests-kerberos", marker = "sys_platform == 'linux'" },
 ]
 oidc = [
     { name = "keyring" },
@@ -98,8 +98,8 @@ requires-dist = [
     { name = "python-dateutil", specifier = ">=2.9" },
     { name = "requests", specifier = ">=2.26" },
     { name = "requests-auth", marker = "extra == 'oidc'", specifier = ">=8.0.0,<9.0.0" },
-    { name = "requests-gssapi", marker = "sys_platform == 'linux' and extra == 'linux-kerberos'", specifier = ">=1.3.0" },
-    { name = "requests-negotiate-sspi", marker = "sys_platform == 'win32'", specifier = ">=0.5.2" },
+    { name = "requests-kerberos", marker = "sys_platform == 'linux' and extra == 'linux-kerberos'", specifier = ">=0.13,<0.16" },
+    { name = "requests-negotiate-sspi", marker = "sys_platform == 'win32'", specifier = ">=0.5.2,<0.6" },
     { name = "requests-ntlm", specifier = ">=1.1,<2.0" },
 ]
 provides-extras = ["oidc", "linux-kerberos"]
@@ -762,6 +762,12 @@ wheels = [
 ]
 
 [[package]]
+name = "krb5"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/15/15/55a01be5f1816fe6d7d36fec4c6b2cb6f5264d289a015322562c582a81b7/krb5-0.9.0.tar.gz", hash = "sha256:4cdd2c85ff4770108edaf48fedf19888cf956ff374e2e97e40f8412b048caee6", size = 236761, upload-time = "2025-11-25T18:53:46.997Z" }
+
+[[package]]
 name = "librt"
 version = "0.7.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1336,6 +1342,12 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/01/e9/95430b8f3b747ebd3b86a66484a79ef387167655bcb15ab416f563045565/pyspnego-0.12.0-py3-none-any.whl", hash = "sha256:84cc8dae6ad21e04b37c50c1d3c743f05f193e39498f6010cc68ec1146afd007", size = 130180, upload-time = "2025-09-02T18:51:04.938Z" },
 ]
 
+[package.optional-dependencies]
+kerberos = [
+    { name = "gssapi", marker = "sys_platform != 'win32'" },
+    { name = "krb5", marker = "sys_platform != 'win32'" },
+]
+
 [[package]]
 name = "pytest"
 version = "9.0.2"
@@ -1515,16 +1527,17 @@ wheels = [
 ]
 
 [[package]]
-name = "requests-gssapi"
-version = "1.4.0"
+name = "requests-kerberos"
+version = "0.15.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "gssapi" },
+    { name = "cryptography" },
+    { name = "pyspnego", extra = ["kerberos"] },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/7b/f83ca4b28fbfe122461d8faf27f71ee9141e47473d5520a4f26fa0af04a6/requests_gssapi-1.4.0.tar.gz", hash = "sha256:ba27eb329f4840d965bc8fa5d360c627c74349efa6156ca501ad89afc6a134f4", size = 19090, upload-time = "2025-10-16T04:09:01.402Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/63/78/bedf4c6788a4502f8c8b6485a9a00b3006aaed34ebbccecc1b2265a3bc9f/requests_kerberos-0.15.0.tar.gz", hash = "sha256:437512e424413d8113181d696e56694ffa4259eb9a5fc4e803926963864eaf4e", size = 24410, upload-time = "2024-06-03T22:53:11.146Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/1e/3e/7f76b3a1816ea2557c9d67d52f14f2fb230865a1e5d9e3b28e2fe74fa49d/requests_gssapi-1.4.0-py3-none-any.whl", hash = "sha256:146a1d1e74d7ca0b9d21af0f8d2d1ca259e9228ff57fbbf23f92e25217da4520", size = 12697, upload-time = "2025-10-16T04:08:59.942Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/3b/ecf902be8375f30f0d7829a8bc56795cd7b0f2599280cf73f988a2999322/requests_kerberos-0.15.0-py2.py3-none-any.whl", hash = "sha256:ba9b0980b8489c93bfb13854fd118834e576d6700bfea3745cb2e62278cd16a6", size = 12169, upload-time = "2024-06-03T22:53:09.67Z" },
 ]
 
 [[package]]
