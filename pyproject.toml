@@ -108,6 +108,7 @@ testpaths = [
 filterwarnings = [
 	"error",
 ]
+xfail_strict = true
 
 [tool.pydocstyle]
 convention = "numpy"
