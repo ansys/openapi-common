@@ -163,7 +163,7 @@ class TestNegotiateFailures:
         custom_test_app.router.routes = original_routes
 
     @pytest.mark.xfail(
-        sys.version_info == (3, 14),
+        sys.version_info[:2] == (3, 14),
         reason="Unexpectedly returns 200 with unauthorized user on Python 3.14",
     )
     def test_bad_principal_returns_403(self):
