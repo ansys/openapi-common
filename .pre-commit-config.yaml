@@ -1,6 +1,3 @@
-ci:
-  skip: [mypy-code]
-
 repos:
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
@@ -29,16 +26,6 @@ repos:
   hooks:
   - id: pydocstyle
     additional_dependencies: [tomli]
-    files: "^(src/)"
-
-- repo: local
-  hooks:
-  - id: mypy-code
-    name: "mypy: checks on code"
-    entry: "uv run mypy"
-    language: system
-    types: [python]
-    require_serial: true
     files: "^(src/)"
 
 - repo: https://github.com/ansys/pre-commit-hooks
