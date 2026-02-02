@@ -33,6 +33,10 @@ jobs:
          python-version: ${{ env.MAIN_PYTHON_VERSION }}
          skip-install: "false"
 
+      - name: Type check library
+        run:
+          uv run --frozen mypy ./src
+
   doc-style:
     name: Documentation Style Check
     runs-on: ubuntu-latest
@@ -127,7 +131,15 @@ jobs:
         ./tests/integration/configure_keytab.sh
 
     - name: Test
-      run: uv run --python ${{ fromJson(matrix.image).name }} --locked --extra oidc --extra linux-kerberos --group dev-linux -- pytest --cov=ansys.openapi.common --cov-report=xml --with-kerberos
+      run: >
+        uv run --frozen
+        --python ${{ fromJson(matrix.image).name }}
+        --extra oidc --extra linux-kerberos --group dev-linux
+        --
+        pytest
+        --cov=ansys.openapi.common
+        --cov-report=xml
+        --with-kerberos
 
     - name: Upload coverage report
       uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de  # v5.5.2
