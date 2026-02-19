@@ -1,0 +1,6 @@
+connect
+=======
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClientFactory.connect
