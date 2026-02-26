@@ -1,0 +1,6 @@
+﻿AuthenticationWarning
+=====================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoexception:: AuthenticationWarning

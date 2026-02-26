@@ -1,0 +1,6 @@
+setup\_client
+=============
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.setup_client

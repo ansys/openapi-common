@@ -1,0 +1,6 @@
+deserialize
+===========
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.deserialize

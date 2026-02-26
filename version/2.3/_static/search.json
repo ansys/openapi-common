@@ -1,0 +1,744 @@
+[
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#getting-started",
+        "title": "Getting started",
+        "section": "Getting started",
+        "text": "Getting started"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#software-requirements",
+        "title": "Getting started > Software requirements",
+        "section": "Software requirements",
+        "text": "The ansys.openapi.common package currently supports Python version 3.10 through 3.13.\nSoftware requirements\nansys.openapi.common"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#installation",
+        "title": "Getting started > Installation",
+        "section": "Installation",
+        "text": "To install the latest OpenAPI-Common release from PyPI,\nrun this command:\nAlternatively, to install the latest development version from the OpenAPI-Common repository,\nrun this command:\nTo install a local development version with Git and Poetry, run these commands:\nThe preceding commands install the package in development mode so that you can modify\nit locally. Your changes are reflected in your Python setup after restarting the Python kernel.\nInstallation"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#brief-example",
+        "title": "Getting started > Brief example",
+        "section": "Brief example",
+        "text": "This brief example demonstrates how the client works:\nThe client is now ready and available for use with an OpenAPI client.\nBrief example"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#platform-specific-kerberos-configuration",
+        "title": "Getting started > Platform-specific Kerberos configuration",
+        "section": "Platform-specific Kerberos configuration",
+        "text": "Kerberos authentication should be supported wherever the MIT or Heimdal Kerberos client\ncan be installed. OpenAPI-Common has been tested on the platforms that follow.\nIf you manage to use it on another platform, consider contributing installation steps for\nyour platform by making a pull request.\nPlatform-specific Kerberos configuration"
+    },
+    {
+        "objectID": "getting_started/index",
+        "href": "getting_started/index.html#ubuntu-2004",
+        "title": "Getting started > Ubuntu 20.04",
+        "section": "Ubuntu 20.04",
+        "text": "Ubuntu requires the gssapi Python module to be built from source. This requires the\nKerberos headers, Python headers for the version of Python that you are using, and a\nsupported compiler. (GCC works well.)\nYou should then be able to install this module with the [linux-kerberos] extra:\nOnce the installation completes, ensure that your krb5.conf file is set up correctly\nfor your Kerberos configuration and that you have a valid keytab file, which is\nnormally in /etc/krb5.keytab.\nUbuntu 20.04\ngssapi\n[linux-kerberos]\nkrb5.conf\nkeytab\n/etc/krb5.keytab"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.AUTO",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.AUTO.html#auto",
+        "title": "AUTO",
+        "section": "AUTO",
+        "text": "Use the 401 response WWW-Authenticate header to select the best supported authentication scheme.\nAUTO"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.AUTO",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.AUTO.html#ansys.openapi.common.AuthenticationScheme.AUTO",
+        "title": "AUTO > AUTO > AUTO",
+        "section": "AUTO > AUTO",
+        "text": "AuthenticationScheme.AUTO = 'auto'\n\nUse the 401 response WWW-Authenticate header to select the best supported authentication scheme.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiConnectionException",
+        "href": "api/_autosummary/ansys.openapi.common.ApiConnectionException.html#apiconnectionexception",
+        "title": "ApiConnectionException",
+        "section": "ApiConnectionException",
+        "text": "Provides the exception to raise when connection to the API server fails.\nFor more information about the failure, inspect .response.\nResponse from the server.\nApiConnectionException\n.response\nrequests.Response"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiConnectionException",
+        "href": "api/_autosummary/ansys.openapi.common.ApiConnectionException.html#ansys.openapi.common.ApiConnectionException",
+        "title": "ApiConnectionException > ApiConnectionException > ApiConnectionException",
+        "section": "ApiConnectionException > ApiConnectionException",
+        "text": "exception ApiConnectionException(response)\n\nProvides the exception to raise when connection to the API server fails.\n\nFor more information about the failure, inspect .response.\n\nParameters\n\nresponse\n\nrequests.Response\n\nResponse from the server.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.NATIVE_TYPES_MAPPING",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.NATIVE_TYPES_MAPPING.html#native_types_mapping",
+        "title": "NATIVE_TYPES_MAPPING",
+        "section": "NATIVE_TYPES_MAPPING",
+        "text": "NATIVE_TYPES_MAPPING"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.NATIVE_TYPES_MAPPING",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.NATIVE_TYPES_MAPPING.html#ansys.openapi.common.ApiClient.NATIVE_TYPES_MAPPING",
+        "title": "NATIVE_TYPES_MAPPING > NATIVE_TYPES_MAPPING > NATIVE_TYPES_MAPPING",
+        "section": "NATIVE_TYPES_MAPPING > NATIVE_TYPES_MAPPING",
+        "text": "ApiClient.NATIVE_TYPES_MAPPING = {'bool': <class 'bool'>, 'bytes': <class 'bytes'>, 'date': <class 'datetime.date'>, 'datetime': <class 'datetime.datetime'>, 'float': <class 'float'>, 'int': <class 'int'>, 'str': <class 'str'>}\n\n"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#contribute",
+        "title": "Contribute",
+        "section": "Contribute",
+        "text": "Overall guidance on contributing to a PyAnsys library appears in the\nContributing topic\nin the PyAnsys Developer’s Guide. Ensure that you are thoroughly familiar\nwith this guide before attempting to contribute to OpenAPI-Common.\nThe following contribution information is specific to OpenAPI-Common.\nContribute"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#clone-the-repository",
+        "title": "Contribute > Clone the repository",
+        "section": "Clone the repository",
+        "text": "To clone and install the latest version of OpenAPI-Common in development mode,\nrun:\nClone the repository"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#post-issues",
+        "title": "Contribute > Post issues",
+        "section": "Post issues",
+        "text": "Use the OpenAPI-Common Issues page\nto submit questions, report bugs, and request new features.\nTo reach the support team, email pyansys.support@ansys.com.\nPost issues"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#documentation-conventions",
+        "title": "Contribute > Documentation conventions",
+        "section": "Documentation conventions",
+        "text": "When contributing to this package, always consider that many docstrings are viewed within\nthe context of a package that inherits from classes defined in this package. For example,\nApiClientFactory is typically subclassed, and the builder methods are shown\nwithin the subclassing package’s documentation as part of that module’s subclass.\nThe advice in this section ensures that a subclassing package can build documentation\nthat inherits docstrings from this package.\nDocumentation conventions\nApiClientFactory"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#docstring-type-references",
+        "title": "Contribute > Docstring type references",
+        "section": "Docstring type references",
+        "text": "In cases where a class is intended to be subclassed, internal type references should be\nfully qualified. For example, instead of:\nuse:\nThis ensures that other packages that inherit from this package are able to resolve\nthese types via Intersphinx.\nDocstring type references"
+    },
+    {
+        "objectID": "contributing",
+        "href": "contributing.html#references-to-this-package",
+        "title": "Contribute > References to this package",
+        "section": "References to this package",
+        "text": "Docstrings often contain implicit and explicit references to the package they are\ndocumenting. One common example of an implicit reference is in\n.. versionadded:: directives, where the directive implicitly refers to a version\nof the package being documented. To make these references explicit when they occur\noutside of this package, always use the following approach:\nWhere :class:`ansys.openapi.common.ClassName` is a reference to the relevant\nentity that contains the change. This approach ensures that:\nWhen building the documentation for this package, the .. versionadded::\ndirective is used and implicitly refers to version 2.1 of this package.\nWhen building the documentation for a package that inherits from classes\ndefined in this package, the more generic .. tip:: directive is used,\nand explicitly refers to version 2.1 of this package.\nIf the inheriting package has configured\nIntersphinx, then Sphinx\nautomatically adds a cross-reference to the relevant location in the API\ndocumentation for this package.\nReferences to this package\n.. versionadded::\n:class:`ansys.openapi.common.ClassName`\n.. versionadded::\n.. tip::"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.html#oidcsessionbuilder",
+        "title": "OIDCSessionBuilder",
+        "section": "OIDCSessionBuilder",
+        "text": "Helps create OpenID Connect sessions and provides OIDC-specific configuration options.\nParent API client factory object that will be returned once configuration is complete.\nOIDC session factory object that will be configured and used to return an OAuth-supporting session.\nOIDCSessionBuilder.authorize([login_timeout])\nAuthenticate the user interactively by opening a web browser and waiting for the user to log in.\nOIDCSessionBuilder.with_access_token(...)\nUse a provided access token to authenticate the session.\nOIDCSessionBuilder.with_refresh_token(...)\nUse a provided refresh token to authenticate the session.\nOIDCSessionBuilder.with_stored_token([...])\nUse a token stored in the system keyring to authenticate the session.\nOIDCSessionBuilder.with_token(refresh_token)\nUse a provided refresh token to authenticate the session.\nOIDCSessionBuilder\nApiClientFactory\nOIDCSessionFactory\noptional\nOIDCSessionBuilder.authorize\nOIDCSessionBuilder.with_access_token\nOIDCSessionBuilder.with_refresh_token\nOIDCSessionBuilder.with_stored_token\nOIDCSessionBuilder.with_token"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.html#ansys.openapi.common.OIDCSessionBuilder",
+        "title": "OIDCSessionBuilder > OIDCSessionBuilder > OIDCSessionBuilder",
+        "section": "OIDCSessionBuilder > OIDCSessionBuilder",
+        "text": "class OIDCSessionBuilder(client_factory, session_factory=None)\n\nHelps create OpenID Connect sessions and provides OIDC-specific configuration options.\n\nParameters\n\nclient_factory\n\nApiClientFactory\n\nParent API client factory object that will be returned once configuration is complete.\n\nsession_factory\n\nOIDCSessionFactory, optional\n\nOIDC session factory object that will be configured and used to return an OAuth-supporting session.\n\n!! processed by numpydoc !!\n\nMethods\n\n\n\n\n\n\n\nOIDCSessionBuilder.authorize([login_timeout])\n\nAuthenticate the user interactively by opening a web browser and waiting for the user to log in.\n\nOIDCSessionBuilder.with_access_token(...)\n\nUse a provided access token to authenticate the session.\n\nOIDCSessionBuilder.with_refresh_token(...)\n\nUse a provided refresh token to authenticate the session.\n\nOIDCSessionBuilder.with_stored_token([...])\n\nUse a token stored in the system keyring to authenticate the session.\n\nOIDCSessionBuilder.with_token(refresh_token)\n\nUse a provided refresh token to authenticate the session.\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.BASIC",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.BASIC.html#basic",
+        "title": "BASIC",
+        "section": "BASIC",
+        "text": "Force the use of Basic authentication, even if more secure options are supported.\nBASIC"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.BASIC",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.BASIC.html#ansys.openapi.common.AuthenticationScheme.BASIC",
+        "title": "BASIC > BASIC > BASIC",
+        "section": "BASIC > BASIC",
+        "text": "AuthenticationScheme.BASIC = 'Basic'\n\nForce the use of Basic authentication, even if more secure options are supported.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.html#apiclient",
+        "title": "ApiClient",
+        "section": "ApiClient",
+        "text": "Provides a generic API client for OpenAPI client library builds.\nThis client handles client-server communication and is invariant across\nimplementations. Specifics of the methods and models for each application are\ngenerated from OpenAPI templates and are responsible for interfacing with the\npublic API exposed by the client.\nBase session object that the API client is to use.\nBase URL for the API. All generated endpoint URLs are relative to this address.\nConfiguration options for the API client.\nFor testing purposes, it is common to configure an API with a self-signed certificate. By default, the\nApiClient class will not trust self-signed SSL certificates. To allow this, pass a path to the\nroot certificate to the SessionConfiguration object. For more configuration examples, see\nSessionConfiguration.\nApiClient.call_api(resource_path, method[, ...])\nMake the HTTP request and return the deserialized data.\nApiClient.deserialize(response, response_type)\nDeserialize the response into an object.\nApiClient.parameters_to_tuples(params, ...)\nGet parameters as a list of tuples, formatting collections.\nApiClient.prepare_post_parameters([...])\nBuild form parameters.\nApiClient.request(method, url[, ...])\nMake the HTTP request and return it directly.\nApiClient.sanitize_for_serialization(obj)\nBuild a JSON POST object.\nApiClient.select_header_accept(accepts)\nReturn a correctly formatted Accept header value from the provided array of accepted content types.\nApiClient.select_header_content_type(...)\nReturn the preferred Content-Type header value from the provided array of valid content types.\nApiClient.setup_client(models)\nSet up the client for use and register models for serialization and deserialization.\nApiClient.DICT_MATCH_REGEX\n\nApiClient.LIST_MATCH_REGEX\n\nApiClient.NATIVE_TYPES_MAPPING\n\nApiClient.PRIMITIVE_TYPES\n\nApiClient\nrequests.Session\npython:str\nSessionConfiguration\nApiClient\nSessionConfiguration\nSessionConfiguration\nApiClient.call_api\nApiClient.deserialize\nApiClient.parameters_to_tuples\nApiClient.prepare_post_parameters\nApiClient.request\nApiClient.sanitize_for_serialization\nApiClient.select_header_accept\nAccept\nApiClient.select_header_content_type\nContent-Type\nApiClient.setup_client\nApiClient.DICT_MATCH_REGEX\nApiClient.LIST_MATCH_REGEX\nApiClient.NATIVE_TYPES_MAPPING\nApiClient.PRIMITIVE_TYPES"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.html#ansys.openapi.common.ApiClient",
+        "title": "ApiClient > ApiClient > ApiClient",
+        "section": "ApiClient > ApiClient",
+        "text": "class ApiClient(session, api_url, configuration)\n\nProvides a generic API client for OpenAPI client library builds.\n\nThis client handles client-server communication and is invariant across\nimplementations. Specifics of the methods and models for each application are\ngenerated from OpenAPI templates and are responsible for interfacing with the\npublic API exposed by the client.\n\nParameters\n\nsession\n\nrequests.Session\n\nBase session object that the API client is to use.\n\napi_url\n\npython:str\n\nBase URL for the API. All generated endpoint URLs are relative to this address.\n\nconfiguration\n\nSessionConfiguration\n\nConfiguration options for the API client.\n\nExamples\n\n>>> client = ApiClient(requests.Session(),\n...                    'http://my-api.com/API/v1.svc',\n...                    SessionConfiguration())\n... <ApiClient url: http://my-api.com/API/v1.svc>\n\nFor testing purposes, it is common to configure an API with a self-signed certificate. By default, the\nApiClient class will not trust self-signed SSL certificates. To allow this, pass a path to the\nroot certificate to the SessionConfiguration object. For more configuration examples, see\nSessionConfiguration.\n\n>>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')\n... ssl_client = ApiClient(requests.Session(),\n...                    'https://secure-api/API/v1.svc',\n...                    session_config)\n... ssl_client\n<ApiClient url: https://secure-api/API/v1.svc>\n\n!! processed by numpydoc !!\n\nMethods\n\n\n\n\n\n\n\nApiClient.call_api(resource_path, method[, ...])\n\nMake the HTTP request and return the deserialized data.\n\nApiClient.deserialize(response, response_type)\n\nDeserialize the response into an object.\n\nApiClient.parameters_to_tuples(params, ...)\n\nGet parameters as a list of tuples, formatting collections.\n\nApiClient.prepare_post_parameters([...])\n\nBuild form parameters.\n\nApiClient.request(method, url[, ...])\n\nMake the HTTP request and return it directly.\n\nApiClient.sanitize_for_serialization(obj)\n\nBuild a JSON POST object.\n\nApiClient.select_header_accept(accepts)\n\nReturn a correctly formatted Accept header value from the provided array of accepted content types.\n\nApiClient.select_header_content_type(...)\n\nReturn the preferred Content-Type header value from the provided array of valid content types.\n\nApiClient.setup_client(models)\n\nSet up the client for use and register models for serialization and deserialization.\n\n\n\nAttributes\n\n\n\n\n\n\n\nApiClient.DICT_MATCH_REGEX\n\n\n\nApiClient.LIST_MATCH_REGEX\n\n\n\nApiClient.NATIVE_TYPES_MAPPING\n\n\n\nApiClient.PRIMITIVE_TYPES\n\n\n\n"
+    },
+    {
+        "objectID": "index",
+        "href": "index.html#openapi-common-232",
+        "title": "OpenAPI-Common 2.3.2",
+        "section": "OpenAPI-Common 2.3.2",
+        "text": "OpenAPI-Common is part of the larger PyAnsys\neffort to facilitate the use of Ansys technologies directly from Python.\nLearn how to install OpenAPI-Common.\nUnderstand how to use OpenAPI-Common as a base for OpenAPI-based\nclient applications.\nUnderstand the classes and methods that make up OpenAPI-Common.\nLearn how to contribute to the OpenAPI-Common codebase or documentation.\nOpenAPI-Common 2.3.2"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.call_api",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.call_api.html#call_api",
+        "title": "call_api",
+        "section": "call_api",
+        "text": "Make the HTTP request and return the deserialized data.\nPath to the method endpoint, relative to the base URL.\nHTTP method verb to call.\nPath parameters to pass in the URL.\nQuery parameters to pass in the URL.\nHeader parameters to place in the request header.\nRequest body.\nRequest POST form parameters for application/x-www-form-urlencoded and multipart/form-data.\nExpected response data type.\nDictionary of the file name and path for multipart/form-data.\nWhether to return response data without head status code and headers. The default\nis False.\nCollection format name for path, query, header, and post parameters. This parameter maps the\nparameter name to the collection type.\nWhether to return the underlying response without reading or decoding response data. The default\nis True, in which case response data is read or decoded. If False, response data is not\nread or decoded.\nTimeout setting for the request. If only one number is provided, it is used as a total request timeout.\nIt can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level\ntimeout setting.\nDictionary of response status codes and response types for response deserialization. If provided, has\nprecedence over response_type.\ncall_api\npython:str\npython:str\nUnion\nDict\npython:str\nUnion\npython:str\npython:int\nList\nTuple\nUnion\nDict\npython:str\nUnion\npython:str\npython:int\nList\nTuple\nUnion\nDict\npython:str\nUnion\npython:str\npython:int\nList\nTuple\nDeserializedType\nOptional\nList\nTuple\npython:str\nUnion\npython:str\nbytes\nIO\napplication/x-www-form-urlencoded\nmultipart/form-data\npython:str\noptional\nOptional\nMapping\npython:str\nUnion\npython:str\nbytes\nIO\nmultipart/form-data\noptional\nFalse\nDict\npython:str\npython:str\noptional\nTrue\nFalse\nUnion\npython:float\nTuple\npython:float\npython:float\npython:None\nDict\npython:int\nUnion\npython:str\npython:None"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.call_api",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.call_api.html#ansys.openapi.common.ApiClient.call_api",
+        "title": "call_api > call_api > call_api",
+        "section": "call_api > call_api",
+        "text": "ApiClient.call_api(resource_path, method, path_params=None, query_params=None, header_params=None, body=None, post_params=None, files=None, response_type=None, _return_http_data_only=None, collection_formats=None, _preload_content=True, _request_timeout=None, response_type_map=None)\n\nMake the HTTP request and return the deserialized data.\n\nParameters\n\nresource_path\n\npython:str\n\nPath to the method endpoint, relative to the base URL.\n\nmethod\n\npython:str\n\nHTTP method verb to call.\n\npath_params\n\nUnion[Dict[python:str, Union[python:str, python:int]], List[Tuple]]\n\nPath parameters to pass in the URL.\n\nquery_params\n\nUnion[Dict[python:str, Union[python:str, python:int]], List[Tuple]]\n\nQuery parameters to pass in the URL.\n\nheader_params\n\nUnion[Dict[python:str, Union[python:str, python:int]], List[Tuple]]\n\nHeader parameters to place in the request header.\n\nbody\n\nDeserializedType\n\nRequest body.\n\npost_params\n\nOptional[List[Tuple[python:str, Union[python:str, bytes, IO]]]]\n\nRequest POST form parameters for application/x-www-form-urlencoded and multipart/form-data.\n\nresponse_type\n\npython:str, optional\n\nExpected response data type.\n\nfiles\n\nOptional[Mapping[python:str, Union[python:str, bytes, IO]]]\n\nDictionary of the file name and path for multipart/form-data.\n\n_return_http_data_only\n\nbool, optional\n\nWhether to return response data without head status code and headers. The default\nis False.\n\ncollection_formats\n\nDict[python:str, python:str]\n\nCollection format name for path, query, header, and post parameters. This parameter maps the\nparameter name to the collection type.\n\n_preload_content\n\nbool, optional\n\nWhether to return the underlying response without reading or decoding response data. The default\nis True, in which case response data is read or decoded. If False, response data is not\nread or decoded.\n\n_request_timeout\n\nUnion[python:float, Tuple[python:float, python:float], python:None]\n\nTimeout setting for the request. If only one number is provided, it is used as a total request timeout.\nIt can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level\ntimeout setting.\n\nresponse_type_map\n\nDict[python:int, Union[python:str, python:None]]\n\nDictionary of response status codes and response types for response deserialization. If provided, has\nprecedence over response_type.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_anonymous",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_anonymous.html#with_anonymous",
+        "title": "with_anonymous",
+        "section": "with_anonymous",
+        "text": "Set up client authentication for anonymous use.\nThis does not configure any authentication or authorization headers. Users must provide any\nauthentication information required themselves.\nClients relying on custom authentication such as client certificates or non-standard tokens\nshould use this method.\nOriginal client factory object.\nwith_anonymous\nApiClientFactory"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_anonymous",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_anonymous.html#ansys.openapi.common.ApiClientFactory.with_anonymous",
+        "title": "with_anonymous > with_anonymous > with_anonymous",
+        "section": "with_anonymous > with_anonymous",
+        "text": "ApiClientFactory.with_anonymous()\n\nSet up client authentication for anonymous use.\n\nThis does not configure any authentication or authorization headers. Users must provide any\nauthentication information required themselves.\n\nClients relying on custom authentication such as client certificates or non-standard tokens\nshould use this method.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.setup_client",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.setup_client.html#setup_client",
+        "title": "setup_client",
+        "section": "setup_client",
+        "text": "Set up the client for use and register models for serialization and deserialization.\nThis step must be completed prior to using the ApiClient class.\nModule containing models generated by the Swagger code generator tool.\nsetup_client\nApiClient\nModuleType"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.setup_client",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.setup_client.html#ansys.openapi.common.ApiClient.setup_client",
+        "title": "setup_client > setup_client > setup_client",
+        "section": "setup_client > setup_client",
+        "text": "ApiClient.setup_client(models)\n\nSet up the client for use and register models for serialization and deserialization.\n\nThis step must be completed prior to using the ApiClient class.\n\nParameters\n\nmodels\n\nModuleType\n\nModule containing models generated by the Swagger code generator tool.\n\nExamples\n\n>>> client = ApiClient(requests.Session(),\n...                    'http://my-api.com/API/v1.svc',\n...                    SessionConfiguration())\n... import ApiModels as model_module\n... client.setup_client(model_module)\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.authorize",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.authorize.html#authorize",
+        "title": "authorize",
+        "section": "authorize",
+        "text": "Authenticate the user interactively by opening a web browser and waiting for the user to log in.\nTime in seconds to wait for the user’s web browser to authenticate. The default is 60s.\nOriginal client factory object.\nauthorize\npython:int\n60s\nApiClientFactory"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.authorize",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.authorize.html#ansys.openapi.common.OIDCSessionBuilder.authorize",
+        "title": "authorize > authorize > authorize",
+        "section": "authorize > authorize",
+        "text": "OIDCSessionBuilder.authorize(login_timeout=60)\n\nAuthenticate the user interactively by opening a web browser and waiting for the user to log in.\n\nParameters\n\nlogin_timeout\n\npython:int\n\nTime in seconds to wait for the user’s web browser to authenticate. The default is 60s.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.prepare_post_parameters",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.prepare_post_parameters.html#prepare_post_parameters",
+        "title": "prepare_post_parameters",
+        "section": "prepare_post_parameters",
+        "text": "Build form parameters.\nThis method combines plain form parameters and file parameters into a structure suitable for transmission.\nPlain form parameters.\nFile parameters.\nprepare_post_parameters\nOptional\nList\nTuple\npython:str\nUnion\npython:str\nbytes\nOptional\nMapping\npython:str\nUnion\npython:str\nbytes"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.prepare_post_parameters",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.prepare_post_parameters.html#ansys.openapi.common.ApiClient.prepare_post_parameters",
+        "title": "prepare_post_parameters > prepare_post_parameters > prepare_post_parameters",
+        "section": "prepare_post_parameters > prepare_post_parameters",
+        "text": "static ApiClient.prepare_post_parameters(post_params=None, files=None)\n\nBuild form parameters.\n\nThis method combines plain form parameters and file parameters into a structure suitable for transmission.\n\nParameters\n\npost_params\n\nOptional[List[Tuple[python:str, Union[python:str, bytes]]]]\n\nPlain form parameters.\n\nfiles\n\nOptional[Mapping[python:str, Union[python:str, bytes]]]\n\nFile parameters.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationWarning",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationWarning.html#authenticationwarning",
+        "title": "AuthenticationWarning",
+        "section": "AuthenticationWarning",
+        "text": "Provides the warning to raise when the server connection process completes but does proceed as expected.\nCause of the warning and any additional information.\nAuthenticationWarning\npython:str"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationWarning",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationWarning.html#ansys.openapi.common.AuthenticationWarning",
+        "title": "AuthenticationWarning > AuthenticationWarning > AuthenticationWarning",
+        "section": "AuthenticationWarning > AuthenticationWarning",
+        "text": "exception AuthenticationWarning(message)\n\nProvides the warning to raise when the server connection process completes but does proceed as expected.\n\nParameters\n\nmessage\n\npython:str\n\nCause of the warning and any additional information.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_token.html#with_token",
+        "title": "with_token",
+        "section": "with_token",
+        "text": "Use a provided refresh token to authenticate the session.\nThe refresh token will be used to request a new access token from the Identity Provider,\nthis will be automatically refreshed shortly before expiration.\nRefresh token.\nOriginal client factory object.\nThe signature of this method will change in an upcoming release to allow both access and refresh\ntokens to be provided. Update usages to provide the refresh_token keyword argument rather than\npassing a positional argument.\nwith_token\npython:str\nApiClientFactory\nrefresh_token"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_token.html#ansys.openapi.common.OIDCSessionBuilder.with_token",
+        "title": "with_token > with_token > with_token",
+        "section": "with_token > with_token",
+        "text": "OIDCSessionBuilder.with_token(refresh_token)\n\nUse a provided refresh token to authenticate the session.\n\nThe refresh token will be used to request a new access token from the Identity Provider,\nthis will be automatically refreshed shortly before expiration.\n\nParameters\n\nrefresh_token\n\npython:str\n\nRefresh token.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\nNotes\n\nThe signature of this method will change in an upcoming release to allow both access and refresh\ntokens to be provided. Update usages to provide the refresh_token keyword argument rather than\npassing a positional argument.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_stored_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_stored_token.html#with_stored_token",
+        "title": "with_stored_token",
+        "section": "with_stored_token",
+        "text": "Use a token stored in the system keyring to authenticate the session.\nThis method requires a correctly configured system keyring backend.\nName of the token key in the system keyring.\nOriginal client factory object.\nIf no token is found in the system keyring with the provided token_name.\nwith_stored_token\npython:str\nApiClientFactory\nValueError\ntoken_name"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_stored_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_stored_token.html#ansys.openapi.common.OIDCSessionBuilder.with_stored_token",
+        "title": "with_stored_token > with_stored_token > with_stored_token",
+        "section": "with_stored_token > with_stored_token",
+        "text": "OIDCSessionBuilder.with_stored_token(token_name='ansys-openapi-common-oidc')\n\nUse a token stored in the system keyring to authenticate the session.\n\nThis method requires a correctly configured system keyring backend.\n\nParameters\n\ntoken_name\n\npython:str\n\nName of the token key in the system keyring.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\nRaises\n\nValueError\n\nIf no token is found in the system keyring with the provided token_name.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.SessionConfiguration",
+        "href": "api/_autosummary/ansys.openapi.common.SessionConfiguration.html#sessionconfiguration",
+        "title": "SessionConfiguration",
+        "section": "SessionConfiguration",
+        "text": "Provides configuration for the API client session.\nPath to the client certificate to send with the requests. The default is None, in which case\nno client certificate will be sent with requests.\nKey to unlock the client certificate (if required). The default is None.\nCookies to send with each request. The default is None.\nHeader values to include with each request, indexed by header name. This parameter is\ncase-insensitive. The default is None, in which case only required headers will be included.\nMaximum number of redirects to allow before halting. The default is 10.\nProxy server URLs, indexed by resource URLs. The default is None, in which case\nno proxies are registered for use.\nWhether to verify the SSL certificate of the remote host. The default is True.\nPath to the custom certificate store in .pem format.  The default is None, in which case\nonly certificates included in the certifi package will be trusted.\nPath to the temporary directory where downloaded files are to be stored. The default is\nNone, in which case the user’s TEMP directory will be used.\nWhether a debug log is generated. The default is False. The log include sensitives information\nabout the authentication process.\nAdditional characters to treat as ‘safe’ when creating path parameters. For more\ninformation, see RFC 3986.\nNumber of attempts to make if the API server fails to return a valid response. The default is 3.\nTimeout in seconds for requests to the API server. The default is 31.\nSessionConfiguration.from_dict(...)\nCreate a SessionConfiguration object from its dictionary form.\nSessionConfiguration.get_configuration_for_requests()\nRetrieve the configuration as a dictionary, with keys corresponding to requests session properties.\nSessionConfiguration\npython:str\noptional\nNone\npython:str\noptional\nNone\nhttp.cookiejar.CookieJar\nsubclass\noptional\nNone\npython:dict\noptional\nNone\npython:int\noptional\n10\npython:dict\noptional\nNone\noptional\nTrue\npython:str\noptional\n.pem\nNone\ncertifi\npython:str\noptional\nNone\nTEMP\noptional\nFalse\npython:str\noptional\npython:int\noptional\n3\npython:int\noptional\n31\nSessionConfiguration.from_dict\nSessionConfiguration\nSessionConfiguration.get_configuration_for_requests\nrequests"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.SessionConfiguration",
+        "href": "api/_autosummary/ansys.openapi.common.SessionConfiguration.html#ansys.openapi.common.SessionConfiguration",
+        "title": "SessionConfiguration > SessionConfiguration > SessionConfiguration",
+        "section": "SessionConfiguration > SessionConfiguration",
+        "text": "class SessionConfiguration(client_cert_path=None, client_cert_key=None, cookies=None, headers=None, max_redirects=10, proxies=None, verify_ssl=True, cert_store_path=None, temp_folder_path=None, debug=False, safe_chars_for_path_param='', retry_count=3, request_timeout=31)\n\nProvides configuration for the API client session.\n\nParameters\n\nclient_cert_path\n\npython:str, optional\n\nPath to the client certificate to send with the requests. The default is None, in which case\nno client certificate will be sent with requests.\n\nclient_cert_key\n\npython:str, optional\n\nKey to unlock the client certificate (if required). The default is None.\n\ncookies\n\nhttp.cookiejar.CookieJar or subclass, optional\n\nCookies to send with each request. The default is None.\n\nheaders\n\npython:dict, optional\n\nHeader values to include with each request, indexed by header name. This parameter is\ncase-insensitive. The default is None, in which case only required headers will be included.\n\nmax_redirects\n\npython:int, optional\n\nMaximum number of redirects to allow before halting. The default is 10.\n\nproxies\n\npython:dict, optional\n\nProxy server URLs, indexed by resource URLs. The default is None, in which case\nno proxies are registered for use.\n\nverify_ssl\n\nbool, optional\n\nWhether to verify the SSL certificate of the remote host. The default is True.\n\ncert_store_path\n\npython:str, optional\n\nPath to the custom certificate store in .pem format.  The default is None, in which case\nonly certificates included in the certifi package will be trusted.\n\ntemp_folder_path\n\npython:str, optional\n\nPath to the temporary directory where downloaded files are to be stored. The default is\nNone, in which case the user’s TEMP directory will be used.\n\ndebug\n\nbool, optional\n\nWhether a debug log is generated. The default is False. The log include sensitives information\nabout the authentication process.\n\nsafe_chars_for_path_param\n\npython:str, optional\n\nAdditional characters to treat as ‘safe’ when creating path parameters. For more\ninformation, see RFC 3986.\n\nretry_count\n\npython:int, optional\n\nNumber of attempts to make if the API server fails to return a valid response. The default is 3.\n\nrequest_timeout\n\npython:int, optional\n\nTimeout in seconds for requests to the API server. The default is 31.\n\n!! processed by numpydoc !!\n\nMethods\n\n\n\n\n\n\n\nSessionConfiguration.from_dict(...)\n\nCreate a SessionConfiguration object from its dictionary form.\n\nSessionConfiguration.get_configuration_for_requests()\n\nRetrieve the configuration as a dictionary, with keys corresponding to requests session properties.\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.UndefinedObjectWarning",
+        "href": "api/_autosummary/ansys.openapi.common.UndefinedObjectWarning.html#undefinedobjectwarning",
+        "title": "UndefinedObjectWarning",
+        "section": "UndefinedObjectWarning",
+        "text": "Provides a warning for when a model is incompletely described in the OpenAPI definition.\nThe data received from the server cannot be fully deserialized, and so the response is provided\nas an un-deserialized dictionary.\nThis warning can be safely suppressed if the required detail cannot be added to the OpenAPI\ndefinition, but in this case the deserialization must be defined manually.\nUndefinedObjectWarning"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.UndefinedObjectWarning",
+        "href": "api/_autosummary/ansys.openapi.common.UndefinedObjectWarning.html#ansys.openapi.common.UndefinedObjectWarning",
+        "title": "UndefinedObjectWarning > UndefinedObjectWarning > UndefinedObjectWarning",
+        "section": "UndefinedObjectWarning > UndefinedObjectWarning",
+        "text": "exception UndefinedObjectWarning\n\nProvides a warning for when a model is incompletely described in the OpenAPI definition.\n\nThe data received from the server cannot be fully deserialized, and so the response is provided\nas an un-deserialized dictionary.\n\nThis warning can be safely suppressed if the required detail cannot be added to the OpenAPI\ndefinition, but in this case the deserialization must be defined manually.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.html#authenticationscheme",
+        "title": "AuthenticationScheme",
+        "section": "AuthenticationScheme",
+        "text": "Authentication scheme.\nUsed to specify an authentication scheme used when connecting to the server with credentials.\nAdded in version 2.1.\nAdded as AuthenticationScheme in version 2.1 of\nansys-openapi-common.\nAuthenticationScheme.AUTO\nUse the 401 response WWW-Authenticate header to select the best supported authentication scheme.\nAuthenticationScheme.BASIC\nForce the use of Basic authentication, even if more secure options are supported.\nAuthenticationScheme.NTLM\nForce the use of NTLM authentication only.\nAuthenticationScheme\nAuthenticationScheme\nansys-openapi-common\nAuthenticationScheme.AUTO\nAuthenticationScheme.BASIC\nAuthenticationScheme.NTLM"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.html#ansys.openapi.common.AuthenticationScheme",
+        "title": "AuthenticationScheme > AuthenticationScheme > AuthenticationScheme",
+        "section": "AuthenticationScheme > AuthenticationScheme",
+        "text": "class AuthenticationScheme(value, names=None, *, module=None, qualname=None, type=None, start=1, boundary=None)\n\nAuthentication scheme.\n\nUsed to specify an authentication scheme used when connecting to the server with credentials.\n\nAdded in version 2.1.\n\nAdded as AuthenticationScheme in version 2.1 of\nansys-openapi-common.\n\n!! processed by numpydoc !!\n\nAttributes\n\n\n\n\n\n\n\nAuthenticationScheme.AUTO\n\nUse the 401 response WWW-Authenticate header to select the best supported authentication scheme.\n\nAuthenticationScheme.BASIC\n\nForce the use of Basic authentication, even if more secure options are supported.\n\nAuthenticationScheme.NTLM\n\nForce the use of NTLM authentication only.\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.parameters_to_tuples",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.parameters_to_tuples.html#parameters_to_tuples",
+        "title": "parameters_to_tuples",
+        "section": "parameters_to_tuples",
+        "text": "Get parameters as a list of tuples, formatting collections.\nParameters for the request, either a dictionary with a name and value or a list\nof tuples with names and values.\nDictionary with a parameter name and collection type specifier.\nparameters_to_tuples\nUnion\nDict\nList\nTuple\nDict\npython:str\npython:str"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.parameters_to_tuples",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.parameters_to_tuples.html#ansys.openapi.common.ApiClient.parameters_to_tuples",
+        "title": "parameters_to_tuples > parameters_to_tuples > parameters_to_tuples",
+        "section": "parameters_to_tuples > parameters_to_tuples",
+        "text": "static ApiClient.parameters_to_tuples(params, collection_formats)\n\nGet parameters as a list of tuples, formatting collections.\n\nParameters\n\nparams\n\nUnion[Dict, List[Tuple]]\n\nParameters for the request, either a dictionary with a name and value or a list\nof tuples with names and values.\n\ncollection_formats\n\nDict[python:str, python:str]\n\nDictionary with a parameter name and collection type specifier.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_content_type",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_content_type.html#select_header_content_type",
+        "title": "select_header_content_type",
+        "section": "select_header_content_type",
+        "text": "Return the preferred Content-Type header value from the provided array of valid content types.\nList of content types.\nIf more than one valid Content-Type is provided, the first one in the list is used.\nselect_header_content_type\nContent-Type\nList\npython:str\noptional\nContent-Type"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_content_type",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_content_type.html#ansys.openapi.common.ApiClient.select_header_content_type",
+        "title": "select_header_content_type > select_header_content_type > select_header_content_type",
+        "section": "select_header_content_type > select_header_content_type",
+        "text": "static ApiClient.select_header_content_type(content_types)\n\nReturn the preferred Content-Type header value from the provided array of valid content types.\n\nParameters\n\ncontent_types\n\nList[python:str], optional\n\nList of content types.\n\nNotes\n\nIf more than one valid Content-Type is provided, the first one in the list is used.\n\nExamples\n\n>>> ApiClient.select_header_content_type()\n'application/json'\n\n>>> ApiClient.select_header_content_type(['text/xml', 'Application/JSON'])\n'text/xml'\n\n>>> ApiClient.select_header_content_type(['*/*'])\n'application/json'\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiException",
+        "href": "api/_autosummary/ansys.openapi.common.ApiException.html#apiexception",
+        "title": "ApiException",
+        "section": "ApiException",
+        "text": "Provides the exception to raise when the remote server returns an unsuccessful response.\nFor more information about the failure, inspect .status_code and .reason_phrase. If the\nserver defines a custom exception model, .exception_model contains the deserialized response.\nHTTP status code associated with the response.\nDescription of the response provided by the server.\nContent of the response provided by the server. The default is None.\nThe custom exception model if defined by the server. The default is None.\nResponse headers provided by the server. The default is None.\nApiException\n.status_code\n.reason_phrase\n.exception_model\npython:int\npython:str\npython:str\noptional\nNone\nNone\nCaseInsensitiveDict\noptional\nNone"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiException",
+        "href": "api/_autosummary/ansys.openapi.common.ApiException.html#ansys.openapi.common.ApiException",
+        "title": "ApiException > ApiException > ApiException",
+        "section": "ApiException > ApiException",
+        "text": "exception ApiException(status_code, reason_phrase, body=None, exception_model=None, headers=None)\n\nProvides the exception to raise when the remote server returns an unsuccessful response.\n\nFor more information about the failure, inspect .status_code and .reason_phrase. If the\nserver defines a custom exception model, .exception_model contains the deserialized response.\n\nParameters\n\nstatus_code\n\npython:int\n\nHTTP status code associated with the response.\n\nreason_phrase\n\npython:str\n\nDescription of the response provided by the server.\n\nbody\n\npython:str, optional\n\nContent of the response provided by the server. The default is None.\n\nexception_model: ModelBase, optional\n\nThe custom exception model if defined by the server. The default is None.\n\nheaders\n\nCaseInsensitiveDict, optional\n\nResponse headers provided by the server. The default is None.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common._base.DeserializedType",
+        "href": "api/_autosummary/ansys.openapi.common._base.DeserializedType.html#deserializedtype",
+        "title": "DeserializedType",
+        "section": "DeserializedType",
+        "text": "alias of None | float | bool | bytes | str | int | datetime | date | Enum | List | Tuple | Dict | ModelBase\nDeserializedType\nNone\nfloat\nbool\nbytes\nstr\nint\ndatetime\ndate\nEnum\nList\nTuple\nDict\nModelBase"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common._base.DeserializedType",
+        "href": "api/_autosummary/ansys.openapi.common._base.DeserializedType.html#ansys.openapi.common._base.DeserializedType",
+        "title": "DeserializedType > DeserializedType > DeserializedType",
+        "section": "DeserializedType > DeserializedType",
+        "text": "DeserializedType\n\n!! processed by numpydoc !!\n\nalias of None | float | bool | bytes | str | int | datetime | date | Enum | List | Tuple | Dict | ModelBase"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common._base.PrimitiveType",
+        "href": "api/_autosummary/ansys.openapi.common._base.PrimitiveType.html#primitivetype",
+        "title": "PrimitiveType",
+        "section": "PrimitiveType",
+        "text": "alias of float | bool | bytes | str | int\nPrimitiveType\nfloat\nbool\nbytes\nstr\nint"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common._base.PrimitiveType",
+        "href": "api/_autosummary/ansys.openapi.common._base.PrimitiveType.html#ansys.openapi.common._base.PrimitiveType",
+        "title": "PrimitiveType > PrimitiveType > PrimitiveType",
+        "section": "PrimitiveType > PrimitiveType",
+        "text": "PrimitiveType\n\n!! processed by numpydoc !!\n\nalias of float | bool | bytes | str | int"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_oidc",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_oidc.html#with_oidc",
+        "title": "with_oidc",
+        "section": "with_oidc",
+        "text": "Set up client authentication for use with OpenID Connect.\nAdditional configuration settings for the requests session when connected to the OpenID identity provider.\nBuilder object to authenticate via OIDC.\nOIDC Authentication requires the [oidc] extra to be installed.\nwith_oidc\nSessionConfiguration\noptional\nOIDCSessionBuilder\n[oidc]"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_oidc",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_oidc.html#ansys.openapi.common.ApiClientFactory.with_oidc",
+        "title": "with_oidc > with_oidc > with_oidc",
+        "section": "with_oidc > with_oidc",
+        "text": "ApiClientFactory.with_oidc(idp_session_configuration=None)\n\nSet up client authentication for use with OpenID Connect.\n\nParameters\n\nidp_session_configuration\n\nSessionConfiguration, optional\n\nAdditional configuration settings for the requests session when connected to the OpenID identity provider.\n\nReturns\n\nOIDCSessionBuilder\n\nBuilder object to authenticate via OIDC.\n\nNotes\n\nOIDC Authentication requires the [oidc] extra to be installed.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.SessionConfiguration.get_configuration_for_requests",
+        "href": "api/_autosummary/ansys.openapi.common.SessionConfiguration.get_configuration_for_requests.html#get_configuration_for_requests",
+        "title": "get_configuration_for_requests",
+        "section": "get_configuration_for_requests",
+        "text": "Retrieve the configuration as a dictionary, with keys corresponding to requests session properties.\nget_configuration_for_requests\nrequests"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.SessionConfiguration.get_configuration_for_requests",
+        "href": "api/_autosummary/ansys.openapi.common.SessionConfiguration.get_configuration_for_requests.html#ansys.openapi.common.SessionConfiguration.get_configuration_for_requests",
+        "title": "get_configuration_for_requests > get_configuration_for_requests > get_configuration_for_requests",
+        "section": "get_configuration_for_requests > get_configuration_for_requests",
+        "text": "SessionConfiguration.get_configuration_for_requests()\n\nRetrieve the configuration as a dictionary, with keys corresponding to requests session properties.\n\n!! processed by numpydoc !!\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.PRIMITIVE_TYPES",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.PRIMITIVE_TYPES.html#primitive_types",
+        "title": "PRIMITIVE_TYPES",
+        "section": "PRIMITIVE_TYPES",
+        "text": "PRIMITIVE_TYPES"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.PRIMITIVE_TYPES",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.PRIMITIVE_TYPES.html#ansys.openapi.common.ApiClient.PRIMITIVE_TYPES",
+        "title": "PRIMITIVE_TYPES > PRIMITIVE_TYPES > PRIMITIVE_TYPES",
+        "section": "PRIMITIVE_TYPES > PRIMITIVE_TYPES",
+        "text": "ApiClient.PRIMITIVE_TYPES = (<class 'float'>, <class 'bool'>, <class 'bytes'>, <class 'str'>, <class 'int'>)\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.DICT_MATCH_REGEX",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.DICT_MATCH_REGEX.html#dict_match_regex",
+        "title": "DICT_MATCH_REGEX",
+        "section": "DICT_MATCH_REGEX",
+        "text": "DICT_MATCH_REGEX"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.DICT_MATCH_REGEX",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.DICT_MATCH_REGEX.html#ansys.openapi.common.ApiClient.DICT_MATCH_REGEX",
+        "title": "DICT_MATCH_REGEX > DICT_MATCH_REGEX > DICT_MATCH_REGEX",
+        "section": "DICT_MATCH_REGEX > DICT_MATCH_REGEX",
+        "text": "ApiClient.DICT_MATCH_REGEX = re.compile('dict\\\\(([^,]*), (.*)\\\\)')\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_refresh_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_refresh_token.html#with_refresh_token",
+        "title": "with_refresh_token",
+        "section": "with_refresh_token",
+        "text": "Use a provided refresh token to authenticate the session.\nThe refresh token will be used to request a new access token from the Identity Provider,\nthis will be automatically refreshed shortly before expiration.\nRefresh token.\nOriginal client factory object.\nAdded in version 2.2.3: ..\nwith_refresh_token\npython:str\nApiClientFactory"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_refresh_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_refresh_token.html#ansys.openapi.common.OIDCSessionBuilder.with_refresh_token",
+        "title": "with_refresh_token > with_refresh_token > with_refresh_token",
+        "section": "with_refresh_token > with_refresh_token",
+        "text": "OIDCSessionBuilder.with_refresh_token(refresh_token)\n\nUse a provided refresh token to authenticate the session.\n\nThe refresh token will be used to request a new access token from the Identity Provider,\nthis will be automatically refreshed shortly before expiration.\n\nParameters\n\nrefresh_token\n\npython:str\n\nRefresh token.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\nAdded in version 2.2.3: ..\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.deserialize",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.deserialize.html#deserialize",
+        "title": "deserialize",
+        "section": "deserialize",
+        "text": "Deserialize the response into an object.\nBased on the type of response, the appropriate object is created for use.\nFor responses that are in JSON format, this method processes the response and returns it:\nIf response_type is file, save the content to a temporary file and return the file name.\nIf response_type is datetime.datetime or datetime.date, parse the string and return the\ndatetime object.\nIf response_type is list, recursively deserialize the list contents.\nIf response_type is dict, recursively deserialize the dictionary keys and values.\nIf response_type is the name of an OpenAPI model, return the model object.\nResponse object received from the API.\nString name of the class represented.\ndeserialize\nresponse_type\nfile\nresponse_type\ndatetime.datetime\ndatetime.date\ndatetime\nresponse_type\nlist\nresponse_type\ndict\nresponse_type\nrequests.Response\npython:str"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.deserialize",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.deserialize.html#ansys.openapi.common.ApiClient.deserialize",
+        "title": "deserialize > deserialize > deserialize",
+        "section": "deserialize > deserialize",
+        "text": "ApiClient.deserialize(response, response_type)\n\nDeserialize the response into an object.\n\nBased on the type of response, the appropriate object is created for use.\n\nFor responses that are in JSON format, this method processes the response and returns it:\n\nIf response_type is file, save the content to a temporary file and return the file name.\n\nIf response_type is datetime.datetime or datetime.date, parse the string and return the\ndatetime object.\n\nIf response_type is list, recursively deserialize the list contents.\n\nIf response_type is dict, recursively deserialize the dictionary keys and values.\n\nIf response_type is the name of an OpenAPI model, return the model object.\n\nParameters\n\nresponse\n\nrequests.Response\n\nResponse object received from the API.\n\nresponse_type\n\npython:str\n\nString name of the class represented.\n\nExamples\n\n>>> client = ApiClient(requests.Session(),\n...                    'http://my-api.com/API/v1.svc',\n...                    SessionConfiguration())\n... api_response = requests.Response()\n... api_response._content = b\"{'key': 'value'}\"\n... client.deserialize(api_response, 'Dict[str, str]]')\n{'key': 'value'}\n\n>>> client = ApiClient(requests.Session(),\n...                    'http://my-api.com/API/v1.svc',\n...                    SessionConfiguration())\n... api_response = requests.Response()\n... api_response._content = b\"'2015-10-21T10:05:10'\"\n... client.deserialize(api_response, 'datetime.datetime')\ndatetime.datetime(2015, 10, 21, 10, 5, 10)\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.request",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.request.html#request",
+        "title": "request",
+        "section": "request",
+        "text": "Make the HTTP request and return it directly.\nHTTP method verb.\nAbsolute URL of the target endpoint, including any path and query parameters.\nQuery parameters to pass in the URL.\nHeaders to attach to the request.\nRequest post form parameters for multipart/form-data.\nRequest body.\nWhether to return the underlying response without reading or decoding response data. The default\nis True, in which case the response data is read or decoded.  If False, the response\ndata is not read or decoded.\nTimeout setting for the request. If only one number is provided, it is used as a total request timeout.\nIt can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level\ntimeout setting.\nrequest\npython:str\npython:str\npython:str\nDict\nOptional\nIterable\nTuple\npython:str\nUnion\npython:str\nbytes\nTuple\npython:str\nUnion\npython:str\nbytes\npython:str\nmultipart/form-data\nSerializedType\noptional\nTrue\nFalse\nUnion\npython:float\nTuple\npython:float\npython:float\npython:None"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.request",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.request.html#ansys.openapi.common.ApiClient.request",
+        "title": "request > request > request",
+        "section": "request > request",
+        "text": "ApiClient.request(method, url, query_params=None, headers=None, post_params=None, body=None, _preload_content=True, _request_timeout=None)\n\nMake the HTTP request and return it directly.\n\nParameters\n\nmethod\n\npython:str\n\nHTTP method verb.\n\nurl\n\npython:str\n\nAbsolute URL of the target endpoint, including any path and query parameters.\n\nquery_params\n\npython:str\n\nQuery parameters to pass in the URL.\n\nheaders\n\nDict\n\nHeaders to attach to the request.\n\npost_params\n\nOptional[Iterable[Tuple[python:str, Union[python:str, bytes, Tuple[python:str, Union[python:str, bytes], python:str]]]]]\n\nRequest post form parameters for multipart/form-data.\n\nbody\n\nSerializedType\n\nRequest body.\n\n_preload_content\n\nbool, optional\n\nWhether to return the underlying response without reading or decoding response data. The default\nis True, in which case the response data is read or decoded.  If False, the response\ndata is not read or decoded.\n\n_request_timeout\n\nUnion[python:float, Tuple[python:float, python:float], python:None]\n\nTimeout setting for the request. If only one number is provided, it is used as a total request timeout.\nIt can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level\ntimeout setting.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_credentials",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_credentials.html#with_credentials",
+        "title": "with_credentials",
+        "section": "with_credentials",
+        "text": "Set up client authentication for use with provided credentials.\nThe default operation of this method is to attempt to connect to the API and to use the provided\nWWW-Authenticate header to determine whether NTLM or Basic Authentication should be used. The selected\nauthentication scheme will then be configured for use.\nUsername for the connection.\nPassword for the connection.\nDomain to use for connection if required. The default is None.\nThe authentication scheme to use.\nAdded in version 2.1.\nAdded to\nApiClientFactory.with_credentials\nin version 2.1 of ansys-openapi-common.\nOriginal client factory object.\nIf the server does not support Basic or NTLM authentication (Windows clients only).\nNTLM authentication is not currently supported on Linux.\nwith_credentials\nWWW-Authenticate\npython:str\npython:str\npython:str\noptional\nNone\nAuthenticationScheme\nApiClientFactory.with_credentials\nansys-openapi-common\nApiClientFactory\nConnectionError"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_credentials",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_credentials.html#ansys.openapi.common.ApiClientFactory.with_credentials",
+        "title": "with_credentials > with_credentials > with_credentials",
+        "section": "with_credentials > with_credentials",
+        "text": "ApiClientFactory.with_credentials(username, password, domain=None, authentication_scheme=AuthenticationScheme.AUTO)\n\nSet up client authentication for use with provided credentials.\n\nThe default operation of this method is to attempt to connect to the API and to use the provided\nWWW-Authenticate header to determine whether NTLM or Basic Authentication should be used. The selected\nauthentication scheme will then be configured for use.\n\nParameters\n\nusername\n\npython:str\n\nUsername for the connection.\n\npassword\n\npython:str\n\nPassword for the connection.\n\ndomain\n\npython:str, optional\n\nDomain to use for connection if required. The default is None.\n\nauthentication_scheme\n\nAuthenticationScheme\n\nThe authentication scheme to use.\n\nAdded in version 2.1.\n\nAdded to\nApiClientFactory.with_credentials\nin version 2.1 of ansys-openapi-common.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\nRaises\n\nConnectionError\n\nIf the server does not support Basic or NTLM authentication (Windows clients only).\n\nNotes\n\nNTLM authentication is not currently supported on Linux.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common._base.SerializedType",
+        "href": "api/_autosummary/ansys.openapi.common._base.SerializedType.html#serializedtype",
+        "title": "SerializedType",
+        "section": "SerializedType",
+        "text": "alias of None | float | bool | bytes | str | int | List | Tuple | Dict\nSerializedType\nNone\nfloat\nbool\nbytes\nstr\nint\nList\nTuple\nDict"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common._base.SerializedType",
+        "href": "api/_autosummary/ansys.openapi.common._base.SerializedType.html#ansys.openapi.common._base.SerializedType",
+        "title": "SerializedType > SerializedType > SerializedType",
+        "section": "SerializedType > SerializedType",
+        "text": "SerializedType\n\n!! processed by numpydoc !!\n\nalias of None | float | bool | bytes | str | int | List | Tuple | Dict"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_accept",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_accept.html#select_header_accept",
+        "title": "select_header_accept",
+        "section": "select_header_accept",
+        "text": "Return a correctly formatted Accept header value from the provided array of accepted content types.\nList of accepted content types.\nselect_header_accept\nAccept\nList\npython:str\noptional"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_accept",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.select_header_accept.html#ansys.openapi.common.ApiClient.select_header_accept",
+        "title": "select_header_accept > select_header_accept > select_header_accept",
+        "section": "select_header_accept > select_header_accept",
+        "text": "static ApiClient.select_header_accept(accepts)\n\nReturn a correctly formatted Accept header value from the provided array of accepted content types.\n\nParameters\n\naccepts\n\nList[python:str], optional\n\nList of accepted content types.\n\nExamples\n\n>>> ApiClient.select_header_accept(['Application/JSON', 'text/xml'])\n'application/json, text/xml'\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.generate_user_agent",
+        "href": "api/_autosummary/ansys.openapi.common.generate_user_agent.html#generate_user_agent",
+        "title": "generate_user_agent",
+        "section": "generate_user_agent",
+        "text": "Generate a user-agent string in the form <package info> <python info> <os info>.\nName of the package to include in the user-agent string.\nVersion of the package to include in the user-agent string.\nUser-agent string.\ngenerate_user_agent\npython:str\npython:str\npython:str"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.generate_user_agent",
+        "href": "api/_autosummary/ansys.openapi.common.generate_user_agent.html#ansys.openapi.common.generate_user_agent",
+        "title": "generate_user_agent > generate_user_agent > generate_user_agent",
+        "section": "generate_user_agent > generate_user_agent",
+        "text": "generate_user_agent(package_name, package_version)\n\nGenerate a user-agent string in the form <package info> <python info> <os info>.\n\nParameters\n\npackage_name\n\npython:str\n\nName of the package to include in the user-agent string.\n\npackage_version\n\npython:str\n\nVersion of the package to include in the user-agent string.\n\nReturns\n\npython:str\n\nUser-agent string.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.LIST_MATCH_REGEX",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.LIST_MATCH_REGEX.html#list_match_regex",
+        "title": "LIST_MATCH_REGEX",
+        "section": "LIST_MATCH_REGEX",
+        "text": "LIST_MATCH_REGEX"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.LIST_MATCH_REGEX",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.LIST_MATCH_REGEX.html#ansys.openapi.common.ApiClient.LIST_MATCH_REGEX",
+        "title": "LIST_MATCH_REGEX > LIST_MATCH_REGEX > LIST_MATCH_REGEX",
+        "section": "LIST_MATCH_REGEX > LIST_MATCH_REGEX",
+        "text": "ApiClient.LIST_MATCH_REGEX = re.compile('list\\\\[(.*)]')\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.connect",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.connect.html#connect",
+        "title": "connect",
+        "section": "connect",
+        "text": "Finalize the API client and return it for use.\nAuthentication must be configured for this method to succeed.\nClient object that can be used to connect to the server and perform API operations.\nWhen the client is not fully configured.\nconnect\nApiClient\nValueError"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.connect",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.connect.html#ansys.openapi.common.ApiClientFactory.connect",
+        "title": "connect > connect > connect",
+        "section": "connect > connect",
+        "text": "ApiClientFactory.connect()\n\nFinalize the API client and return it for use.\n\nAuthentication must be configured for this method to succeed.\n\nReturns\n\nApiClient\n\nClient object that can be used to connect to the server and perform API operations.\n\nRaises\n\nValueError\n\nWhen the client is not fully configured.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_autologon",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_autologon.html#with_autologon",
+        "title": "with_autologon",
+        "section": "with_autologon",
+        "text": "Set up client authentication for use with Kerberos (also known as integrated Windows authentication).\nThe default operation of this method is to attempt to connect to the API and to use the provided\nWWW-Authenticate header to determine if Negotiate authentication is supported by the server. If so,\nNegotiate will then be used for authentication.\nIf Negotiate authentication is not supported by the server, an exception is raised.\nCurrent client factory object.\nIf the server does not support Negotiate authentication.\nRequires the user to have a valid Kerberos Ticket-Granting-Ticket (TGT).\nOn Windows, this is provided by default.\nOn Linux, this requires the [linux-kerberos] extension to be installed and your Kerberos installation\nto be configured correctly.\nwith_autologon\nWWW-Authenticate\nApiClientFactory\nConnectionError\n[linux-kerberos]"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_autologon",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.with_autologon.html#ansys.openapi.common.ApiClientFactory.with_autologon",
+        "title": "with_autologon > with_autologon > with_autologon",
+        "section": "with_autologon > with_autologon",
+        "text": "ApiClientFactory.with_autologon()\n\nSet up client authentication for use with Kerberos (also known as integrated Windows authentication).\n\nThe default operation of this method is to attempt to connect to the API and to use the provided\nWWW-Authenticate header to determine if Negotiate authentication is supported by the server. If so,\nNegotiate will then be used for authentication.\n\nIf Negotiate authentication is not supported by the server, an exception is raised.\n\nReturns\n\nApiClientFactory\n\nCurrent client factory object.\n\nRaises\n\nConnectionError\n\nIf the server does not support Negotiate authentication.\n\nNotes\n\nRequires the user to have a valid Kerberos Ticket-Granting-Ticket (TGT).\n\nOn Windows, this is provided by default.\n\nOn Linux, this requires the [linux-kerberos] extension to be installed and your Kerberos installation\nto be configured correctly.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.NTLM",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.NTLM.html#ntlm",
+        "title": "NTLM",
+        "section": "NTLM",
+        "text": "Force the use of NTLM authentication only. Do not fall back to Basic authentication.\nNTLM"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.NTLM",
+        "href": "api/_autosummary/ansys.openapi.common.AuthenticationScheme.NTLM.html#ansys.openapi.common.AuthenticationScheme.NTLM",
+        "title": "NTLM > NTLM > NTLM",
+        "section": "NTLM > NTLM",
+        "text": "AuthenticationScheme.NTLM = 'NTLM'\n\nForce the use of NTLM authentication only. Do not fall back to Basic authentication.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/index",
+        "href": "api/index.html#api-reference",
+        "title": "API reference",
+        "section": "API reference",
+        "text": "This section summarizes OpenAPI-Common public\nclasses.\nApiClient(session, api_url, configuration)\nProvides a generic API client for OpenAPI client library builds.\nApiClientFactory(api_url[, ...])\nCreates a factory that configures an API client for use with autogenerated Swagger clients.\nAuthenticationScheme(value[, names, module, ...])\nAuthentication scheme.\nOIDCSessionBuilder(client_factory[, ...])\nHelps create OpenID Connect sessions and provides OIDC-specific configuration options.\nSessionConfiguration([client_cert_path, ...])\nProvides configuration for the API client session.\nAPI reference\nApiClient\nApiClientFactory\nAuthenticationScheme\nOIDCSessionBuilder\nSessionConfiguration"
+    },
+    {
+        "objectID": "api/index",
+        "href": "api/index.html#helper-functions",
+        "title": "API reference > Helper functions",
+        "section": "Helper functions",
+        "text": "This section summarizes OpenAPI-Common helper functions.\ngenerate_user_agent(package_name, ...)\nGenerate a user-agent string in the form <package info> <python info> <os info>.\nHelper functions\ngenerate_user_agent"
+    },
+    {
+        "objectID": "api/index",
+        "href": "api/index.html#exceptions-and-warnings",
+        "title": "API reference > Exceptions and warnings",
+        "section": "Exceptions and warnings",
+        "text": "This section summarizes OpenAPI-Common exceptions and warnings.\nApiException(status_code, reason_phrase[, ...])\nProvides the exception to raise when the remote server returns an unsuccessful response.\nApiConnectionException(response)\nProvides the exception to raise when connection to the API server fails.\nAuthenticationWarning(message)\nProvides the warning to raise when the server connection process completes but does proceed as expected.\nUndefinedObjectWarning\nProvides a warning for when a model is incompletely described in the OpenAPI definition.\nExceptions and warnings\nApiException\nApiConnectionException\nAuthenticationWarning\nUndefinedObjectWarning"
+    },
+    {
+        "objectID": "api/index",
+        "href": "api/index.html#type-aliases",
+        "title": "API reference > Type aliases",
+        "section": "Type aliases",
+        "text": "DeserializedType\n\nSerializedType\n\nPrimitiveType\n\nType aliases\nDeserializedType\nSerializedType\nPrimitiveType"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_access_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_access_token.html#with_access_token",
+        "title": "with_access_token",
+        "section": "with_access_token",
+        "text": "Use a provided access token to authenticate the session.\nThis method configures a session with the provided access token, if the token is invalid,\nor has expired, the session will be unable to authenticate.\nAccess token.\nOriginal client factory object.\nAdded in version 2.2.3: ..\nwith_access_token\npython:str\nApiClientFactory"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_access_token",
+        "href": "api/_autosummary/ansys.openapi.common.OIDCSessionBuilder.with_access_token.html#ansys.openapi.common.OIDCSessionBuilder.with_access_token",
+        "title": "with_access_token > with_access_token > with_access_token",
+        "section": "with_access_token > with_access_token",
+        "text": "OIDCSessionBuilder.with_access_token(access_token)\n\nUse a provided access token to authenticate the session.\n\nThis method configures a session with the provided access token, if the token is invalid,\nor has expired, the session will be unable to authenticate.\n\nParameters\n\naccess_token\n\npython:str\n\nAccess token.\n\nReturns\n\nApiClientFactory\n\nOriginal client factory object.\n\nAdded in version 2.2.3: ..\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#user-guide",
+        "title": "User guide",
+        "section": "User guide",
+        "text": "User guide"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#basic-usage",
+        "title": "User guide > Basic usage",
+        "section": "Basic usage",
+        "text": "The ApiClient class is designed to be wrapped by code that implements a client\nlibrary. You should override the __init__() or connect() methods\nto add additional required behavior.\nAuthentication is configured through the ApiClientFactory object and its\nwith_xxx() methods. If no authentication is required, you can use the\nwith_anonymous() method.\nBasic usage\nApiClient\n__init__()\nconnect()\nApiClientFactory\nwith_xxx()\nwith_anonymous()"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#authentication-schemes",
+        "title": "User guide > Authentication schemes",
+        "section": "Authentication schemes",
+        "text": "OpenAPI-Common supports API servers configured with no authentication, API keys,\nclient certificates, and basic authentication.\nWindows users can also use Windows Integrated Authentication to connect to Kerberos-enabled\nAPIs with their Windows credentials and to NTLM where it is supported.\nLinux users can make use of Kerberos authentication via the [linux-kerberos] extra. This\nrequires a working installation of either MIT Kerberos or Heimdal, as well as some\nplatform-specific build steps. An additional requirement is a correctly configured krb5.keytab\nfile on your system.\nWindows and Linux users can authenticate with OIDC-enabled APIs by using the [oidc] extra.\nCurrently only the Authorization Code authentication flow is supported.\nAuthentication method\nWindows\nLinux\nBuilder method\nAPI Key\n✔️\n✔️\n.with_anonymous() 1\nBasic\n✔️\n✔️\n.with_credentials()\nNTLM\n✔️\n❌\n.with_credentials()\nKerberos\n✔️\n➕ 2\n.with_autologon()\nOIDC\n➕ 3\n➕ 3\n.with_oidc()\nSet the appropriate header in api_session_configuration.\nWhen installed as pip install ansys-openapi-common[linux-kerberos].\nWhen installed as pip install ansys-openapi-common[oidc].\nAuthentication schemes\nAuthentication methods by platform\n[linux-kerberos]\nkrb5.keytab\n[oidc]\n.with_anonymous()\n.with_credentials()\n.with_credentials()\n.with_autologon()\n.with_oidc()\napi_session_configuration\npip install ansys-openapi-common[linux-kerberos]\npip install ansys-openapi-common[oidc]"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#session-configuration",
+        "title": "User guide > Session configuration",
+        "section": "Session configuration",
+        "text": "You can set all options that are available in Python library requests through\nthe client with the SessionConfiguration object. This enables you to\nconfigure custom SSL certificate validation, send client certificates if your API\nserver requires them, and configure many other options.\nFor example, to send a client certificate with every request:\nSession configuration\nSessionConfiguration"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#https-certificates",
+        "title": "User guide > HTTPS certificates",
+        "section": "HTTPS certificates",
+        "text": "The requests library uses the certifi package to verify TLS certificates instead of a local system certificate\nstore. These means only TLS certificates signed by a public CA can be verified by requests in its default\nconfiguration. If you need to verify internally signed TLS certificates, there are two recommended approaches:\nHTTPS certificates\nrequests\ncertifi\nrequests"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#pip-system-certs",
+        "title": "User guide > pip-system-certs",
+        "section": "pip-system-certs",
+        "text": "The pip-system-certs library patches the certificate loading mechanism for requests causing it to\nuse your system certificate store. This is the simplest solution, but there are two potential limitations:\n1. pip-system-certs does not support every platform that is supported by CPython, so it may not\nbe supported on your platform.\n2. The change to requests affects every package in your environment, including pip. Make sure you are\nusing a virtual environment.\nIf you are using OIDC authentication and your service provides an internally signed certificate you must\nuse this option.\npip-system-certs\npip-system-certs\nrequests\npip-system-certs\nrequests"
+    },
+    {
+        "objectID": "user_guide/index",
+        "href": "user_guide/index.html#custom-certificate-store",
+        "title": "User guide > Custom certificate store",
+        "section": "Custom certificate store",
+        "text": "The SessionConfiguration object allows you to provide a path to a custom CA certificate. If provided, the\ncustom CA certificate is used to verify the service’s TLS certificate instead of the certifi package.\nCustom certificate store\nSessionConfiguration\ncertifi"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.html#apiclientfactory",
+        "title": "ApiClientFactory",
+        "section": "ApiClientFactory",
+        "text": "Creates a factory that configures an API client for use with autogenerated Swagger clients.\nThis method handles setup of the retry strategy, session-level timeout, and any additional\nconfigurations for requests. Authentication must be configured afterwards using one of\nthe other class methods.\nBase URL of the API server.\nAdditional configuration settings for the requests session.\nApiClientFactory.connect()\nFinalize the API client and return it for use.\nApiClientFactory.with_anonymous()\nSet up client authentication for anonymous use.\nApiClientFactory.with_autologon()\nSet up client authentication for use with Kerberos (also known as integrated Windows authentication).\nApiClientFactory.with_credentials(username, ...)\nSet up client authentication for use with provided credentials.\nApiClientFactory.with_oidc([...])\nSet up client authentication for use with OpenID Connect.\nApiClientFactory\npython:str\nSessionConfiguration\noptional\nApiClientFactory.connect\nApiClientFactory.with_anonymous\nApiClientFactory.with_autologon\nApiClientFactory.with_credentials\nApiClientFactory.with_oidc"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClientFactory",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClientFactory.html#ansys.openapi.common.ApiClientFactory",
+        "title": "ApiClientFactory > ApiClientFactory > ApiClientFactory",
+        "section": "ApiClientFactory > ApiClientFactory",
+        "text": "class ApiClientFactory(api_url, session_configuration=None)\n\nCreates a factory that configures an API client for use with autogenerated Swagger clients.\n\nThis method handles setup of the retry strategy, session-level timeout, and any additional\nconfigurations for requests. Authentication must be configured afterwards using one of\nthe other class methods.\n\nParameters\n\napi_url\n\npython:str\n\nBase URL of the API server.\n\nsession_configuration\n\nSessionConfiguration, optional\n\nAdditional configuration settings for the requests session.\n\n!! processed by numpydoc !!\n\nMethods\n\n\n\n\n\n\n\nApiClientFactory.connect()\n\nFinalize the API client and return it for use.\n\nApiClientFactory.with_anonymous()\n\nSet up client authentication for anonymous use.\n\nApiClientFactory.with_autologon()\n\nSet up client authentication for use with Kerberos (also known as integrated Windows authentication).\n\nApiClientFactory.with_credentials(username, ...)\n\nSet up client authentication for use with provided credentials.\n\nApiClientFactory.with_oidc([...])\n\nSet up client authentication for use with OpenID Connect.\n\n"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.SessionConfiguration.from_dict",
+        "href": "api/_autosummary/ansys.openapi.common.SessionConfiguration.from_dict.html#from_dict",
+        "title": "from_dict",
+        "section": "from_dict",
+        "text": "Create a SessionConfiguration object from its dictionary form.\nThis is the inverse of the get_configuration_for_requests() method.\nDictionary form of the session parameters.\nfrom_dict\nSessionConfiguration\nget_configuration_for_requests()\npython:dict"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.SessionConfiguration.from_dict",
+        "href": "api/_autosummary/ansys.openapi.common.SessionConfiguration.from_dict.html#ansys.openapi.common.SessionConfiguration.from_dict",
+        "title": "from_dict > from_dict > from_dict",
+        "section": "from_dict > from_dict",
+        "text": "classmethod SessionConfiguration.from_dict(configuration_dict)\n\nCreate a SessionConfiguration object from its dictionary form.\n\nThis is the inverse of the get_configuration_for_requests() method.\n\nParameters\n\nconfiguration_dict\n\npython:dict\n\nDictionary form of the session parameters.\n\n!! processed by numpydoc !!"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.sanitize_for_serialization",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.sanitize_for_serialization.html#sanitize_for_serialization",
+        "title": "sanitize_for_serialization",
+        "section": "sanitize_for_serialization",
+        "text": "Build a JSON POST object.\nBased on the object type, this method returns the sanitized JSON representation to send to the server:\nIf obj is None, return None.\nIf obj is str, int, float or bool, return directly.\nIf obj is datetime.datetime or datetime.date, convert to string in iso8601 format.\nIf obj is list, sanitize each element in the list.\nIf obj is tuple, sanitize each element in the tuple.\nIf obj is dict, return the dict.\nIf obj is an OpenAPI model, return the properties dict.\nData to sanitize and serialize.\nsanitize_for_serialization\nNone\nNone\nstr\nint\nfloat\nbool\ndatetime.datetime\ndatetime.date\niso8601\nlist\nlist\ntuple\ntuple\ndict\ndict\nproperties\ndict\nDeserializedType"
+    },
+    {
+        "objectID": "api/_autosummary/ansys.openapi.common.ApiClient.sanitize_for_serialization",
+        "href": "api/_autosummary/ansys.openapi.common.ApiClient.sanitize_for_serialization.html#ansys.openapi.common.ApiClient.sanitize_for_serialization",
+        "title": "sanitize_for_serialization > sanitize_for_serialization > sanitize_for_serialization",
+        "section": "sanitize_for_serialization > sanitize_for_serialization",
+        "text": "ApiClient.sanitize_for_serialization(obj)\n\nBuild a JSON POST object.\n\nBased on the object type, this method returns the sanitized JSON representation to send to the server:\n\nIf obj is None, return None.\n\nIf obj is str, int, float or bool, return directly.\n\nIf obj is datetime.datetime or datetime.date, convert to string in iso8601 format.\n\nIf obj is list, sanitize each element in the list.\n\nIf obj is tuple, sanitize each element in the tuple.\n\nIf obj is dict, return the dict.\n\nIf obj is an OpenAPI model, return the properties dict.\n\nParameters\n\nobj\n\nDeserializedType\n\nData to sanitize and serialize.\n\nExamples\n\n>>> client = ApiClient(requests.Session(),\n...                    'http://my-api.com/API/v1.svc',\n...                    SessionConfiguration())\n... client.sanitize_for_serialization({'key': 'value'})\n{'key': 'value'}\n\n>>> client = ApiClient(requests.Session(),\n...                    'http://my-api.com/API/v1.svc',\n...                    SessionConfiguration())\n... client.sanitize_for_serialization(datetime.datetime(2015, 10, 21, 10, 5, 10))\n'2015-10-21T10:05:10'\n\n!! processed by numpydoc !!"
+    }
+]

@@ -1,0 +1,871 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>User guide &#8212; OpenAPI Common 2.4.0.dev0</title>
+  
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/ansys-sphinx-theme.css?v=a23b20f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/ansys-sphinx-theme.css?v=a23b20f3" />
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.23/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://www.nerdfonts.com/assets/css/webfont.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+
+  <!-- Include desired assets -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  
+
+  
+    <link href="../_static/css/breadcrumbs.css" rel="stylesheet" />
+  
+    <script src="../_static/documentation_options.js?v=ed268db3"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=49e1bf35"></script>
+    <script src="https://cdn.datatables.net/1.10.23/js/jquery.dataTables.min.js"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'user_guide/index';</script>
+    <script>
+        DOCUMENTATION_OPTIONS.theme_version = '0.16.1';
+        DOCUMENTATION_OPTIONS.theme_switcher_json_url = 'https://openapi.docs.pyansys.com/versions.json';
+        DOCUMENTATION_OPTIONS.theme_switcher_version_match = 'dev';
+        DOCUMENTATION_OPTIONS.show_version_warning_banner =
+            false;
+        </script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API reference" href="../api/index.html" />
+    <link rel="prev" title="Getting started" href="../getting_started/index.html" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="2.4.0.dev0" />
+  <link rel="canonical" href="https://openapi.docs.pyansys.com/version/stable/user_guide/index.html" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+<div class="bd-header__inner bd-page-width">
+  <button class="pst-navbar-icon sidebar-toggle primary-toggle" aria-label="Site navigation">
+    <span class="fa-solid fa-bars"></span>
+  </button>
+  
+  
+  <div class="col-lg-3 navbar-header-items__start">
+    
+      <div class="navbar-item">
+
+  
+
+<a class="navbar-brand logo" href="https://www.ansys.com/">
+  
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../_static/ansys_logo_transparent_black.png" class="logo__image only-light" alt="OpenAPI Common 2.4.0.dev0 - Home"/>
+    <img src="../_static/ansys_logo_transparent_white.png" class="logo__image only-dark pst-js-only" alt="OpenAPI Common 2.4.0.dev0 - Home"/>
+  
+  
+</a></div>
+    
+  </div>
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item">
+
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html" title="OpenAPI Common 2.4.0.dev0 home">Home</a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contribute
+  </a>
+</li>
+
+            <li class="nav-item dropdown">
+                <button class="btn dropdown-toggle nav-item" type="button"
+                data-bs-toggle="dropdown" aria-expanded="false"
+                aria-controls="pst-nav-more-links">
+                    More
+                </button>
+                <ul id="pst-nav-more-links" class="dropdown-menu">
+                    
+<li class=" ">
+  <a class="nav-link dropdown-item nav-internal" href="../changelog.html">
+    Release notes
+  </a>
+</li>
+
+                </ul>
+            </li>
+            
+  </ul>
+</nav>
+</div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+      
+        <div class="navbar-item">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+  
+</div></div>
+      
+        <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-2"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-2"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-2"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-2">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+      
+        <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pyansys/openapi-common" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+      
+    </div>
+    
+  </div>
+  
+  
+
+  
+    <button class="pst-navbar-icon sidebar-toggle secondary-toggle" aria-label="On this page">
+      <span class="fa-solid fa-outdent"></span>
+    </button>
+  
+</div>
+
+    </header>
+  
+  
+    
+<!--
+  Announcement Version Loader
+  Dynamically loads the announcement.html content into the announcement_msg div.
+-->
+<div id="announcement_msg" aria-live="polite"></div>
+<script>
+  // Fetch and inject the announcement HTML content
+  fetch("announcement.html")
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status} Announcement.html file not found, Please ignore this, if you are in dev/stable documentation`);
+      }
+      return response.text();
+    })
+    .then((text) => {
+      var msgDiv = document.getElementById("announcement_msg");
+      if (msgDiv) {
+        msgDiv.innerHTML = text;
+      }
+    })
+    .catch((error) => {
+      // Log only unexpected fetch errors
+      if (!(error.message && error.message.startsWith("HTTP error: 404"))) {
+        console.error(`Fetch problem: ${error.message} Announcement.html could not be loaded.`);
+      }
+    });
+</script>
+  
+
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          
+          
+            <div class="navbar-item">
+
+<nav>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../index.html" title="OpenAPI Common 2.4.0.dev0 home">Home</a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../getting_started/index.html">
+    Getting started
+  </a>
+</li>
+
+
+<li class="nav-item current active">
+  <a class="nav-link nav-internal" href="#">
+    User guide
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../api/index.html">
+    API reference
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../contributing.html">
+    Contribute
+  </a>
+</li>
+
+
+<li class="nav-item ">
+  <a class="nav-link nav-internal" href="../changelog.html">
+    Release notes
+  </a>
+</li>
+
+  </ul>
+</nav>
+</div>
+          
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<div class="search-bar pst-js-only" id="search-bar">
+  <form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+    <i class="fa-solid fa-magnifying-glass"></i>
+    <input type="search" class="form-control" name="q" placeholder="Search the docs ..."
+      aria-label="Search the docs ..." autocomplete="off" autocorrect="off"
+      autocapitalize="off" spellcheck="false" />
+    <span class="search-button__kbd-shortcut">
+      <kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd>
+    </span>
+  </form>
+  
+  <div id="static-search-results" class="static-search-results" style="display:none;" tabindex="0"></div>
+  
+</div></div>
+        
+          <div class="navbar-item">
+<div class="version-switcher__container dropdown pst-js-only">
+  <button id="pst-version-switcher-button-3"
+    type="button"
+    class="version-switcher__button btn btn-sm dropdown-toggle"
+    data-bs-toggle="dropdown"
+    aria-haspopup="listbox"
+    aria-controls="pst-version-switcher-list-3"
+    aria-label="Version switcher list"
+  >
+    Choose version  <!-- this text may get changed later by javascript -->
+    <span class="caret"></span>
+  </button>
+  <div id="pst-version-switcher-list-3"
+    class="version-switcher__menu dropdown-menu list-group-flush py-0"
+    role="listbox" aria-labelledby="pst-version-switcher-button-3">
+    <!-- dropdown will be populated by javascript on page load -->
+  </div>
+</div></div>
+        
+          <div class="navbar-item">
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/pyansys/openapi-common" title="GitHub" class="nav-link pst-navbar-icon" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><i class="fa-brands fa-github fa-lg" aria-hidden="true"></i>
+            <span class="sr-only">GitHub</span></a>
+        </li>
+</ul></div>
+        
+      </div>
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+<nav class="bd-docs-nav bd-links"
+     aria-label="Section Navigation">
+  <p class="bd-links__title" role="heading" aria-level="1">Section Navigation</p>
+  <div class="bd-toc-item navbar-nav"></div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+<nav aria-label="Breadcrumb">
+  <ul class="bd-breadcrumbs">
+         
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="https://docs.pyansys.com" class="nav-link">PyAnsys Documentation</a>
+    </li>
+       
+    <li class="breadcrumb-item">
+      <a href="https://shared.docs.pyansys.com" class="nav-link">Shared Components</a>
+    </li>
+     
+    <li class="breadcrumb-item">
+      <a
+        href="../index.html"
+        class="nav-link"
+        aria-label="Home"
+      >
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+      
+    <li class="breadcrumb-item active" aria-current="page"><span class="ellipsis">User guide</span></li>
+    
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section id="user-guide">
+<span id="ref-user-guide"></span><h1>User guide<a class="headerlink" href="#user-guide" title="Link to this heading">#</a></h1>
+<section id="basic-usage">
+<h2>Basic usage<a class="headerlink" href="#basic-usage" title="Link to this heading">#</a></h2>
+<p>The <a class="reference internal" href="../api/_autosummary/ansys.openapi.common.ApiClient.html#ansys.openapi.common.ApiClient" title="ansys.openapi.common.ApiClient"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiClient</span></code></a> class is designed to be wrapped by code that implements a client
+library. You should override the <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> or <a class="reference internal" href="../api/_autosummary/ansys.openapi.common.ApiClientFactory.connect.html#ansys.openapi.common.ApiClientFactory.connect" title="ansys.openapi.common.ApiClientFactory.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a> methods
+to add additional required behavior.</p>
+<p>Authentication is configured through the <a class="reference internal" href="../api/_autosummary/ansys.openapi.common.ApiClientFactory.html#ansys.openapi.common.ApiClientFactory" title="ansys.openapi.common.ApiClientFactory"><code class="xref py py-class docutils literal notranslate"><span class="pre">ApiClientFactory</span></code></a> object and its
+<code class="docutils literal notranslate"><span class="pre">with_xxx()</span></code> methods. If no authentication is required, you can use the
+<a class="reference internal" href="../api/_autosummary/ansys.openapi.common.ApiClientFactory.with_anonymous.html#ansys.openapi.common.ApiClientFactory.with_anonymous" title="ansys.openapi.common.ApiClientFactory.with_anonymous"><code class="xref py py-meth docutils literal notranslate"><span class="pre">with_anonymous()</span></code></a> method.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.openapi.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApiClientFactory</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">session</span> <span class="o">=</span> <span class="n">ApiClientFactory</span><span class="p">(</span><span class="s1">&#39;https://my-api.com/v1.svc&#39;</span><span class="p">)</span>
+<span class="gp">... </span>          <span class="o">.</span><span class="n">with_autologon</span><span class="p">()</span>
+<span class="gp">... </span>          <span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+<span class="go">&lt;ApiClient url: https://my-api.com/v1.svc&gt;</span>
+</pre></div>
+</div>
+</section>
+<section id="authentication-schemes">
+<h2>Authentication schemes<a class="headerlink" href="#authentication-schemes" title="Link to this heading">#</a></h2>
+<p>OpenAPI-Common supports API servers configured with no authentication, API keys,
+client certificates, and basic authentication.</p>
+<p>Windows users can also use Windows Integrated Authentication to connect to Kerberos-enabled
+APIs with their Windows credentials and to NTLM where it is supported.</p>
+<p>Linux users can make use of Kerberos authentication via the <code class="docutils literal notranslate"><span class="pre">[linux-kerberos]</span></code> extra. This
+requires a working installation of either MIT Kerberos or Heimdal, as well as some
+platform-specific build steps. An additional requirement is a correctly configured <code class="docutils literal notranslate"><span class="pre">krb5.keytab</span></code>
+file on your system.</p>
+<p>Windows and Linux users can authenticate with OIDC-enabled APIs by using the <code class="docutils literal notranslate"><span class="pre">[oidc]</span></code> extra.
+Currently only the Authorization Code authentication flow is supported.</p>
+<div class="pst-scrollable-table-container"><table class="table" id="id9">
+<caption><span class="caption-text">Authentication methods by platform</span><a class="headerlink" href="#id9" title="Link to this table">#</a></caption>
+<colgroup>
+<col style="width: 30.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 40.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Authentication method</p></th>
+<th class="head"><p>Windows</p></th>
+<th class="head"><p>Linux</p></th>
+<th class="head"><p>Builder method</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>API Key</p></td>
+<td><p>✔️</p></td>
+<td><p>✔️</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_anonymous()</span></code> <a class="footnote-reference brackets" href="#id5" id="id1" role="doc-noteref"><span class="fn-bracket">[</span>1<span class="fn-bracket">]</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Basic</p></td>
+<td><p>✔️</p></td>
+<td><p>✔️</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_credentials()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>NTLM</p></td>
+<td><p>✔️</p></td>
+<td><p>❌</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_credentials()</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Kerberos</p></td>
+<td><p>✔️</p></td>
+<td><p>➕ <a class="footnote-reference brackets" href="#id6" id="id2" role="doc-noteref"><span class="fn-bracket">[</span>2<span class="fn-bracket">]</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_autologon()</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>OIDC</p></td>
+<td><p>➕ <a class="footnote-reference brackets" href="#id7" id="id3" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+<td><p>➕ <a class="footnote-reference brackets" href="#id7" id="id4" role="doc-noteref"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">.with_oidc()</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<aside class="footnote-list brackets">
+<aside class="footnote brackets" id="id5" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p>Set the appropriate header in <code class="docutils literal notranslate"><span class="pre">api_session_configuration</span></code>.</p>
+</aside>
+<aside class="footnote brackets" id="id6" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p>When installed as <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">ansys-openapi-common[linux-kerberos]</span></code>.</p>
+</aside>
+<aside class="footnote brackets" id="id7" role="doc-footnote">
+<span class="label"><span class="fn-bracket">[</span>3<span class="fn-bracket">]</span></span>
+<span class="backrefs">(<a role="doc-backlink" href="#id3">1</a>,<a role="doc-backlink" href="#id4">2</a>)</span>
+<p>When installed as <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">ansys-openapi-common[oidc]</span></code>.</p>
+</aside>
+</aside>
+</section>
+<section id="session-configuration">
+<h2>Session configuration<a class="headerlink" href="#session-configuration" title="Link to this heading">#</a></h2>
+<p>You can set all options that are available in Python library <em>requests</em> through
+the client with the <a class="reference internal" href="../api/_autosummary/ansys.openapi.common.SessionConfiguration.html#ansys.openapi.common.SessionConfiguration" title="ansys.openapi.common.SessionConfiguration"><code class="xref py py-class docutils literal notranslate"><span class="pre">SessionConfiguration</span></code></a> object. This enables you to
+configure custom SSL certificate validation, send client certificates if your API
+server requires them, and configure many other options.</p>
+<p>For example, to send a client certificate with every request:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.openapi.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SessionConfiguration</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">configuration</span> <span class="o">=</span> <span class="n">SessionConfiguration</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">client_cert_path</span><span class="o">=</span><span class="s1">&#39;./my-client-cert.pem&#39;</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">client_cert_key</span><span class="o">=</span><span class="s1">&#39;secret-key&#39;</span>
+<span class="gp">... </span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">client</span><span class="o">.</span><span class="n">configuration</span> <span class="o">=</span> <span class="n">configuration</span>
+</pre></div>
+</div>
+</section>
+<section id="https-certificates">
+<h2>HTTPS certificates<a class="headerlink" href="#https-certificates" title="Link to this heading">#</a></h2>
+<p>It is common to use a private CA in an organization to generate TLS certificates for internal resources. The
+<code class="docutils literal notranslate"><span class="pre">requests</span></code> library uses the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> package which contains public CA certificates only, which means <code class="docutils literal notranslate"><span class="pre">requests</span></code>
+cannot verify private TLS certificates in its default configuration. The following error message is typically displayed
+if a private TLS certificate is validated against the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> public CAs:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>requests.exceptions.SSLError: HTTPSConnectionPool(host=&#39;example.com&#39;, port=443): Max retries exceeded with url: /
+(Caused by SSLError(SSLCertVerificationError(1, &#39;[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable
+to get local issuer certificate (_ssl.c:1028)&#39;)))``
+</pre></div>
+</div>
+<p>If you encounter this error message, you should provide <code class="docutils literal notranslate"><span class="pre">requests</span></code> with the CA used to generate your private TLS
+certificate. There are three recommended approaches to doing this, listed below in the order of simplicity.</p>
+<section id="pip-system-certs">
+<h3>1. <a class="reference external" href="https://gitlab.com/alelec/pip-system-certs">pip-system-certs</a><a class="headerlink" href="#pip-system-certs" title="Link to this heading">#</a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">pip-system-certs</span></code> library patches the certificate loading mechanism for <code class="docutils literal notranslate"><span class="pre">requests</span></code> to use the system
+certificate store instead of the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> store. Assuming the system certificate store includes the private CA, no
+further action is required beyond installing <code class="docutils literal notranslate"><span class="pre">pip-system-certs</span></code> in the same virtual environment as this package.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The change to <code class="docutils literal notranslate"><span class="pre">requests</span></code> affects every package in your environment, including pip. You <strong>must</strong> use a virtual
+environment when using <code class="docutils literal notranslate"><span class="pre">pip-system-certs</span></code> to avoid unexpected side-effects in other Python scripts.</p>
+</div>
+<p>This is recommended approach for Windows and Linux users. However, there are some situations in which
+<code class="docutils literal notranslate"><span class="pre">pip-system-certs</span></code> cannot be used:</p>
+<ul class="simple">
+<li><p>Your platform is not supported by <code class="docutils literal notranslate"><span class="pre">pip-system-certs</span></code>.</p></li>
+<li><p>The private CA certificate has not been added to the system certificate store.</p></li>
+<li><p>The OpenSSL deployment used by Python is not configured to use the system certificate store (common when using
+conda-provided Python).</p></li>
+</ul>
+<p>In these cases, the <code class="docutils literal notranslate"><span class="pre">SSLCertVerificationError</span></code> is still raised. Instead, provide the appropriate CA certificate to
+<code class="docutils literal notranslate"><span class="pre">requests</span></code> directly.</p>
+</section>
+<section id="system-ca-certificate-bundle-linux-only">
+<h3>2. System CA certificate bundle (Linux only)<a class="headerlink" href="#system-ca-certificate-bundle-linux-only" title="Link to this heading">#</a></h3>
+<p>The <a class="reference internal" href="../api/_autosummary/ansys.openapi.common.SessionConfiguration.html#ansys.openapi.common.SessionConfiguration" title="ansys.openapi.common.SessionConfiguration"><code class="xref py py-class docutils literal notranslate"><span class="pre">SessionConfiguration</span></code></a> object allows you to provide a path to a file containing one or more CA
+certificates. The custom CA certificate file is used instead of the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> package to verify the service’s TLS
+certificate.</p>
+<p>If you need to authenticate both internally- and publicly signed TLS certificates within the same environment, you must
+use a CA bundle which contains both the internal and public CAs used to sign the TLS certificates.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>OIDC authentication often requires validating internally- and publicly signed TLS certificates, since both internal
+and public resources are used to authenticate the resource.</p>
+</div>
+<p>CA bundles are often provided by Linux environments which include all trusted public CAs and any internal CAs added to
+the system certificate store. These are available in the following locations:</p>
+<ul class="simple">
+<li><p>Ubuntu: <code class="docutils literal notranslate"><span class="pre">/etc/ssl/certs/ca-certificates.crt</span></code></p></li>
+<li><p>SLES: <code class="docutils literal notranslate"><span class="pre">/var/lib/ca-certificates/ca-bundle.pem</span></code></p></li>
+<li><p>RHEL/Rocky Linux: <code class="docutils literal notranslate"><span class="pre">/etc/pki/tls/cert.pem</span></code></p></li>
+</ul>
+<p>For example, to use the system CA bundle in Ubuntu, use the following:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.openapi.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SessionConfiguration</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">SessionConfiguration</span><span class="p">(</span><span class="n">cert_store_path</span><span class="o">=</span><span class="s2">&quot;/etc/ssl/certs/ca-certificates.crt&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This allows <code class="docutils literal notranslate"><span class="pre">requests</span></code> to correctly validate both internally and publicly signed TLS certificates, as long as the
+internal CA certificate has been added to the system certificate store. If the internal CA certificate has not been
+added to the system certificate store, then a <code class="docutils literal notranslate"><span class="pre">SSLCertVerificationError</span></code> is still raised, and you should proceed to
+the next section.</p>
+</section>
+<section id="single-ca-certificate">
+<h3>3. Single CA certificate<a class="headerlink" href="#single-ca-certificate" title="Link to this heading">#</a></h3>
+<p>If you only need to authenticate internal TLS certificates, you can provide a path to the specific internal CA
+certificate to be used for verification:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">ansys.openapi.common</span><span class="w"> </span><span class="kn">import</span> <span class="n">SessionConfiguration</span>
+
+<span class="n">config</span> <span class="o">=</span> <span class="n">SessionConfiguration</span><span class="p">(</span><span class="n">cert_store_path</span><span class="o">=/</span><span class="n">home</span><span class="o">/</span><span class="n">username</span><span class="o">/</span><span class="n">my_private_ca_certificate</span><span class="o">.</span><span class="n">pem</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Where <code class="docutils literal notranslate"><span class="pre">/home/username/my_private_ca_certificate.pem</span></code> is the path to the CA certificate file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">cert_store_path</span></code> argument overrides the <code class="docutils literal notranslate"><span class="pre">certifi</span></code> CA certificates. Providing a single private CA certificate
+causes <code class="docutils literal notranslate"><span class="pre">requests</span></code> to fail to validate publicly signed TLS certificates.</p>
+</div>
+</section>
+</section>
+</section>
+
+
+                </article>
+              
+              
+              
+              
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item">
+<div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#basic-usage">Basic usage</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#authentication-schemes">Authentication schemes</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#session-configuration">Session configuration</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#https-certificates">HTTPS certificates</a><ul class="nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#pip-system-certs">1. pip-system-certs</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#system-ca-certificate-bundle-linux-only">2. System CA certificate bundle (Linux only)</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#single-ca-certificate">3. Single CA certificate</a></li>
+</ul>
+</li>
+</ul>
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div role="note" aria-label="source link">
+    <ul class="this-page-menu">
+      <li><a href="../_sources/user_guide/index.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+
+  <!-- Include desired assets -->
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.7/require.min.js"></script>
+
+<script>
+// Passing the search options to the search.js file
+const SEARCH_OPTIONS = JSON.parse('{"keys": ["title", "text", "objectID"], "limit": 10, "threshold": 0.2}');
+const SEARCH_FILE = "../_static/search.json";
+const ADVANCE_SEARCH_PATH = "../search.html";
+const EXTRA_SOURCES = JSON.parse('""');
+</script>
+
+
+<script src="../_static/js/search.js"></script>
+
+  
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+
+  <p class="copyright">
+    
+      © Copyright (c) 2026 ANSYS, Inc. All rights reserved.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item">
+<!--
+  Theme Version Footer
+  Displays the Sphinx theme version and the last updated date.
+  Accessibility and semantic improvements included.
+-->
+<footer class="theme-version" aria-label="Theme version and last update">
+  <span>
+    
+      Built with the
+      <a href="https://sphinxdocs.ansys.com/version/stable/index.html" target="_blank" rel="noopener noreferrer">
+        Ansys Sphinx Theme
+      </a>
+      1.7.0.
+    
+  </span>
+  <br />
+  <span>Last updated on <time id="ast_build_date"></time></span>
+</footer>
+<script>
+  // Set the last updated date in a readable format
+  (function() {
+    var options = { day: "numeric", month: "long", year: "numeric" };
+    var ast_lastModifiedDate = new Date(document.lastModified);
+    var ast_build_date = ast_lastModifiedDate.toLocaleDateString("en-US", options);
+    var dateElem = document.getElementById("ast_build_date");
+    if (dateElem) {
+      dateElem.textContent = ast_build_date;
+    }
+  })();
+</script></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

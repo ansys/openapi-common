@@ -1,0 +1,6 @@
+﻿DeserializedType
+================
+
+.. currentmodule:: ansys.openapi.common._base
+
+.. autodata:: DeserializedType

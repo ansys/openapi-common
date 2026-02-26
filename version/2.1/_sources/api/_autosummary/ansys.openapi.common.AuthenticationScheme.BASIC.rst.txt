@@ -1,0 +1,6 @@
+BASIC
+=====
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: AuthenticationScheme.BASIC
