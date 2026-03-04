@@ -43,7 +43,7 @@ wheels = [
 
 [[package]]
 name = "ansys-openapi-common"
-version = "2.4.0.dev0"
+version = "2.4.0rc0"
 source = { editable = "." }
 dependencies = [
     { name = "pyparsing" },
