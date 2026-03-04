@@ -2,8 +2,11 @@
 
 This project uses [towncrier](https://towncrier.readthedocs.io/) to generate changelogs.
 
-The changes for the upcoming release can be found in <https://github.com/ansys/openapi-common/tree/main/doc/changelog.d/>.
+Changes for releases after 2.4.0 can be found in
+<https://openapi.docs.pyansys.com/version/stable/changelog.html>.
 
+Changes for the upcoming release can be found in
+<https://github.com/ansys/openapi-common/tree/main/doc/changelog.d/>.
 
 ## [2.3.2](https://github.com/ansys/openapi-common/releases/tag/v2.3.2) - September 30, 2025
 
