@@ -843,6 +843,72 @@ class TestResponseHandling:
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
 
+    def test_post_model_sets_content_type_header(self):
+        """When a dict or model body is serialized to JSON, Content-Type: application/json must be
+        set automatically on the outgoing request so that strict servers accept it."""
+
+        def content_type_matcher(request: _RequestObjectProxy):
+            return request.headers.get("Content-Type") == "application/json"
+
+        resource_path = "/models"
+        method = "POST"
+        expected_url = TEST_URL + resource_path
+
+        from tests.models import ExampleModel
+
+        upload_data = ExampleModel(
+            string_property="new_model",
+            int_property=1,
+            list_property=["red", "green"],
+            bool_property=False,
+        )
+
+        with requests_mock.Mocker() as m:
+            m.post(
+                expected_url,
+                additional_matcher=content_type_matcher,
+                status_code=201,
+                text=str(uuid.uuid4()),
+            )
+            self._client.call_api(resource_path, method, body=upload_data, response_type="str")
+
+    def test_post_model_preserves_caller_content_type_header(self):
+        """If the caller explicitly sets a Content-Type header it must not be overwritten by the
+        automatic JSON content-type logic."""
+
+        caller_content_type = "application/vnd.example+json"
+
+        def content_type_matcher(request: _RequestObjectProxy):
+            return request.headers.get("Content-Type") == caller_content_type
+
+        resource_path = "/models"
+        method = "POST"
+        expected_url = TEST_URL + resource_path
+
+        from tests.models import ExampleModel
+
+        upload_data = ExampleModel(
+            string_property="new_model",
+            int_property=1,
+            list_property=["red", "green"],
+            bool_property=False,
+        )
+
+        with requests_mock.Mocker() as m:
+            m.post(
+                expected_url,
+                additional_matcher=content_type_matcher,
+                status_code=201,
+                text=str(uuid.uuid4()),
+            )
+            self._client.call_api(
+                resource_path,
+                method,
+                body=upload_data,
+                header_params={"Content-Type": caller_content_type},
+                response_type="str",
+            )
+
     def test_get_model_raises_exception_with_deserialized_response(self):
         """This test represents getting an object from a server which returns a defined exception object when the
         requested id does not exist."""
