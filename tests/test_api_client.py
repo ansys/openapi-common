@@ -909,6 +909,49 @@ class TestResponseHandling:
                 response_type="str",
             )
 
+    def test_post_model_does_not_modify_other_headers(self):
+        """Caller-supplied headers other than Content-Type must be passed through unmodified when
+        a JSON body causes Content-Type: application/json to be injected automatically."""
+
+        extra_headers = {
+            "Accept": "application/json",
+            "X-Correlation-Id": "abc-123",
+            "Authorization": "Bearer sometoken",
+        }
+
+        def headers_matcher(request: _RequestObjectProxy):
+            return request.headers.get("Content-Type") == "application/json" and all(
+                request.headers.get(k) == v for k, v in extra_headers.items()
+            )
+
+        resource_path = "/models"
+        method = "POST"
+        expected_url = TEST_URL + resource_path
+
+        from tests.models import ExampleModel
+
+        upload_data = ExampleModel(
+            string_property="new_model",
+            int_property=1,
+            list_property=["red", "green"],
+            bool_property=False,
+        )
+
+        with requests_mock.Mocker() as m:
+            m.post(
+                expected_url,
+                additional_matcher=headers_matcher,
+                status_code=201,
+                text=str(uuid.uuid4()),
+            )
+            self._client.call_api(
+                resource_path,
+                method,
+                body=upload_data,
+                header_params=extra_headers,
+                response_type="str",
+            )
+
     def test_get_model_raises_exception_with_deserialized_response(self):
         """This test represents getting an object from a server which returns a defined exception object when the
         requested id does not exist."""
