@@ -44,7 +44,7 @@ pytestmark = pytest.mark.kerberos
 TEST_URL = f"http://test-server:{TEST_PORT}"
 TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
 
-custom_test_app = FastAPI()
+custom_test_app = FastAPI(strict_content_type=False)
 
 
 @custom_test_app.middleware("http")
