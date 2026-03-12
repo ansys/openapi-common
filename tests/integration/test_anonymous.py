@@ -36,7 +36,7 @@ from tests.integration.common import (
     return_model,
 )
 
-fastapi_test_app = FastAPI()
+fastapi_test_app = FastAPI(strict_content_type=False)
 
 
 @fastapi_test_app.patch("/models/{model_id}")

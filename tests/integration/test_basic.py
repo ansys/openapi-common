@@ -46,7 +46,7 @@ from tests.integration.common import (
     validate_user_basic,
 )
 
-custom_test_app = FastAPI()
+custom_test_app = FastAPI(strict_content_type=False)
 security = HTTPBasic()
 
 
