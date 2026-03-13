@@ -189,6 +189,7 @@ class ApiClient(ApiClientBase):
             body = self.sanitize_for_serialization(body)
             if isinstance(body, (list, dict)):
                 body = json.dumps(body).encode("utf8")
+                header_params.setdefault("Content-Type", "application/json")
 
         # request url
         url = self.api_url + resource_path
