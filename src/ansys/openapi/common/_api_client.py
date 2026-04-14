@@ -674,8 +674,9 @@ class ApiClient(ApiClientBase):
         ----------
         post_params : Optional[List[Tuple[str, Union[str, bytes]]]]
             Plain form parameters.
-        files : Optional[Mapping[str, Union[str, bytes]]]
-            File parameters.
+        files : Optional[Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]]
+            File parameters. Each value may be a file path (``str`` or ``bytes``), an open
+            file-like object (``IO``), or an iterable of any combination thereof.
         """
         params: List[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]] = []
 
@@ -686,12 +687,16 @@ class ApiClient(ApiClientBase):
             for parameter, file_entry in files.items():
                 if not file_entry:
                     continue
-                file_names = file_entry if isinstance(file_entry, list) else [file_entry]
-                for file_name in file_names:
-                    if hasattr(file_name, "read"):
-                        param = ApiClient._process_file(cast(IO, file_name))
+                file_names_or_contents = (
+                    file_entry if isinstance(file_entry, list) else [file_entry]
+                )
+                for file_name_or_content in file_names_or_contents:
+                    if hasattr(file_name_or_content, "read"):
+                        file_content = cast(IO, file_name_or_content)
+                        param = ApiClient._process_file(file_content)
                         params.append((parameter, param))
                     else:
+                        file_name = cast(Union[str, bytes], file_name_or_content)
                         with open(file_name, "rb") as f:
                             param = ApiClient._process_file(f)
                             params.append((parameter, param))
@@ -791,7 +796,7 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def __deserialize_primitive(
-        data: PrimitiveType, klass: Callable[[PrimitiveType], PrimitiveType]
+        data: PrimitiveType, klass: Callable[..., PrimitiveType]
     ) -> PrimitiveType:
         """Deserialize to the primitive type.
 
