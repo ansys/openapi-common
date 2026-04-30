@@ -516,11 +516,11 @@ toml = [
 
 [[package]]
 name = "covertable"
-version = "2.1.0"
+version = "3.0.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/48/19/b3a67b537c66ce07a38d1038ee34f851a583847ec8a24dbb9a9aa9a0eebd/covertable-2.1.0.tar.gz", hash = "sha256:e123e2206fc02b8a7b997ec8922f13d8fa1ba436ff5e8de522a5fa9fc72f4d41", size = 7894, upload-time = "2023-02-19T13:34:37.056Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6c/30/516951504ad057049864cd2834febe2bbe946212d739964696b11496a5ec/covertable-3.0.0.tar.gz", hash = "sha256:7d32a0deaa024ecdd7636ce51605454bdb6af40d70d03bdf1dfe0e5f04fb2c23", size = 23437, upload-time = "2026-04-18T12:06:37.298Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/cb/93/20f3fb904ee02daad036b3d2cee6cc1185755c27817aa4b39ec8fe10a3ea/covertable-2.1.0-py3-none-any.whl", hash = "sha256:44c986d000ea3c41789e876da29ac94d091a275c78b3a110edbdb38768631fe7", size = 7147, upload-time = "2023-02-19T13:34:35.495Z" },
+    { url = "https://files.pythonhosted.org/packages/5e/86/10c80347f01462464d9cb1b397c014b095652cb254e09b1b3970bd9ba139/covertable-3.0.0-py3-none-any.whl", hash = "sha256:f85f59c763669eaece75da424402c4702fe4b0b6291e76f0099fad3840ecb24d", size = 24833, upload-time = "2026-04-18T12:06:35.896Z" },
 ]
 
 [[package]]
