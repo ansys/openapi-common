@@ -23,6 +23,7 @@
 import datetime
 import json
 import os
+import asyncio
 from pathlib import Path
 import secrets
 import sys
@@ -99,6 +100,18 @@ def test_close_disposes_distinct_httpx_auth_token_client():
     api.close()
     assert inner.is_closed
     assert outer.is_closed
+
+
+def test_request_requires_sync_httpx_client():
+    transport = httpx.MockTransport(lambda request: httpx.Response(200))
+    # ApiClient is typed for httpx.Client; an AsyncClient must be rejected at request time.
+    bad_session = httpx.AsyncClient(transport=transport)  # type: ignore[assignment]
+    try:
+        client = ApiClient(bad_session, TEST_URL, SessionConfiguration())  # type: ignore[arg-type]
+        with pytest.raises(TypeError, match="httpx.Client"):
+            client.request("GET", TEST_URL + "/x")
+    finally:
+        asyncio.run(bad_session.aclose())
 
 
 class TestParameterHandling:

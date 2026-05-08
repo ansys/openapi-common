@@ -29,7 +29,7 @@ import httpx
 import pytest
 from httpx_auth import OAuth2
 
-from ansys.openapi.common import ApiClientFactory
+from ansys.openapi.common import ApiClientFactory, SessionConfiguration
 from ansys.openapi.common._oidc import OIDCSessionFactory
 
 REQUIRED_HEADERS = {
@@ -181,6 +181,31 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     }
     response = OIDCSessionFactory._override_idp_header(configuration)
     assert response == configuration
+
+
+def test_add_api_audience_if_set_no_op_when_not_in_authenticate_parameters():
+    factory = OIDCSessionFactory.__new__(OIDCSessionFactory)
+    factory._authenticate_parameters = dict(REQUIRED_HEADERS)
+    api_tc = SessionConfiguration().get_transport_configuration()
+    idp_tc = SessionConfiguration().get_transport_configuration()
+    factory._api_session_configuration = api_tc
+    factory._idp_session_configuration = idp_tc
+    OIDCSessionFactory._add_api_audience_if_set(factory)
+    assert "audience" not in api_tc["headers"]
+    assert "audience" not in idp_tc["headers"]
+
+
+def test_add_api_audience_if_set_writes_audience_to_api_and_idp_headers():
+    factory = OIDCSessionFactory.__new__(OIDCSessionFactory)
+    audience = "https://my-api.example.com"
+    factory._authenticate_parameters = {**REQUIRED_HEADERS, "apiAudience": audience}
+    api_tc = SessionConfiguration().get_transport_configuration()
+    idp_tc = SessionConfiguration().get_transport_configuration()
+    factory._api_session_configuration = api_tc
+    factory._idp_session_configuration = idp_tc
+    OIDCSessionFactory._add_api_audience_if_set(factory)
+    assert api_tc["headers"]["audience"] == audience
+    assert idp_tc["headers"]["audience"] == audience
 
 
 def test_setting_access_token_with_no_token_throws():
