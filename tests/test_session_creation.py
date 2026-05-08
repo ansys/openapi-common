@@ -27,10 +27,8 @@ import os
 import sys
 from urllib.parse import parse_qs
 
+import httpx
 import pytest
-import requests
-import requests_mock
-import requests_ntlm
 
 from ansys.openapi.common import (
     ApiClientFactory,
@@ -48,35 +46,72 @@ ACCESS_TOKEN = (
 )
 REFRESH_TOKEN = (
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMzQ1Njc4OTAxIiwibmFtZSI6IkphbmUgU21pdGgiLCJpYXQiOjE"
-    "1MTYyMzkwMjJ9.Gm9bqy4CL4_mXKPYrnt2nHGxGM_WaLGpGHrYE_U9uJQ"
+    "5MTYyMzkwMjJ9.Gm9bqy4CL4_mXKPYrnt2nHGxGM_WaLGpGHrYE_U9uJQ"
 )
 
+# NTLM pytest-httpx shared handshake (pyspnego via httpx-ntlm; regenerate if deps change — versions in test_can_connect_with_ntlm).
+_NTLM_PATCHED_URANDOM = b"\xde\xad\xbe\xef\xde\xad\xbe\xef"
+_NTLM_CANNED_EXPECT1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAN4II4gAAAAAoAAAAAAAAACgAAAAADAAAAAAADw=="}
+_NTLM_CANNED_CHALLENGE_WWW = (
+    "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAAC"
+    "gBhSgAAAA9UAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgACAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQB"
+    "PAE4AAQAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAQAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJA"
+    "E8ATgADAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4ABwAIADbWHPMoRNcBAAAAAA=="
+)
+_NTLM_CANNED_CHALLENGE_HEADERS = {"www-authenticate": _NTLM_CANNED_CHALLENGE_WWW}
+# Type 3 for NOT_A_TEST_USER / PASSWORD with _NTLM_PATCHED_URANDOM and _NTLM_CANNED_CHALLENGE_WWW (invalid-credentials test).
+_NTLM_INVALID_CREDENTIALS_EXPECT2 = {
+    "Authorization": (
+        "NTLM TlRMTVNTUAADAAAAGAAYAFgAAAD0APQAcAAAAAAAAABkAQAAHgAeAGQBAAAeAB4AggEAAAgACACgAQAANYKK4gAM"
+        "AAAAAAAPGm05CYoNx3Q/B2D6gQMJzgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACIxIvAaPoXT0oTj1k48KMgBAQAAAAAAADbWHPMoRNcB3q2+796tvu8AAAAAAgAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAEAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgAEAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4AAwAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAcACAA21hzzKETXAQkAIABoAG8AcwB0AC8AdQBuAHMAcABlAGMAaQBmAGkAZQBkAAYABAACAAAAAAAAAAAAAABOAE8AVABfAEEAXwBUAEUAUwBUAF8AVQBTAEUAUgBTAE4AUABTAC0AQgBFAEMARgBDADYANABMAE4AQwBkT+LI/a3T7Q=="
+    )
+}
 
-def test_anonymous():
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=200, reason="OK", text="Connection OK")
-        _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
+
+def _ntlm_backend_available() -> bool:
+    """False when ``httpx_ntlm`` cannot load (e.g. Windows without MIT Kerberos / spnego chain)."""
+    if os.name != "nt":
+        return True
+    try:
+        from httpx_ntlm import HttpNtlmAuth  # noqa: F401
+
+        return True
+    except OSError:
+        return False
+
+
+def _response_reason(response):
+    """Reason phrase from an ``httpx.Response``."""
+    return getattr(response, "reason_phrase", getattr(response, "reason", ""))
+
+
+def test_anonymous(httpx_mock):
+    httpx_mock.add_response(url=SERVICELAYER_URL, method="GET", status_code=200, text="Connection OK")
+    _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
 
 
 @pytest.mark.parametrize(
     ("status_code", "reason_phrase"),
     [(403, "Forbidden"), (404, "Not Found"), (500, "Internal Server Error")],
 )
-def test_other_status_codes_throw(status_code, reason_phrase):
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=status_code, reason=reason_phrase)
-        with pytest.raises(ApiConnectionException) as excinfo:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
-        assert excinfo.value.response.status_code == status_code
-        assert excinfo.value.response.reason == reason_phrase
+def test_other_status_codes_throw(status_code, reason_phrase, httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=status_code,
+        is_reusable=True,
+    )
+    with pytest.raises(ApiConnectionException) as excinfo:
+        _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
+    assert excinfo.value.response.status_code == status_code
+    assert _response_reason(excinfo.value.response) == reason_phrase
 
 
-def test_missing_www_authenticate_throws():
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=401, reason="Unauthorized")
-        with pytest.raises(ValueError) as excinfo:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
-        assert "www-authenticate" in str(excinfo.value)
+def test_missing_www_authenticate_throws(httpx_mock):
+    httpx_mock.add_response(url=SERVICELAYER_URL, method="GET", status_code=401)
+    with pytest.raises(ValueError) as excinfo:
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+    assert "www-authenticate" in str(excinfo.value)
 
 
 def test_unconfigured_builder_throws():
@@ -86,69 +121,69 @@ def test_unconfigured_builder_throws():
     assert "authentication" in str(excinfo.value)
 
 
-def test_can_connect_with_basic():
-    with requests_mock.Mocker() as m:
-        m.get(
-            SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
-        )
-        m.get(
-            SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
-        )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD"
-        )
+def test_can_connect_with_basic(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": 'Basic realm="localhost"'},
+    )
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
+    )
+    _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(username="TEST_USER", password="PASSWORD")
 
 
-def test_can_connect_with_pre_emptive_basic():
-    with requests_mock.Mocker() as m:
-        m.get(
-            SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
-        )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER",
-            password="PASSWORD",
-            authentication_scheme=AuthenticationScheme.BASIC,
-        )
-        assert m.called_once
+def test_can_connect_with_pre_emptive_basic(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
+    )
+    _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+        username="TEST_USER",
+        password="PASSWORD",
+        authentication_scheme=AuthenticationScheme.BASIC,
+    )
+    assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
 
 
-def test_can_connect_with_basic_and_domain():
-    with requests_mock.Mocker() as m:
-        m.get(
-            SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
-        )
-        m.get(
-            SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
-        )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD", domain="DOMAIN"
-        )
+def test_can_connect_with_basic_and_domain(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": 'Basic realm="localhost"'},
+    )
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
+    )
+    _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+        username="TEST_USER", password="PASSWORD", domain="DOMAIN"
+    )
 
 
-def test_can_connect_with_pre_emptive_basic_and_domain():
-    with requests_mock.Mocker() as m:
-        m.get(
-            SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
-        )
-        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER",
-            password="PASSWORD",
-            domain="DOMAIN",
-            authentication_scheme=AuthenticationScheme.BASIC,
-        )
-        assert m.called_once
+def test_can_connect_with_pre_emptive_basic_and_domain(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
+    )
+    _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+        username="TEST_USER",
+        password="PASSWORD",
+        domain="DOMAIN",
+        authentication_scheme=AuthenticationScheme.BASIC,
+    )
+    assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
 
 
 # In Auto mode, the single call is during the initial request to retrieve the header
@@ -165,21 +200,21 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
             AuthenticationScheme.NTLM,
             nullcontext(),
             marks=pytest.mark.skipif(
-                sys.platform != "win32", reason="NTLM only available on Windows"
+                sys.platform != "win32" or not _ntlm_backend_available(),
+                reason="NTLM requires Windows and a working httpx_ntlm/spnego stack (e.g. MIT Kerberos on Windows)",
             ),
         ),
     ],
 )
-def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode, expect_warning):
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=200)
-        with expect_warning:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-                username="TEST_USER",
-                password="PASSWORD",
-                authentication_scheme=auth_mode,
-            )
-        assert m.called_once
+def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode, expect_warning, httpx_mock):
+    httpx_mock.add_response(url=SERVICELAYER_URL, method="GET", status_code=200)
+    with expect_warning:
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="TEST_USER",
+            password="PASSWORD",
+            authentication_scheme=auth_mode,
+        )
+    assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
 
 
 @pytest.mark.parametrize(
@@ -190,33 +225,64 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode, expect_warn
         pytest.param(
             AuthenticationScheme.NTLM,
             marks=pytest.mark.skipif(
-                sys.platform != "win32", reason="NTLM only available on Windows"
+                sys.platform != "win32" or not _ntlm_backend_available(),
+                reason="NTLM requires Windows and a working httpx_ntlm/spnego stack (e.g. MIT Kerberos on Windows)",
             ),
         ),
     ],
 )
-def test_throws_with_invalid_credentials(auth_mode):
-    with requests_mock.Mocker() as m:
-        UNAUTHORIZED = "Unauthorized_unique"
-        m.get(
-            SERVICELAYER_URL,
+def test_throws_with_invalid_credentials(auth_mode, httpx_mock, mocker):
+    UNAUTHORIZED = "Unauthorized_unique"
+
+    def unauthorized_response() -> httpx.Response:
+        return httpx.Response(
+            401,
+            extensions={"reason_phrase": UNAUTHORIZED.encode("ascii")},
+        )
+
+    if auth_mode == AuthenticationScheme.NTLM:
+        mocker.patch("os.urandom", return_value=_NTLM_PATCHED_URANDOM)
+        httpx_mock.add_response(
+            url=SERVICELAYER_URL,
+            method="GET",
             status_code=401,
-            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
-            reason=UNAUTHORIZED,
+            headers={"www-authenticate": "NTLM"},
         )
-        m.get(
-            SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
+        httpx_mock.add_response(
+            url=SERVICELAYER_URL,
+            method="GET",
+            status_code=401,
+            headers=_NTLM_CANNED_CHALLENGE_HEADERS,
+            match_headers=_NTLM_CANNED_EXPECT1,
         )
-        with pytest.raises(ApiConnectionException) as exception_info:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-                username="NOT_A_TEST_USER",
-                password="PASSWORD",
-                authentication_scheme=auth_mode,
+        httpx_mock.add_callback(
+            lambda request: unauthorized_response(),
+            url=SERVICELAYER_URL,
+            method="GET",
+            match_headers=_NTLM_INVALID_CREDENTIALS_EXPECT2,
+        )
+    else:
+        if auth_mode == AuthenticationScheme.AUTO:
+            httpx_mock.add_response(
+                url=SERVICELAYER_URL,
+                method="GET",
+                status_code=401,
+                headers={"www-authenticate": 'Basic realm="localhost"'},
             )
-        assert exception_info.value.response.status_code == 401
-        assert exception_info.value.response.reason == UNAUTHORIZED
+        httpx_mock.add_callback(
+            lambda request: unauthorized_response(),
+            url=SERVICELAYER_URL,
+            method="GET",
+            is_reusable=True,
+        )
+    with pytest.raises(ApiConnectionException) as exception_info:
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="NOT_A_TEST_USER",
+            password="PASSWORD",
+            authentication_scheme=auth_mode,
+        )
+    assert exception_info.value.response.status_code == 401
+    assert _response_reason(exception_info.value.response) == UNAUTHORIZED
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="NTLM only not supported on Linux")
@@ -248,88 +314,84 @@ def wrap_with_workstation(func):
     return wrapper
 
 
-class MockNTLMAuth(requests_ntlm.HttpNtlmAuth):
-    def __init__(self, username, password, session=None):
-        super().__init__(username, password, session, send_cbt=False)
-
-
-@pytest.mark.skip(reason="Mock is not working in tox for some reason.")
 @pytest.mark.skipif(os.name != "nt", reason="NTLM is not currently supported on linux")
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.NTLM])
-def test_can_connect_with_ntlm(mocker, auth_mode):
-    expect1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAMZCI4gAAAAAoAAAAAAAAACgAAAAGAbEdAAAADw=="}
-    response1 = {
-        "WWW-Authenticate": "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAAC"
-        "gBhSgAAAA9UAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgACAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQB"
-        "PAE4AAQAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAQAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJA"
-        "E8ATgADAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4ABwAIADbWHPMoRNcBAAAAAA=="
-    }
+def test_can_connect_with_ntlm(mocker, auth_mode, httpx_mock):
+    # expect2 was generated with pyspnego (NTLM via httpx-ntlm's spnego.client), os.urandom patched below,
+    # and the Type 2 challenge shared as _NTLM_CANNED_CHALLENGE_WWW. Regenerate after upgrading these deps (uv.lock):
+    #   httpx-ntlm 1.4.0, pyspnego 0.12.0
     expect2 = {
-        "Authorization": "NTLM TlRMTVNTUAADAAAAGAAYAGgAAADQANAAgAAAAAAAAABYAAAAEAAQAFgAAAAAAAAAaAAAAAg"
-        "ACABQAQAANYKK4gYBsR0AAAAPgNpphHi8APlNXyGtGcP/LUkASQBTAF8AVABlAHMAdAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        "AAAAAADBY98WhVO4ccHK2mJ3PQ+GAQEAAAAAAAA21hzzKETXAd6tvu/erb7vAAAAAAIAHgBUAEUAUwBUAFcATwBSAEsAU"
-        "wBUAEEAVABJAE8ATgABAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4ABAAeAFQARQBTAFQAVwBPAFIASwBTAF"
-        "QAQQBUAEkATwBOAAMAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgAHAAgANtYc8yhE1wEGAAQAAgAAAAAAAAA"
-        "AAAAAcTfJ2nPXFQA="
+        "Authorization": (
+            "NTLM TlRMTVNTUAADAAAAGAAYAFgAAAD0APQAcAAAAAAAAABkAQAAEAAQAGQBAAAeAB4AdAEAAAgACACSAQAANYKK4gAMAAAAAAAP"
+            "en6U3pufm3jdYWsqvyltPAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANEE89x31gcm6C1VZREbI/UBAQAAAAAAADbWHPMoRNcB3q2+796tvu8AAAAAAgAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAEAHgBUAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgAEAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQBPAE4AAwAeAFQARQBTAFQAVwBPAFIASwBTAFQAQQBUAEkATwBOAAcACAA21hzzKETXAQkAIABoAG8AcwB0AC8AdQBuAHMAcABlAGMAaQBmAGkAZQBkAAYABAACAAAAAAAAAAAAAABJAEkAUwBfAFQAZQBzAHQAUwBOAFAAUwAtAEIARQBDAEYAQwA2ADQATABOAEMAlvUQdxoSkiQ="
+        )
     }
 
-    mocker.patch(
-        "os.urandom",
-        return_value=b"\xde\xad\xbe\xef\xde\xad\xbe\xef",
+    mocker.patch("os.urandom", return_value=_NTLM_PATCHED_URANDOM)
+
+    # AUTO: discovery GET (no auth) and HttpNtlmAuth's first yield (no Authorization yet) both need
+    # the same minimal 401 + WWW-Authenticate: NTLM. NTLM-only skips discovery; single initial 401.
+    if auth_mode == AuthenticationScheme.AUTO:
+        httpx_mock.add_response(
+            url=SERVICELAYER_URL,
+            method="GET",
+            status_code=401,
+            headers={"www-authenticate": "NTLM"},
+            is_reusable=True,
+        )
+    else:
+        httpx_mock.add_response(
+            url=SERVICELAYER_URL,
+            method="GET",
+            status_code=401,
+            headers={"www-authenticate": "NTLM"},
+        )
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers=_NTLM_CANNED_CHALLENGE_HEADERS,
+        match_headers=_NTLM_CANNED_EXPECT1,
+    )
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers=expect2,
     )
 
-    mocker.patch("_session.HttpNtlmAuth", MockNTLMAuth)
-
-    with requests_mock.Mocker() as m:
-        m.get(
-            url=SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": "NTLM"},
-        )
-        m.get(
-            url=SERVICELAYER_URL,
-            status_code=401,
-            headers=response1,
-            request_headers=expect1,
-        )
-        m.get(url=SERVICELAYER_URL, status_code=200, request_headers=expect2)
-
-        configuration = SessionConfiguration()
-        configuration.verify_ssl = False
-        _ = ApiClientFactory(
-            SERVICELAYER_URL, session_configuration=configuration
-        ).with_credentials(
-            username="IIS_Test",
-            password="rosebud",
-            authentication_scheme=auth_mode,
-        )
+    configuration = SessionConfiguration()
+    configuration.verify_ssl = False
+    _ = ApiClientFactory(SERVICELAYER_URL, session_configuration=configuration).with_credentials(
+        username="IIS_Test",
+        password="rosebud",
+        authentication_scheme=auth_mode,
+    )
 
 
 def test_can_connect_with_negotiate():
     pass
 
 
-def test_only_called_once_with_autologon_when_anonymous_is_ok():
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=200)
-        with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
-            _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
-        assert m.called_once
+def test_only_called_once_with_autologon_when_anonymous_is_ok(httpx_mock):
+    httpx_mock.add_response(url=SERVICELAYER_URL, method="GET", status_code=200)
+    with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+    assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
 
 
 def test_can_connect_with_oidc():
     pass
 
 
-def test_only_called_once_with_oidc_when_anonymous_is_ok():
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=200)
-        with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
-            _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
-        assert m.called_once
+def test_only_called_once_with_oidc_when_anonymous_is_ok(httpx_mock):
+    httpx_mock.add_response(url=SERVICELAYER_URL, method="GET", status_code=200)
+    with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
+        _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
+    assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
 
 
-def test_can_connect_with_oidc_using_token():
+def test_can_connect_with_oidc_using_token(httpx_mock):
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
@@ -343,57 +405,56 @@ def test_can_connect_with_oidc_using_token():
             "authorization_endpoint": f"{authority_url}authorization",
         }
     )
-    token_response = json.dumps(
-        {
-            "access_token": ACCESS_TOKEN,
-            "expires_in": 3600,
-            "refresh_token": refresh_token,
-        }
+
+    httpx_mock.add_response(
+        url=SECURE_SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": authenticate_header},
+    )
+    httpx_mock.add_response(
+        url=f"{authority_url}.well-known/openid-configuration",
+        method="GET",
+        text=well_known_response,
     )
 
-    def match_token_request(request):
-        if request.text is None:
-            return False
-        data = parse_qs(request.text)
-        return (
+    def token_ok(request: httpx.Request) -> httpx.Response:
+        if request.content is None:
+            return httpx.Response(400)
+        data = parse_qs(request.content.decode())
+        if not (
             data.get("client_id", "") == [client_id]
             and data.get("grant_type", "") == ["refresh_token"]
             and data.get("refresh_token", "") == [refresh_token]
+        ):
+            return httpx.Response(400)
+        return httpx.Response(
+            200,
+            json={
+                "access_token": ACCESS_TOKEN,
+                "expires_in": 3600,
+                "refresh_token": refresh_token,
+            },
         )
 
-    with requests_mock.Mocker() as m:
-        m.get(
-            f"{authority_url}.well-known/openid-configuration",
-            status_code=200,
-            text=well_known_response,
-        )
-        m.post(
-            f"{authority_url}token",
-            status_code=200,
-            additional_matcher=match_token_request,
-            text=token_response,
-        )
-        m.get(
-            SECURE_SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": authenticate_header},
-        )
-        m.get(
-            SECURE_SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
-        )
-        session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
-            .with_token(refresh_token=refresh_token)
-            .connect()
-        )
-        resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
-        assert resp.status_code == 200
+    httpx_mock.add_callback(token_ok, url=f"{authority_url}token", method="POST")
+    httpx_mock.add_response(
+        url=SECURE_SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
+    )
+    session = (
+        ApiClientFactory(SECURE_SERVICELAYER_URL)
+        .with_oidc()
+        .with_token(refresh_token=refresh_token)
+        .connect()
+    )
+    resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
+    assert resp.status_code == 200
 
 
-def test_can_connect_with_oidc_using_refresh_token():
+def test_can_connect_with_oidc_using_refresh_token(httpx_mock):
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
@@ -407,57 +468,56 @@ def test_can_connect_with_oidc_using_refresh_token():
             "authorization_endpoint": f"{authority_url}authorization",
         }
     )
-    token_response = json.dumps(
-        {
-            "access_token": ACCESS_TOKEN,
-            "expires_in": 3600,
-            "refresh_token": refresh_token,
-        }
+
+    httpx_mock.add_response(
+        url=SECURE_SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": authenticate_header},
+    )
+    httpx_mock.add_response(
+        url=f"{authority_url}.well-known/openid-configuration",
+        method="GET",
+        text=well_known_response,
     )
 
-    def match_token_request(request):
-        if request.text is None:
-            return False
-        data = parse_qs(request.text)
-        return (
+    def token_ok(request: httpx.Request) -> httpx.Response:
+        if request.content is None:
+            return httpx.Response(400)
+        data = parse_qs(request.content.decode())
+        if not (
             data.get("client_id", "") == [client_id]
             and data.get("grant_type", "") == ["refresh_token"]
             and data.get("refresh_token", "") == [refresh_token]
+        ):
+            return httpx.Response(400)
+        return httpx.Response(
+            200,
+            json={
+                "access_token": ACCESS_TOKEN,
+                "expires_in": 3600,
+                "refresh_token": refresh_token,
+            },
         )
 
-    with requests_mock.Mocker() as m:
-        m.get(
-            f"{authority_url}.well-known/openid-configuration",
-            status_code=200,
-            text=well_known_response,
-        )
-        m.post(
-            f"{authority_url}token",
-            status_code=200,
-            additional_matcher=match_token_request,
-            text=token_response,
-        )
-        m.get(
-            SECURE_SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": authenticate_header},
-        )
-        m.get(
-            SECURE_SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
-        )
-        session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
-            .with_oidc()
-            .with_token(refresh_token=refresh_token)
-            .connect()
-        )
-        resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
-        assert resp.status_code == 200
+    httpx_mock.add_callback(token_ok, url=f"{authority_url}token", method="POST")
+    httpx_mock.add_response(
+        url=SECURE_SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": f"Bearer {ACCESS_TOKEN}"},
+    )
+    session = (
+        ApiClientFactory(SECURE_SERVICELAYER_URL)
+        .with_oidc()
+        .with_token(refresh_token=refresh_token)
+        .connect()
+    )
+    resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
+    assert resp.status_code == 200
 
 
-def test_can_connect_with_oidc_using_access_token():
+def test_can_connect_with_oidc_using_access_token(httpx_mock):
     redirect_uri = "https://www.example.com/login/"
     authority_url = "https://www.example.com/authority/"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
@@ -472,64 +532,74 @@ def test_can_connect_with_oidc_using_access_token():
         f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", clientid="{client_id}"'
     )
 
-    with requests_mock.Mocker() as m:
-        m.get(
-            f"{authority_url}.well-known/openid-configuration",
-            status_code=200,
-            text=well_known_response,
+    httpx_mock.add_response(
+        url=SECURE_SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": authenticate_header},
+    )
+
+    httpx_mock.add_response(
+        url=f"{authority_url}.well-known/openid-configuration",
+        method="GET",
+        text=well_known_response,
+    )
+    httpx_mock.add_response(
+        url=SECURE_SERVICELAYER_URL,
+        method="GET",
+        status_code=200,
+        match_headers={"Authorization": f"Bearer {access_token}"},
+    )
+    session = (
+        ApiClientFactory(SECURE_SERVICELAYER_URL)
+        .with_oidc()
+        .with_access_token(access_token=access_token)
+        .connect()
+    )
+    resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
+    assert resp.status_code == 200
+
+
+def test_neither_basic_nor_ntlm_throws(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": "Bearer"},
+    )
+    with pytest.raises(ConnectionError) as exception_info:
+        _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+            username="TEST_USER", password="PASSWORD"
         )
-        m.get(
-            SECURE_SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": authenticate_header},
-        )
-        m.get(
-            SECURE_SERVICELAYER_URL,
-            status_code=200,
-            request_headers={"Authorization": f"Bearer {access_token}"},
-        )
-        session = (
-            ApiClientFactory(SECURE_SERVICELAYER_URL)
+    assert "Unable to connect with credentials" in str(exception_info.value)
+
+
+def test_no_autologon_throws(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": "Bearer"},
+    )
+    with pytest.raises(ConnectionError) as exception_info:
+        _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
+    assert "Unable to connect with autologon" in str(exception_info.value)
+
+
+def test_no_oidc_throws(httpx_mock):
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL,
+        method="GET",
+        status_code=401,
+        headers={"www-authenticate": 'Basic realm="localhost"'},
+    )
+    with pytest.raises(ConnectionError) as exception_info:
+        _ = (
+            ApiClientFactory(SERVICELAYER_URL)
             .with_oidc()
-            .with_access_token(access_token=access_token)
-            .connect()
+            .with_token(access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
         )
-        resp = session.rest_client.get(SECURE_SERVICELAYER_URL)
-        assert resp.status_code == 200
-
-
-def test_neither_basic_nor_ntlm_throws():
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=401, headers={"WWW-Authenticate": "Bearer"})
-        with pytest.raises(ConnectionError) as exception_info:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-                username="TEST_USER", password="PASSWORD"
-            )
-        assert "Unable to connect with credentials" in str(exception_info.value)
-
-
-def test_no_autologon_throws():
-    with requests_mock.Mocker() as m:
-        m.get(SERVICELAYER_URL, status_code=401, headers={"WWW-Authenticate": "Bearer"})
-        with pytest.raises(ConnectionError) as exception_info:
-            _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
-        assert "Unable to connect with autologon" in str(exception_info.value)
-
-
-def test_no_oidc_throws():
-    with requests_mock.Mocker() as m:
-        m.get(
-            SERVICELAYER_URL,
-            status_code=401,
-            headers={"WWW-Authenticate": 'Basic realm="localhost"'},
-        )
-        with pytest.raises(ConnectionError) as exception_info:
-            _ = (
-                ApiClientFactory(SERVICELAYER_URL)
-                .with_oidc()
-                .with_token(access_token=ACCESS_TOKEN, refresh_token=REFRESH_TOKEN)
-            )
-        assert "Unable to connect with OpenID Connect" in str(exception_info.value)
+    assert "Unable to connect with OpenID Connect" in str(exception_info.value)
 
 
 def test_self_signed_throws():
@@ -538,11 +608,6 @@ def test_self_signed_throws():
 
 def test_invalid_initial_response_raises_exception():
     factory = ApiClientFactory(SERVICELAYER_URL)
-    with requests_mock.Mocker() as m:
-        m.get(
-            SERVICELAYER_URL,
-            status_code=404,
-        )
-        resp = requests.get(SERVICELAYER_URL)
+    resp = httpx.Response(404, request=httpx.Request("GET", SERVICELAYER_URL))
     with pytest.raises(ApiConnectionException, match=rf".*{SERVICELAYER_URL}.*404.*"):
         factory._ApiClientFactory__handle_initial_response(resp)

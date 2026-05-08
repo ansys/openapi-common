@@ -27,15 +27,11 @@ from pathlib import Path
 import secrets
 import sys
 import tempfile
-from typing import IO, Dict, Iterable, List, Tuple, Union
+from typing import IO, Any, Dict, Iterable, List, Tuple, Union
 import uuid
 
+import httpx
 import pytest
-import requests
-from requests.packages.urllib3.response import HTTPResponse
-import requests_mock
-from requests_mock.request import _RequestObjectProxy
-from requests_mock.response import _FakeConnection, _IOReader
 
 from ansys.openapi.common import (
     ApiClient,
@@ -55,14 +51,54 @@ VERBS_WITH_FILE_PARAMS = ["PUT", "POST", "PATCH", "OPTIONS"]
 
 @pytest.fixture
 def blank_client():
-    session = requests.Session()
+    transport = httpx.MockTransport(lambda request: httpx.Response(200))
+    session = httpx.Client(transport=transport)
     client = ApiClient(session, TEST_URL, SessionConfiguration())
     yield client
+    client.close()
 
 
 def test_repr(blank_client):
     assert TEST_URL in str(blank_client)
     assert type(blank_client).__name__ in str(blank_client)
+
+
+def test_close_is_idempotent(mocker):
+    transport = httpx.MockTransport(lambda request: httpx.Response(200))
+    session = httpx.Client(transport=transport)
+    close_mock = mocker.patch.object(session, "close")
+    client = ApiClient(session, TEST_URL, SessionConfiguration())
+    client.close()
+    client.close()
+    close_mock.assert_called_once()
+
+
+def test_context_manager_closes_session(mocker):
+    transport = httpx.MockTransport(lambda request: httpx.Response(200))
+    session = httpx.Client(transport=transport)
+    close_mock = mocker.patch.object(session, "close")
+    with ApiClient(session, TEST_URL, SessionConfiguration()):
+        pass
+    close_mock.assert_called_once()
+
+
+def test_close_disposes_distinct_httpx_auth_token_client():
+    class DummyAuth(httpx.Auth):
+        """Minimal auth exposing a separate token client (same shape as ``httpx-auth`` OAuth)."""
+
+        def __init__(self, token_client: httpx.Client) -> None:
+            self.client = token_client
+
+        def sync_auth_flow(self, request: httpx.Request):
+            yield request
+
+    transport = httpx.MockTransport(lambda request: httpx.Response(200))
+    inner = httpx.Client(transport=transport)
+    outer = httpx.Client(transport=transport, auth=DummyAuth(inner))
+    api = ApiClient(outer, TEST_URL, SessionConfiguration())
+    api.close()
+    assert inner.is_closed
+    assert outer.is_closed
 
 
 class TestParameterHandling:
@@ -527,11 +563,7 @@ class TestDeserialization:
 
 
 class TestResponseParsing:
-    from requests.adapters import HTTPAdapter
-
-    _http_adapter = HTTPAdapter()
-    _connection = _FakeConnection()
-    """Test handling of requests.Response objects based on response_type"""
+    """Test handling of ``httpx.Response`` objects based on ``response_type``."""
 
     @pytest.fixture(autouse=True)
     def _blank_client(self, blank_client):
@@ -539,39 +571,23 @@ class TestResponseParsing:
 
     def create_response(
         self,
-        json_: Dict = None,
+        json_=None,
         text: str = None,
         content: bytes = None,
         headers=None,
         content_type="application/json",
     ):
-        body = _IOReader()
-        if json_ is not None:
-            text = json.dumps(json_)
-        if text is not None:
-            content = text.encode("utf-8")
-        if content is not None:
-            body = _IOReader(content)
-        status = 200
-        reason = "OK"
         if headers is None:
             headers = {}
-        headers["Content-Type"] = content_type
-
-        raw = HTTPResponse(
-            status=status,
-            reason=reason,
-            headers=headers,
-            body=body or _IOReader(b""),
-            decode_content=False,
-            preload_content=False,
-            original_response=None,
-        )
-
-        request = requests.Request()
-        response = self._http_adapter.build_response(request, raw)
-        response.connection = self._connection
-        return response
+        headers = dict(headers)
+        headers.setdefault("Content-Type", content_type)
+        if json_ is not None:
+            return httpx.Response(200, json=json_, headers=headers)
+        if text is not None:
+            return httpx.Response(200, content=text.encode("utf-8"), headers=headers)
+        if content is not None:
+            return httpx.Response(200, content=content, headers=headers)
+        return httpx.Response(200, content=b"", headers=headers)
 
     def test_response_is_not_deserialized_if_type_is_none(self, mocker):
         data = {"one": 1, "two": 2, "three": 3}
@@ -704,7 +720,9 @@ class TestRequestDispatch:
         "int": 12,
         "array": ["foo", "bar"],
         "bool": False,
-        "object": {"none": None, "float": 3.1},
+        # Nested dicts are not accepted by httpx multipart encoding when combined with ``files=``;
+        # this class only asserts verb dispatch kwargs, not deep JSON shape.
+        "extra": "scalar",
     }
 
     verbs = ("GET", "HEAD", "OPTIONS", "POST", "PATCH", "PUT", "DELETE")
@@ -723,31 +741,56 @@ class TestRequestDispatch:
         )
 
     def assert_responses(self, verb, request_mock):
-        kwarg_assertions = {
-            "params": self.query_params,
-            "stream": self.stream,
-            "timeout": self.timeout,
-            "headers": self.header_params,
-        }
-        if verb in VERBS_WITH_BODY:
-            kwarg_assertions["data"] = self.body
-        if verb in VERBS_WITH_FILE_PARAMS:
-            kwarg_assertions["files"] = self.post_params
+        expected_url = ApiClient._url_with_query_string(self.url, self.query_params)
+        base_kw = {"headers": self.header_params, "timeout": self.timeout}
+        body_kw: Dict[str, Any] = {}
+        if self.post_params is not None:
+            body_kw["files"] = self.post_params
+        if self.body is not None:
+            if self.post_params is not None:
+                body_kw["data"] = self.body
+            elif isinstance(self.body, bytes):
+                body_kw["content"] = self.body
+            else:
+                body_kw["data"] = self.body
 
-        request_mock.assert_called()
-        request_mock.assert_called_once_with(self.url, **kwarg_assertions)
+        if verb == "GET":
+            request_mock.assert_called_once_with(expected_url, **base_kw)
+        elif verb == "HEAD":
+            request_mock.assert_called_once_with(expected_url, **base_kw)
+        elif verb == "OPTIONS":
+            request_mock.assert_called_once_with(
+                "OPTIONS", expected_url, **base_kw, **body_kw
+            )
+        elif verb == "POST":
+            request_mock.assert_called_once_with(expected_url, **base_kw, **body_kw)
+        elif verb == "PATCH":
+            request_mock.assert_called_once_with(expected_url, **base_kw, **body_kw)
+        elif verb == "PUT":
+            request_mock.assert_called_once_with(expected_url, **base_kw, **body_kw)
+        elif verb == "DELETE":
+            request_mock.assert_called_once_with(
+                "DELETE", expected_url, **base_kw, **body_kw
+            )
+        else:
+            raise AssertionError(verb)
 
     @pytest.fixture(autouse=True)
     def _blank_client(self):
-        self._transport = requests.Session()
+        transport = httpx.MockTransport(lambda request: httpx.Response(200))
+        self._transport = httpx.Client(transport=transport)
         self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
+        yield
+        self._client.close()
 
     @pytest.mark.parametrize(("verb", "method_call"), (zip(verbs, method_names)))
     def test_request_dispatch(self, mocker, verb, method_call):
         # TODO: Can we move the logic deciding which parameters must be provided into the test, rather than the
         #  function above?
-        request_mock = mocker.patch.object(requests.Session, method_call)
-        request_mock.return_value = True
+        # ``ApiClient`` uses ``Client.request()`` for OPTIONS and DELETE, not ``.options()`` / ``.delete()``.
+        patch_attr = "request" if verb in ("OPTIONS", "DELETE") else method_call
+        request_mock = mocker.patch.object(httpx.Client, patch_attr)
+        request_mock.return_value = httpx.Response(200)
         _ = self.send_request(verb)
         self.assert_responses(verb, request_mock)
 
@@ -763,13 +806,12 @@ class TestResponseHandling:
     def _blank_client(self):
         from . import models
 
-        self._transport = requests.Session()
-        self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
+        self._client = ApiClient(httpx.Client(), TEST_URL, SessionConfiguration())
         self._client.setup_client(models)
-        self._adapter = requests_mock.Adapter()
-        self._transport.mount(TEST_URL, self._adapter)
+        yield
+        self._client.close()
 
-    def test_get_health_info(self):
+    def test_get_health_info(self, httpx_mock):
         """This test represents a simple get request to a health style endpoint, returning 200 OK as a response. It also
         exercises the full response handling, checking the headers and status as well as the text. Other tests will not
         do this."""
@@ -778,11 +820,11 @@ class TestResponseHandling:
 
         expected_url = TEST_URL + resource_path
 
-        self._adapter.register_uri(
-            "GET",
-            expected_url,
+        httpx_mock.add_response(
+            url=expected_url,
+            method="GET",
             status_code=200,
-            content="OK".encode("utf-8"),
+            content=b"OK",
             headers={"Content-Type": "text/plain"},
         )
         response, status_code, headers = self._client.call_api(
@@ -794,7 +836,7 @@ class TestResponseHandling:
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
 
-    def test_post_model(self):
+    def test_post_model(self, httpx_mock):
         """This test represents uploading a new record to a server, the server will respond with 201 created and a
         string ID for the new object"""
 
@@ -804,11 +846,6 @@ class TestResponseHandling:
             "ListOfStrings": ["red", "green"],
             "Boolean": False,
         }
-
-        def content_json_matcher(request: _RequestObjectProxy):
-            json_body = request.text
-            json_obj = json.loads(json_body)
-            return json_obj == expected_request
 
         resource_path = "/models"
         method = "POST"
@@ -827,28 +864,28 @@ class TestResponseHandling:
 
         created_id = str(uuid.uuid4())
 
-        with requests_mock.Mocker() as m:
-            m.post(
-                expected_url,
-                additional_matcher=content_json_matcher,
-                status_code=201,
+        def match_post(request: httpx.Request) -> httpx.Response:
+            assert request.method == "POST"
+            assert str(request.url) == expected_url
+            assert json.loads(request.content.decode()) == expected_request
+            return httpx.Response(
+                201,
                 text=created_id,
                 headers={"Content-Type": "text/plain"},
             )
-            response, status_code, headers = self._client.call_api(
-                resource_path, method, body=upload_data, response_type=response_type
-            )
+
+        httpx_mock.add_callback(match_post, url=expected_url, method="POST")
+        response, status_code, headers = self._client.call_api(
+            resource_path, method, body=upload_data, response_type=response_type
+        )
         assert response == created_id
         assert status_code == 201
         assert "Content-Type" in headers
         assert headers["Content-Type"] == "text/plain"
 
-    def test_post_model_sets_content_type_header(self):
+    def test_post_model_sets_content_type_header(self, httpx_mock):
         """When a dict or model body is serialized to JSON, Content-Type: application/json must be
         set automatically on the outgoing request so that strict servers accept it."""
-
-        def content_type_matcher(request: _RequestObjectProxy):
-            return request.headers.get("Content-Type") == "application/json"
 
         resource_path = "/models"
         method = "POST"
@@ -863,24 +900,19 @@ class TestResponseHandling:
             bool_property=False,
         )
 
-        with requests_mock.Mocker() as m:
-            m.post(
-                expected_url,
-                additional_matcher=content_type_matcher,
-                status_code=201,
-                text=str(uuid.uuid4()),
-            )
-            self._client.call_api(resource_path, method, body=upload_data, response_type="str")
+        def match_post(request: httpx.Request) -> httpx.Response:
+            assert request.headers.get("Content-Type") == "application/json"
+            return httpx.Response(201, text=str(uuid.uuid4()))
 
-    def test_post_model_preserves_caller_content_type_header(self):
+        httpx_mock.add_callback(match_post, url=expected_url, method="POST")
+        self._client.call_api(resource_path, method, body=upload_data, response_type="str")
+
+    def test_post_model_preserves_caller_content_type_header(self, httpx_mock):
         """If the caller explicitly sets a Content-Type header it must not be overwritten by the
         automatic JSON content-type logic."""
 
         caller_content_type = "application/vnd.example+json"
 
-        def content_type_matcher(request: _RequestObjectProxy):
-            return request.headers.get("Content-Type") == caller_content_type
-
         resource_path = "/models"
         method = "POST"
         expected_url = TEST_URL + resource_path
@@ -894,22 +926,20 @@ class TestResponseHandling:
             bool_property=False,
         )
 
-        with requests_mock.Mocker() as m:
-            m.post(
-                expected_url,
-                additional_matcher=content_type_matcher,
-                status_code=201,
-                text=str(uuid.uuid4()),
-            )
-            self._client.call_api(
-                resource_path,
-                method,
-                body=upload_data,
-                header_params={"Content-Type": caller_content_type},
-                response_type="str",
-            )
+        def match_post(request: httpx.Request) -> httpx.Response:
+            assert request.headers.get("Content-Type") == caller_content_type
+            return httpx.Response(201, text=str(uuid.uuid4()))
 
-    def test_post_model_does_not_modify_other_headers(self):
+        httpx_mock.add_callback(match_post, url=expected_url, method="POST")
+        self._client.call_api(
+            resource_path,
+            method,
+            body=upload_data,
+            header_params={"Content-Type": caller_content_type},
+            response_type="str",
+        )
+
+    def test_post_model_does_not_modify_other_headers(self, httpx_mock):
         """Caller-supplied headers other than Content-Type must be passed through unmodified when
         a JSON body causes Content-Type: application/json to be injected automatically."""
 
@@ -919,11 +949,6 @@ class TestResponseHandling:
             "Authorization": "Bearer sometoken",
         }
 
-        def headers_matcher(request: _RequestObjectProxy):
-            return request.headers.get("Content-Type") == "application/json" and all(
-                request.headers.get(k) == v for k, v in extra_headers.items()
-            )
-
         resource_path = "/models"
         method = "POST"
         expected_url = TEST_URL + resource_path
@@ -937,22 +962,22 @@ class TestResponseHandling:
             bool_property=False,
         )
 
-        with requests_mock.Mocker() as m:
-            m.post(
-                expected_url,
-                additional_matcher=headers_matcher,
-                status_code=201,
-                text=str(uuid.uuid4()),
-            )
-            self._client.call_api(
-                resource_path,
-                method,
-                body=upload_data,
-                header_params=extra_headers,
-                response_type="str",
-            )
+        def match_post(request: httpx.Request) -> httpx.Response:
+            assert request.headers.get("Content-Type") == "application/json"
+            for k, v in extra_headers.items():
+                assert request.headers.get(k) == v
+            return httpx.Response(201, text=str(uuid.uuid4()))
 
-    def test_get_model_raises_exception_with_deserialized_response(self):
+        httpx_mock.add_callback(match_post, url=expected_url, method="POST")
+        self._client.call_api(
+            resource_path,
+            method,
+            body=upload_data,
+            header_params=extra_headers,
+            response_type="str",
+        )
+
+    def test_get_model_raises_exception_with_deserialized_response(self, httpx_mock):
         """This test represents getting an object from a server which returns a defined exception object when the
         requested id does not exist."""
 
@@ -976,9 +1001,9 @@ class TestResponseHandling:
         }
         response_type_map = {200: "ExampleModel", 404: "ExampleException"}
 
-        self._adapter.register_uri(
-            "GET",
-            expected_url,
+        httpx_mock.add_response(
+            url=expected_url,
+            method="GET",
             status_code=404,
             json=response,
             headers={"Content-Type": "application/json"},
@@ -999,7 +1024,7 @@ class TestResponseHandling:
         assert exception_model.exception_code == exception_code
         assert exception_model.stack_trace == stack_trace
 
-    def test_get_model_raises_exception_with_no_deserialized_response(self):
+    def test_get_model_raises_exception_with_no_deserialized_response(self, httpx_mock):
         """This test represents getting an object from a server which returns a defined exception object when the
         requested id does not exist."""
 
@@ -1023,9 +1048,9 @@ class TestResponseHandling:
         }
         response_type_map = {200: "ExampleModel", 404: "ExampleException"}
 
-        self._adapter.register_uri(
-            "GET",
-            expected_url,
+        httpx_mock.add_response(
+            url=expected_url,
+            method="GET",
             status_code=500,
             json=response,
             headers={"Content-Type": "application/json"},
@@ -1039,7 +1064,7 @@ class TestResponseHandling:
         assert "Content-Type" in e.value.headers
         assert e.value.headers["Content-Type"] == "application/json"
 
-    def test_get_object_with_preload_false_returns_raw_response(self):
+    def test_get_object_with_preload_false_returns_raw_response(self, httpx_mock):
         """This test represents getting an object from a server where we do not want to deserialize the response
         immediately"""
 
@@ -1056,26 +1081,26 @@ class TestResponseHandling:
         }
         response_type_map = {200: "ExampleModel"}
 
-        with requests_mock.Mocker() as m:
-            m.get(
-                expected_url,
-                status_code=200,
-                json=api_response,
-                headers={"Content-Type": "application/json"},
-            )
-            response = self._client.call_api(
-                resource_path,
-                method,
-                response_type_map=response_type_map,
-                _preload_content=False,
-                _return_http_data_only=True,
-            )
+        httpx_mock.add_response(
+            url=expected_url,
+            method="GET",
+            status_code=200,
+            json=api_response,
+            headers={"Content-Type": "application/json"},
+        )
+        response = self._client.call_api(
+            resource_path,
+            method,
+            response_type_map=response_type_map,
+            _preload_content=False,
+            _return_http_data_only=True,
+        )
 
-        assert isinstance(response, requests.Response)
+        assert isinstance(response, httpx.Response)
         assert response.status_code == 200
-        assert response.text == json.dumps(api_response)
+        assert response.json() == api_response
 
-    def test_get_object_with_preload_false_raises_exception(self):
+    def test_get_object_with_preload_false_raises_exception(self, httpx_mock):
         """This test represents getting an object from a server where we do not want to deserialize the response
         immediately, but an exception is returned."""
 
@@ -1100,28 +1125,29 @@ class TestResponseHandling:
 
         response_type_map = {200: "ExampleModel", 404: "ExampleException"}
 
-        with requests_mock.Mocker() as m:
-            m.get(
-                expected_url,
-                status_code=404,
+        def respond_404(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(
+                404,
                 json=api_response,
-                reason="Not Found",
                 headers={"Content-Type": "application/json"},
+                extensions={"reason_phrase": b"Not Found"},
             )
-            with pytest.raises(ApiException) as e:
-                _ = self._client.call_api(
-                    resource_path,
-                    method,
-                    response_type_map=response_type_map,
-                    _preload_content=False,
-                    _return_http_data_only=True,
-                )
+
+        httpx_mock.add_callback(respond_404, url=expected_url, method="GET")
+        with pytest.raises(ApiException) as e:
+            _ = self._client.call_api(
+                resource_path,
+                method,
+                response_type_map=response_type_map,
+                _preload_content=False,
+                _return_http_data_only=True,
+            )
 
         assert e.value.status_code == 404
         assert e.value.reason_phrase == "Not Found"
-        assert e.value.body == json.dumps(api_response)
+        assert json.loads(e.value.body) == api_response
 
-    def test_patch_object(self):
+    def test_patch_object(self, httpx_mock):
         """This test represents updating a value on an existing record using a custom json payload. The new object
         is returned. This questionable API accepts an ID as a query param and returns the updated object
         """
@@ -1146,11 +1172,6 @@ class TestResponseHandling:
             bool_property=False,
         )
 
-        def content_json_matcher(request: _RequestObjectProxy):
-            json_body = request.text
-            json_obj = json.loads(json_body)
-            return json_obj == expected_request
-
         resource_path = "/models/{ID}"
         method = "PATCH"
         record_id = str(uuid.uuid4())
@@ -1162,33 +1183,30 @@ class TestResponseHandling:
 
         upload_data = expected_request
 
-        with requests_mock.Mocker() as m:
-            m.patch(
-                expected_url,
-                additional_matcher=content_json_matcher,
-                status_code=200,
+        def match_patch(request: httpx.Request) -> httpx.Response:
+            assert json.loads(request.content.decode()) == expected_request
+            return httpx.Response(
+                200,
                 json=response,
                 headers={"Content-Type": "application/json"},
             )
-            response = self._client.call_api(
-                resource_path,
-                method,
-                path_params=path_params,
-                body=upload_data,
-                response_type=response_type,
-                _return_http_data_only=True,
-            )
+
+        httpx_mock.add_callback(match_patch, url=expected_url, method="PATCH")
+        response = self._client.call_api(
+            resource_path,
+            method,
+            path_params=path_params,
+            body=upload_data,
+            response_type=response_type,
+            _return_http_data_only=True,
+        )
         assert response == deserialized_response
 
-    def test_delete_object(self):
+    def test_delete_object(self, httpx_mock):
         """This test represents the deletion of a record by string ID, the server responds with 404 as the object
         does not exist"""
 
         record_id = str(uuid.uuid4())
-
-        def content_json_matcher(request: _RequestObjectProxy):
-            request_body = request.text
-            return request_body == record_id
 
         resource_path = "/models"
         method = "DELETE"
@@ -1197,23 +1215,26 @@ class TestResponseHandling:
 
         expected_url = TEST_URL + resource_path + f"?recordId={record_id}"
 
-        with requests_mock.Mocker() as m:
-            m.delete(
-                expected_url,
-                additional_matcher=content_json_matcher,
-                status_code=404,
-                reason="Not Found",
+        def match_delete(request: httpx.Request) -> httpx.Response:
+            assert request.method == "DELETE"
+            assert str(request.url) == expected_url
+            assert request.content.decode() == record_id
+            return httpx.Response(
+                404,
                 headers={"Content-Type": "text/plain"},
+                extensions={"reason_phrase": b"Not Found"},
             )
-            with pytest.raises(ApiException) as excinfo:
-                _ = self._client.call_api(
-                    resource_path,
-                    method,
-                    query_params=query_params,
-                    body=record_id,
-                    response_type="str",
-                    _return_http_data_only=True,
-                )
+
+        httpx_mock.add_callback(match_delete, method="DELETE")
+        with pytest.raises(ApiException) as excinfo:
+            _ = self._client.call_api(
+                resource_path,
+                method,
+                query_params=query_params,
+                body=record_id,
+                response_type="str",
+                _return_http_data_only=True,
+            )
 
         assert excinfo.value.status_code == 404
         assert excinfo.value.reason_phrase == "Not Found"
@@ -1239,12 +1260,8 @@ class TestResponseHandling:
         for file_name in file_name_list:
             os.remove(file_name)
 
-    def test_file_upload(self, file_context):
+    def test_file_upload(self, file_context, httpx_mock):
         """This test represents an endpoint which accepts a file upload, the server will respond with 413"""
-
-        def content_json_matcher(request: _RequestObjectProxy):
-            request_body = request.body
-            return b"file_content" and file_content in request_body
 
         resource_path = "/files"
         method = "POST"
@@ -1255,23 +1272,24 @@ class TestResponseHandling:
         file_name = file_names[0]
         file_content = file_contents[0]
 
-        with requests_mock.Mocker() as m:
-            m.post(
-                expected_url,
-                additional_matcher=content_json_matcher,
-                status_code=413,
-                reason="Payload Too Large",
+        def match_upload(request: httpx.Request) -> httpx.Response:
+            assert file_content in request.content
+            return httpx.Response(
+                413,
                 headers={"Content-Type": "text/plain"},
+                extensions={"reason_phrase": b"Payload Too Large"},
             )
-            with pytest.raises(ApiException) as excinfo:
-                _ = self._client.call_api(
-                    resource_path,
-                    method,
-                    files={"file_content": file_name},
-                    header_params={"Content-Disposition": f'filename="{file_name}"'},
-                    response_type="str",
-                    _return_http_data_only=True,
-                )
+
+        httpx_mock.add_callback(match_upload, url=expected_url, method="POST")
+        with pytest.raises(ApiException) as excinfo:
+            _ = self._client.call_api(
+                resource_path,
+                method,
+                files={"file_content": file_name},
+                header_params={"Content-Disposition": f'filename="{file_name}"'},
+                response_type="str",
+                _return_http_data_only=True,
+            )
 
         assert excinfo.value.status_code == 413
         assert excinfo.value.reason_phrase == "Payload Too Large"
@@ -1287,12 +1305,11 @@ class TestMultipleResponseTypesHandling:
     def _blank_client(self):
         from .models import example_model
 
-        self._transport = requests.Session()
-        self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
+        self._client = ApiClient(httpx.Client(), TEST_URL, SessionConfiguration())
         self._client.setup_client(example_model)
-        self._adapter = requests_mock.Adapter()
-        self._transport.mount(TEST_URL, self._adapter)
         self._model = example_model
+        yield
+        self._client.close()
 
     @pytest.mark.parametrize(
         ["response_code", "response_type_map", "response_type", "expected_type"],
@@ -1320,6 +1337,7 @@ class TestMultipleResponseTypesHandling:
     def test_response_type_handling(
         self,
         mocker,
+        httpx_mock,
         response_code: int,
         response_type_map,
         response_type,
@@ -1330,17 +1348,17 @@ class TestMultipleResponseTypesHandling:
 
         expected_url = TEST_URL + resource_path
         deserialize_mock = mocker.patch.object(ApiClient, "deserialize")
-        with requests_mock.Mocker() as m:
-            m.post(
-                expected_url,
-                status_code=response_code,
-            )
-            _ = self._client.call_api(
-                resource_path,
-                method,
-                response_type=response_type,
-                response_type_map=response_type_map,
-            )
+        httpx_mock.add_response(
+            url=expected_url,
+            method="POST",
+            status_code=response_code,
+        )
+        _ = self._client.call_api(
+            resource_path,
+            method,
+            response_type=response_type,
+            response_type_map=response_type_map,
+        )
 
         deserialize_mock.assert_called_once()
         last_call_pos_args = deserialize_mock.call_args[0]
@@ -1368,6 +1386,7 @@ class TestMultipleResponseTypesHandling:
     def test_response_type_handling_of_exceptions(
         self,
         mocker,
+        httpx_mock,
         response_code: int,
         response_type_map,
         response_type,
@@ -1378,18 +1397,18 @@ class TestMultipleResponseTypesHandling:
 
         expected_url = TEST_URL + resource_path
         deserialize_mock = mocker.patch.object(ApiClient, "deserialize")
-        with requests_mock.Mocker() as m:
-            m.get(
-                expected_url,
-                status_code=response_code,
+        httpx_mock.add_response(
+            url=expected_url,
+            method="GET",
+            status_code=response_code,
+        )
+        with pytest.raises(ApiException):
+            _ = self._client.call_api(
+                resource_path,
+                method,
+                response_type=response_type,
+                response_type_map=response_type_map,
             )
-            with pytest.raises(ApiException):
-                _ = self._client.call_api(
-                    resource_path,
-                    method,
-                    response_type=response_type,
-                    response_type_map=response_type_map,
-                )
 
         deserialize_mock.assert_called_once()
         last_call_pos_args = deserialize_mock.call_args[0]

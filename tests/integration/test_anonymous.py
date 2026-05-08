@@ -70,24 +70,33 @@ class TestAnonymous:
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_anonymous().connect()
+        try:
+            _ = client_factory.with_anonymous().connect()
+        finally:
+            client_factory.close()
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_anonymous().connect()
+        try:
+            client = client_factory.with_anonymous().connect()
 
-        resp = client.request("GET", TEST_URL + "/test_api")
-        assert resp.status_code == 200
-        assert "OK" in resp.text
+            resp = client.request("GET", TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
+        finally:
+            client_factory.close()
 
     def test_basic_credentials_raises_warning(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        with pytest.warns(AuthenticationWarning, match="anonymous"):
-            client = client_factory.with_credentials("TEST_USER", "TEST_PASS").connect()
+        try:
+            with pytest.warns(AuthenticationWarning, match="anonymous"):
+                client = client_factory.with_credentials("TEST_USER", "TEST_PASS").connect()
 
-        resp = client.request("GET", TEST_URL + "/test_api")
-        assert resp.status_code == 200
-        assert "OK" in resp.text
+            resp = client.request("GET", TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
+        finally:
+            client_factory.close()
 
     def test_patch_model(self):
         from .. import models
@@ -108,15 +117,18 @@ class TestAnonymous:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_anonymous().connect()
-        client.setup_client(models)
+        try:
+            client = client_factory.with_anonymous().connect()
+            client.setup_client(models)
 
-        response = client.call_api(
-            resource_path,
-            method,
-            path_params=path_params,
-            body=upload_data,
-            response_type=response_type,
-            _return_http_data_only=True,
-        )
-        assert response == deserialized_response
+            response = client.call_api(
+                resource_path,
+                method,
+                path_params=path_params,
+                body=upload_data,
+                response_type=response_type,
+                _return_http_data_only=True,
+            )
+            assert response == deserialized_response
+        finally:
+            client_factory.close()

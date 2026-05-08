@@ -94,15 +94,21 @@ class TestNegotiate:
 
     def test_can_connect(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_autologon().connect()
+        try:
+            _ = client_factory.with_autologon().connect()
+        finally:
+            client_factory.close()
 
     def test_get_health_returns_200_ok(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon().connect()
+        try:
+            client = client_factory.with_autologon().connect()
 
-        resp = client.request("GET", TEST_URL + "/test_api")
-        assert resp.status_code == 200
-        assert "OK" in resp.text
+            resp = client.request("GET", TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
+        finally:
+            client_factory.close()
 
     def test_patch_model(self):
         from .. import models
@@ -123,18 +129,21 @@ class TestNegotiate:
         upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon().connect()
-        client.setup_client(models)
+        try:
+            client = client_factory.with_autologon().connect()
+            client.setup_client(models)
 
-        response = client.call_api(
-            resource_path,
-            method,
-            path_params=path_params,
-            body=upload_data,
-            response_type=response_type,
-            _return_http_data_only=True,
-        )
-        assert response == deserialized_response
+            response = client.call_api(
+                resource_path,
+                method,
+                path_params=path_params,
+                body=upload_data,
+                response_type=response_type,
+                _return_http_data_only=True,
+            )
+            assert response == deserialized_response
+        finally:
+            client_factory.close()
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
@@ -168,7 +177,12 @@ class TestNegotiateFailures:
     )
     def test_bad_principal_returns_403(self):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        with pytest.raises(ApiConnectionException) as excinfo:
-            _ = client_factory.with_autologon().connect()
-        assert excinfo.value.response.status_code == 403
-        assert excinfo.value.response.reason == "Forbidden"
+        try:
+            with pytest.raises(ApiConnectionException) as excinfo:
+                _ = client_factory.with_autologon().connect()
+            resp = excinfo.value.response
+            assert resp.status_code == 403
+            reason_text = getattr(resp, "reason_phrase", None) or getattr(resp, "reason", "")
+            assert "Forbidden" in reason_text
+        finally:
+            client_factory.close()

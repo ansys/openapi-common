@@ -22,12 +22,13 @@
 
 import uuid
 
+import httpx
 import pytest
-import requests
-from requests.utils import CaseInsensitiveDict
-from requests_mock import Mocker
-
-from ansys.openapi.common import ApiConnectionException, ApiException
+from ansys.openapi.common import (
+    ApiConnectionException,
+    ApiException,
+    CaseInsensitiveDict,
+)
 from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
@@ -39,9 +40,12 @@ def test_api_connection_exception_repr():
         "text": "You do not have permission to access this resource",
     }
 
-    with Mocker() as m:
-        m.get(**args)
-        response = requests.get(args["url"])
+    request = httpx.Request("GET", args["url"])
+    response = httpx.Response(
+        args["status_code"],
+        request=request,
+        content=args["text"].encode("utf-8"),
+    )
 
     assert response.status_code == args["status_code"]
     api_connection_exception = ApiConnectionException(response)
