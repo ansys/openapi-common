@@ -26,7 +26,7 @@ from enum import Enum
 import pprint
 from typing import Any, Dict, List, Literal, Mapping, Optional, Tuple, Union
 
-import requests
+import httpx
 
 PrimitiveType = Union[float, bool, bytes, str, int]
 DeserializedType = Union[
@@ -139,7 +139,7 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+    ) -> Union[httpx.Response, DeserializedType, None]:
         """Provide method signature for calling the API."""
 
 
