@@ -79,7 +79,7 @@ oidc = [
 ]
 # GSSAPI/Kerberos via python-gssapi is Linux-oriented. Windows Negotiate uses SSPI:
 # ``httpx-negotiate-sspi``; do not add ``httpx-gssapi`` for win32.
-# Validation / CI notes: doc/source/planning/httpx-migration.rst (negotiate-validation-strategy).
+# Validation: optional Negotiate integration tests (Linux) and manual SSPI checks (Windows).
 linux-kerberos = [
   "httpx-gssapi>=0.6,<0.7; sys_platform == 'linux'"
 ]

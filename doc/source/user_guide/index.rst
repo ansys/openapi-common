@@ -5,6 +5,7 @@
 User guide
 ##########
 
+
 Basic usage
 -----------
 
@@ -77,88 +78,88 @@ Currently only the Authorization Code authentication flow is supported.
 
 Session configuration
 ---------------------
-You can set all options that are available in Python library *requests* through
-the client with the :class:`~.SessionConfiguration` object. This enables you to
-configure custom SSL certificate validation, send client certificates if your API
-server requires them, and configure many other options.
+The :class:`~.SessionConfiguration` class holds TLS settings, proxies, headers, redirects, and
+timeouts. :class:`.ApiClientFactory` turns this into an :class:`httpx.Client` (with retries and
+timeouts applied in OpenAPI-Common’s transport layer), which backs each :class:`.ApiClient`.
+
+Use it to configure custom certificate validation, send client certificates if your API
+server requires them, and adjust other transport options.
 
 For example, to send a client certificate with every request:
 
 .. code:: python
 
-   >>> from ansys.openapi.common import SessionConfiguration
+   >>> from ansys.openapi.common import ApiClientFactory, SessionConfiguration
    >>> configuration = SessionConfiguration(
    ...    client_cert_path='./my-client-cert.pem',
-   ...    client_cert_key='secret-key'
+   ...    client_cert_key='secret-key',
    ... )
-   >>> client.configuration = configuration
+   >>> client = ApiClientFactory(
+   ...    'https://my-api.com/v1.svc',
+   ...    session_configuration=configuration,
+   ... ).with_anonymous().connect()
+   <ApiClient url: https://my-api.com/v1.svc>
 
 
 HTTPS certificates
 ------------------
 
-It is common to use a private CA in an organization to generate TLS certificates for internal resources. The
-``requests`` library uses the ``certifi`` package which contains public CA certificates only, which means ``requests``
-cannot verify private TLS certificates in its default configuration. The following error message is typically displayed
-if a private TLS certificate is validated against the ``certifi`` public CAs:
+It is common to use a private CA in an organization to generate TLS certificates for internal resources. By
+default, **httpx** verifies server certificates using the same **certifi** CA bundle that many Python HTTP
+stacks use: it contains public roots only, so a server certificate issued by a private CA is not trusted unless
+you add trust material (private CA file, merged bundle, or system-store integration).
+
+If verification fails, Python typically surfaces ``ssl.SSLCertVerificationError``, sometimes wrapped by
+**httpx** in a ``httpx.ConnectError`` when opening the TLS connection. For example:
 
 .. code:: text
 
-   requests.exceptions.SSLError: HTTPSConnectionPool(host='example.com', port=443): Max retries exceeded with url: /
-   (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable
-   to get local issuer certificate (_ssl.c:1028)')))``
+   ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed:
+   unable to get local issuer certificate (_ssl.c:1000)
 
-If you encounter this error message, you should provide ``requests`` with the CA used to generate your private TLS
-certificate. There are three recommended approaches to doing this, listed below in the order of simplicity.
+If you see this, point OpenAPI-Common at the CA that signed the server certificate (or a bundle that includes
+it), using one of the options below.
 
 
 1. `pip-system-certs`_
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The ``pip-system-certs`` library patches the certificate loading mechanism for ``requests`` to use the system
-certificate store instead of the ``certifi`` store. Assuming the system certificate store includes the private CA, no
-further action is required beyond installing ``pip-system-certs`` in the same virtual environment as this package.
+The ``pip-system-certs`` package patches **certifi** so the default CA bundle reflects your operating system’s
+certificate store instead of the bundled Mozilla list alone. Because **httpx** uses that default bundle for
+verification unless you override it, installing ``pip-system-certs`` in the same environment as this library
+often resolves trust for corporate CAs that are already in the system store.
 
 .. warning::
 
-   The change to ``requests`` affects every package in your environment, including pip. You **must** use a virtual
-   environment when using ``pip-system-certs`` to avoid unexpected side-effects in other Python scripts.
+   Changing **certifi**’s behaviour affects other libraries in that environment that rely on the same process-wide
+   patching, including package installers. Use a **virtual environment** when enabling ``pip-system-certs`` to
+   avoid unintended side effects outside your project.
 
-This is recommended approach for Windows and Linux users. However, there are some situations in which
-``pip-system-certs`` cannot be used:
-
-* Your platform is not supported by ``pip-system-certs``.
-* The private CA certificate has not been added to the system certificate store.
-* The OpenSSL deployment used by Python is not configured to use the system certificate store (common when using
-  conda-provided Python).
-
-In these cases, the ``SSLCertVerificationError`` is still raised. Instead, provide the appropriate CA certificate to
-``requests`` directly.
+This is the recommended approach for Windows and Linux when ``pip-system-certs`` is supported. It does **not** help
+when the private CA is not in the system store, or when your Python build does not load the system store for
+OpenSSL (common with some conda layouts). In those cases, pass a CA file or bundle explicitly (sections 2 and 3).
 
 
 2. System CA certificate bundle (Linux only)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :class:`~.SessionConfiguration` object allows you to provide a path to a file containing one or more CA
-certificates. The custom CA certificate file is used instead of the ``certifi`` package to verify the service's TLS
-certificate.
+certificates. The file is used for TLS verification instead of the default **certifi** bundle.
 
-If you need to authenticate both internally- and publicly signed TLS certificates within the same environment, you must
-use a CA bundle which contains both the internal and public CAs used to sign the TLS certificates.
+If you need to validate both internal and public TLS endpoints in the same process, use a single bundle that
+concatenates the internal CA(s) and the public roots you care about.
 
 .. note::
 
-   OIDC authentication often requires validating internally- and publicly signed TLS certificates, since both internal
-   and public resources are used to authenticate the resource.
+   OIDC flows often touch both internal and public endpoints, so a merged bundle may be required.
 
-CA bundles are often provided by Linux environments which include all trusted public CAs and any internal CAs added to
-the system certificate store. These are available in the following locations:
+CA bundles are often available on Linux machines that combine public and locally trusted anchors, for example:
 
 * Ubuntu: ``/etc/ssl/certs/ca-certificates.crt``
 * SLES: ``/var/lib/ca-certificates/ca-bundle.pem``
 * RHEL/Rocky Linux: ``/etc/pki/tls/cert.pem``
 
-For example, to use the system CA bundle in Ubuntu, use the following:
+For example, on Ubuntu:
 
 .. code:: python
 
@@ -166,30 +167,30 @@ For example, to use the system CA bundle in Ubuntu, use the following:
 
    config = SessionConfiguration(cert_store_path="/etc/ssl/certs/ca-certificates.crt")
 
-This allows ``requests`` to correctly validate both internally and publicly signed TLS certificates, as long as the
-internal CA certificate has been added to the system certificate store. If the internal CA certificate has not been
-added to the system certificate store, then a ``SSLCertVerificationError`` is still raised, and you should proceed to
-the next section.
+This lets the **httpx** client validate chains signed by CAs present in that bundle, provided the issuing CA for
+your service is included. If your internal CA is not in the system bundle, continue to section 3.
 
 
 3. Single CA certificate
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you only need to authenticate internal TLS certificates, you can provide a path to the specific internal CA
-certificate to be used for verification:
+If you only need to trust a dedicated internal issuing CA, pass its certificate (PEM) as ``cert_store_path``:
 
 .. code:: python
 
    from ansys.openapi.common import SessionConfiguration
 
-   config = SessionConfiguration(cert_store_path=/home/username/my_private_ca_certificate.pem)
+   config = SessionConfiguration(
+       cert_store_path="/home/username/my_private_ca_certificate.pem"
+   )
 
-Where ``/home/username/my_private_ca_certificate.pem`` is the path to the CA certificate file.
+where ``/home/username/my_private_ca_certificate.pem`` is the path to the PEM file.
 
 .. note::
 
-   The ``cert_store_path`` argument overrides the ``certifi`` CA certificates. Providing a single private CA certificate
-   causes ``requests`` to fail to validate publicly signed TLS certificates.
+   When ``cert_store_path`` is set, that file **replaces** the default **certifi** bundle for verification. A PEM
+   that contains only your private CA will **not** validate publicly issued sites unless those roots are also
+   included in the same file or you use one of the other strategies above.
 
 
 .. _pip-system-certs: https://gitlab.com/alelec/pip-system-certs

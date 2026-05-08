@@ -46,7 +46,7 @@ autodoc_typehints_description_target = "documented"
 # sphinx.ext.intersphinx
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.11", None),
-    "requests": ("https://requests.readthedocs.io/en/latest", None),
+    "httpx": ("https://www.python-httpx.org", None),
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 
