@@ -51,7 +51,9 @@ REFRESH_TOKEN = (
 
 # NTLM pytest-httpx shared handshake (pyspnego via httpx-ntlm; regenerate if deps change — versions in test_can_connect_with_ntlm).
 _NTLM_PATCHED_URANDOM = b"\xde\xad\xbe\xef\xde\xad\xbe\xef"
-_NTLM_CANNED_EXPECT1 = {"Authorization": "NTLM TlRMTVNTUAABAAAAN4II4gAAAAAoAAAAAAAAACgAAAAADAAAAAAADw=="}
+_NTLM_CANNED_EXPECT1 = {
+    "Authorization": "NTLM TlRMTVNTUAABAAAAN4II4gAAAAAoAAAAAAAAACgAAAAADAAAAAAADw=="
+}
 _NTLM_CANNED_CHALLENGE_WWW = (
     "NTLM TlRMTVNTUAACAAAAHgAeADgAAAA1gori1CEifyE0ovkAAAAAAAAAAJgAmABWAAAAC"
     "gBhSgAAAA9UAEUAUwBUAFcATwBSAEsAUwBUAEEAVABJAE8ATgACAB4AVABFAFMAVABXAE8AUgBLAFMAVABBAFQASQB"
@@ -86,7 +88,9 @@ def _response_reason(response):
 
 
 def test_anonymous(httpx_mock):
-    httpx_mock.add_response(url=SERVICELAYER_URL, method="GET", status_code=200, text="Connection OK")
+    httpx_mock.add_response(
+        url=SERVICELAYER_URL, method="GET", status_code=200, text="Connection OK"
+    )
     _ = ApiClientFactory(SERVICELAYER_URL).with_anonymous()
 
 
@@ -134,7 +138,9 @@ def test_can_connect_with_basic(httpx_mock):
         status_code=200,
         match_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
     )
-    _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(username="TEST_USER", password="PASSWORD")
+    _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
+        username="TEST_USER", password="PASSWORD"
+    )
 
 
 def test_can_connect_with_pre_emptive_basic(httpx_mock):
@@ -382,6 +388,39 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok(httpx_mock):
 
 def test_can_connect_with_oidc():
     pass
+
+
+def test_oidc_probe_uses_factory_session_headers_only(httpx_mock):
+    """Application headers on the resource server must come from the factory SessionConfiguration."""
+    redirect_uri = "https://www.example.com/login/"
+    authority_url = "https://www.example.com/authority/"
+    authenticate_header = (
+        f'Bearer redirecturi="{redirect_uri}", authority="{authority_url}", '
+        'clientid="b4e44bfa-6b73-4d6a-9df6-8055216a5836"'
+    )
+    seen: list[str | None] = []
+
+    def probe(request: httpx.Request) -> httpx.Response:
+        seen.append(request.headers.get("X-GrantaApplicationName"))
+        return httpx.Response(401, headers={"www-authenticate": authenticate_header})
+
+    httpx_mock.add_callback(probe, url=SECURE_SERVICELAYER_URL, method="GET")
+    httpx_mock.add_response(
+        url=f"{authority_url}.well-known/openid-configuration",
+        method="GET",
+        json={
+            "token_endpoint": f"{authority_url}token",
+            "authorization_endpoint": f"{authority_url}authorization",
+        },
+    )
+
+    main_cfg = SessionConfiguration(headers={"X-GrantaApplicationName": "FromApiSession"})
+    idp_cfg = SessionConfiguration(headers={"X-GrantaApplicationName": "FromIdpSession"})
+    _ = ApiClientFactory(
+        SECURE_SERVICELAYER_URL,
+        session_configuration=main_cfg,
+    ).with_oidc(idp_session_configuration=idp_cfg)
+    assert seen == ["FromApiSession"]
 
 
 def test_only_called_once_with_oidc_when_anonymous_is_ok(httpx_mock):

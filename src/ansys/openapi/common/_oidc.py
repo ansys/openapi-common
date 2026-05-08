@@ -68,8 +68,12 @@ class OIDCSessionFactory:
 
     Notes
     -----
-    The ``headers`` field in ``idp_session_configuration`` is not fully respected. The ``Accept`` and
-    ``Content-Type`` headers will be overridden. Other settings are respected.
+    The ``headers`` field in ``idp_session_configuration`` is not fully respected on IdP HTTP
+    clients: ``Accept`` and ``Content-Type`` are overridden by
+    ``OIDCSessionFactory._override_idp_header``. Other settings apply to well-known discovery
+    and token endpoint traffic. The initial ``GET`` to the resource server is performed with
+    the factory's main client (constructor ``session_configuration`` only); it does not use
+    this IdP mapping for that request.
 
     OAuth2 / token flows use :class:`httpx.Client` with ``httpx-auth`` (PKCE), aligned with the rest
     of the migration to ``httpx``.
@@ -96,7 +100,9 @@ class OIDCSessionFactory:
         idp_sc = idp_session_configuration or SessionConfiguration()
 
         self._api_session_configuration = api_sc.get_transport_configuration()
-        idp_transport = OIDCSessionFactory._override_idp_header(idp_sc.get_transport_configuration())
+        idp_transport = OIDCSessionFactory._override_idp_header(
+            idp_sc.get_transport_configuration()
+        )
         self._idp_session_configuration = idp_transport
 
         discovery_sc = SessionConfiguration.from_dict(idp_transport)
@@ -301,9 +307,7 @@ class OIDCSessionFactory:
             return bearer_parameters
 
     @staticmethod
-    def _fetch_and_parse_well_known(
-        client: httpx.Client, url: str
-    ) -> CaseInsensitiveOrderedDict:
+    def _fetch_and_parse_well_known(client: httpx.Client, url: str) -> CaseInsensitiveOrderedDict:
         """Fetch and process the required parameters from identity provider's the well-known endpoint.
 
         Perform a GET request to the endpoint and verify that the required parameters are returned.

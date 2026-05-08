@@ -372,6 +372,8 @@ class ApiClientFactory:
         ----------
         idp_session_configuration : ~ansys.openapi.common.SessionConfiguration, optional
             Additional configuration settings for the HTTP client when connected to the OpenID identity provider.
+            The initial anonymous probe of the **API** uses only the factory's ``session_configuration`` (see
+            ``ApiClientFactory`` constructor); put resource-server headers such as application identity there.
 
         Returns
         -------
