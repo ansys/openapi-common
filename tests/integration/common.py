@@ -22,7 +22,7 @@
 
 import os
 import secrets
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from fastapi import HTTPException, Response, status
 from fastapi.security import HTTPBasicCredentials
@@ -127,3 +127,85 @@ class CustomResponseHeaders:
                 del response.headers[header_name.lower()]
             else:
                 response.headers[header_name.lower()] = value
+
+
+def patch_model_integration_expectations() -> Dict[str, Any]:
+    """Return call kwargs and the expected :class:`~.models.ExampleModel` for PATCH integration tests."""
+    ctx = model_endpoint_integration_expectations("PATCH")
+    ctx["upload_data"] = ctx["body"]
+    return ctx
+
+
+def model_endpoint_integration_expectations(http_method: str) -> Dict[str, Any]:
+    """Return ``call_api`` / ``acall_api`` kwargs and expected deserialized value for ``/models`` routes.
+
+    Covers GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS. HEAD expects no JSON body
+    (``response_type`` is ``None``); OPTIONS returns a small JSON object.
+    """
+    from .. import models
+
+    method = http_method.upper()
+    upload = {"ListOfStrings": ["red", "yellow", "green"]}
+
+    example_expected = models.ExampleModel(
+        string_property="new_model",
+        int_property=1,
+        list_property=["red", "yellow", "green"],
+        bool_property=False,
+    )
+
+    if method == "GET":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method == "POST":
+        return {
+            "resource_path": "/models",
+            "http_method": method,
+            "path_params": None,
+            "body": upload,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method in ("PUT", "PATCH"):
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": upload,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method == "DELETE":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method == "HEAD":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": None,
+            "expected": None,
+        }
+    if method == "OPTIONS":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": "dict(str, str)",
+            "expected": {"allowed_methods": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"},
+        }
+    raise ValueError(f"unsupported HTTP method for integration: {method!r}")
