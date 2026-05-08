@@ -14,3 +14,7 @@ pip\-system\-certs
 HTTPS
 CA
 CAs
+certifi
+conda
+httpx
+OpenSSL

@@ -79,8 +79,8 @@ Currently only the Authorization Code authentication flow is supported.
 Session configuration
 ---------------------
 The :class:`~.SessionConfiguration` class holds TLS settings, an optional outbound ``proxy_url``, headers, redirects, and
-timeouts. :class:`.ApiClientFactory` turns this into an :class:`httpx.Client` (with retries and
-timeouts applied in OpenAPI-Common’s transport layer), which backs each :class:`.ApiClient`.
+timeouts. The :class:`.ApiClientFactory` turns it into a synchronous HTTP client using ``httpx`` (retries and
+timeouts are applied in OpenAPI-Common's transport layer), which backs each :class:`.ApiClient`.
 
 Use it to configure custom certificate validation, send client certificates if your API
 server requires them, and adjust other transport options.
@@ -151,7 +151,7 @@ concatenates the internal CA(s) and the public roots you care about.
 
 .. note::
 
-   OIDC flows often touch both internal and public endpoints, so a merged bundle may be required.
+   OIDC flows often involve both internal and public endpoints, so a merged bundle may be required.
 
 CA bundles are often available on Linux machines that combine public and locally trusted anchors, for example:
 
@@ -189,8 +189,8 @@ where ``/home/username/my_private_ca_certificate.pem`` is the path to the PEM fi
 .. note::
 
    When ``cert_store_path`` is set, that file **replaces** the default **certifi** bundle for verification. A PEM
-   that contains only your private CA will **not** validate publicly issued sites unless those roots are also
-   included in the same file or you use one of the other strategies above.
+   that contains only your private CA **does** not validate publicly issued sites unless those roots are also
+   included in the same file or you use one of the other strategies described earlier in this section.
 
 
 .. _pip-system-certs: https://gitlab.com/alelec/pip-system-certs

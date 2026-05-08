@@ -81,7 +81,8 @@ class RetryingHTTPTransport(httpx.HTTPTransport):
         retry_http_methods: Collection[str] | None = None,
         **transport_kwargs: Any,
     ) -> None:
-        """
+        """Create a retrying transport.
+
         Parameters
         ----------
         max_attempts
@@ -105,6 +106,7 @@ class RetryingHTTPTransport(httpx.HTTPTransport):
         self._retry_exceptions = _retryable_transport_exceptions()
 
     def handle_request(self, request: httpx.Request) -> httpx.Response:
+        """Dispatch ``request`` with retries for transport errors and configured statuses."""
         method_upper = request.method.upper()
         for attempt in range(self._max_attempts):
             try:
