@@ -36,9 +36,11 @@ from typing import (
     cast,
 )
 
+import httpx
 import pyparsing as pp
-import requests
-from requests.structures import CaseInsensitiveDict
+from ._case_insensitive_dict import CaseInsensitiveDict
+
+from ._retry_transport import RetryingHTTPTransport
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
@@ -202,22 +204,20 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     return parser.parse_header(value)
 
 
-def set_session_kwargs(session: requests.Session, property_dict: "RequestsConfiguration") -> None:
-    """Set session parameters from the dictionary provided.
+def collect_www_authenticate_raw_values(response: httpx.Response) -> list[str]:
+    """Return each raw ``WWW-Authenticate`` challenge line from ``response``.
 
-    Parameters
-    ----------
-    session : :obj:`requests.Session`
-        Session object to configure.
-    property_dict : dict
-        Mapping from requests session parameter to value.
+    Multiple header field lines are preserved as separate entries (RFC 9110). ``httpx``
+    exposes these via :meth:`httpx.Headers.get_list`.
     """
-    for k, v in property_dict.items():
-        session.__dict__[k] = v
+    return [v.strip() for v in response.headers.get_list("www-authenticate") if v.strip()]
 
 
-class RequestsConfiguration(TypedDict):
-    """Configuration for requests session."""
+class TransportConfiguration(TypedDict):
+    """Serializable HTTP transport settings used to build :class:`httpx.Client`.
+
+    These keys feed :func:`httpx_client_init_kwargs` for ``httpx.Client`` construction.
+    """
 
     cert: Union[None, str, Tuple[str, str]]
     verify: Union[None, str, bool]
@@ -225,6 +225,46 @@ class RequestsConfiguration(TypedDict):
     proxies: Dict[str, str]
     headers: CaseInsensitiveDict
     max_redirects: int
+
+
+def httpx_client_init_kwargs(configuration: TransportConfiguration) -> dict[str, Any]:
+    """Build keyword arguments for :class:`httpx.Client` from transport configuration.
+
+    ``requests`` accepts a per-scheme ``proxies`` mapping on the session. ``httpx`` uses a
+    single ``proxy`` URL for the default transport in the common case. When exactly one
+    proxy URL is configured, it is passed through; otherwise a :class:`NotImplementedError`
+    is raised until full per-scheme routing is implemented.
+
+    Parameters
+    ----------
+    configuration : TransportConfiguration
+        Output of :meth:`SessionConfiguration.get_transport_configuration`.
+
+    Returns
+    -------
+    dict[str, Any]
+        Keyword arguments suitable for ``httpx.Client(**kwargs)``.
+    """
+    headers = configuration["headers"]
+    kwargs: dict[str, Any] = {
+        "cert": configuration["cert"],
+        "verify": configuration["verify"],
+        "cookies": configuration["cookies"],
+        "headers": dict(headers) if headers else {},
+        "max_redirects": configuration["max_redirects"],
+        # requests follows redirects by default; match that for future Client wiring.
+        "follow_redirects": True,
+    }
+    proxies = configuration["proxies"]
+    if proxies:
+        if len(proxies) == 1:
+            kwargs["proxy"] = next(iter(proxies.values()))
+        else:
+            raise NotImplementedError(
+                "Multiple proxy mappings are not yet mapped to httpx.Client mounts; "
+                "configure a single proxy URL or extend httpx_client_init_kwargs."
+            )
+    return kwargs
 
 
 class SessionConfiguration:
@@ -313,11 +353,11 @@ class SessionConfiguration:
         else:
             return self.cert_store_path
 
-    def get_configuration_for_requests(
+    def get_transport_configuration(
         self,
-    ) -> "RequestsConfiguration":
-        """Retrieve the configuration as a dictionary, with keys corresponding to ``requests`` session properties."""
-        output: RequestsConfiguration = {
+    ) -> TransportConfiguration:
+        """Retrieve settings as a mapping aligned with HTTP client transport configuration."""
+        output: TransportConfiguration = {
             "cert": self._cert,
             "verify": self._verify,
             "cookies": self.cookies,
@@ -328,11 +368,11 @@ class SessionConfiguration:
         return output
 
     @classmethod
-    def from_dict(cls, configuration_dict: "RequestsConfiguration") -> "SessionConfiguration":
+    def from_dict(cls, configuration_dict: TransportConfiguration) -> "SessionConfiguration":
         """
         Create a :class:`SessionConfiguration` object from its dictionary form.
 
-        This is the inverse of the :meth:`.get_configuration_for_requests` method.
+        This is the inverse of the :meth:`.get_transport_configuration` method.
 
         Parameters
         ----------
@@ -369,6 +409,42 @@ class SessionConfiguration:
         if configuration_dict["max_redirects"] is not None:
             new.max_redirects = configuration_dict["max_redirects"]
         return new
+
+
+def create_httpx_client_from_session_configuration(
+    session_configuration: SessionConfiguration,
+) -> httpx.Client:
+    """Create a synchronous :class:`httpx.Client` from a :class:`SessionConfiguration`.
+
+    Uses :class:`~ansys.openapi.common._retry_transport.RetryingHTTPTransport` so connection
+    failures, timeouts, and selected HTTP status codes are retried according to
+    ``session_configuration.retry_count`` (maximum total attempts per request).
+
+    Parameters
+    ----------
+    session_configuration : SessionConfiguration
+        Source configuration for TLS, cookies, headers, redirects, timeout, proxies, and retries.
+
+    Returns
+    -------
+    httpx.Client
+        Configured HTTP client.
+    """
+    kwargs = httpx_client_init_kwargs(session_configuration.get_transport_configuration())
+    kwargs["timeout"] = session_configuration.request_timeout
+
+    verify = kwargs.pop("verify", True)
+    cert = kwargs.pop("cert", None)
+    proxy = kwargs.pop("proxy", None)
+
+    kwargs["transport"] = RetryingHTTPTransport(
+        verify=verify,
+        cert=cert,
+        proxy=proxy,
+        max_attempts=max(1, session_configuration.retry_count),
+        backoff_factor=0.3,
+    )
+    return httpx.Client(**kwargs)
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:
