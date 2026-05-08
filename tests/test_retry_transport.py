@@ -20,11 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import asyncio
+
 import httpx
 
 from ansys.openapi.common import SessionConfiguration
 from ansys.openapi.common._retry_transport import RetryingHTTPTransport
-from ansys.openapi.common._util import create_httpx_client_from_session_configuration
+from ansys.openapi.common._util import (
+    create_async_httpx_client_from_session_configuration,
+    create_httpx_client_from_session_configuration,
+)
 
 _URL = "https://example.test/resource"
 
@@ -38,6 +43,25 @@ def test_retries_http_503_then_ok(httpx_mock):
         r = client.get(_URL)
     assert r.status_code == 200
     assert r.text == "ok"
+    assert len(httpx_mock.get_requests(url=_URL)) == 2
+
+
+def test_retries_http_503_then_ok_async(httpx_mock):
+    httpx_mock.add_response(url=_URL, method="GET", status_code=503)
+    httpx_mock.add_response(url=_URL, method="GET", status_code=200, text="ok")
+
+    async def main():
+        client = create_async_httpx_client_from_session_configuration(
+            SessionConfiguration(retry_count=3)
+        )
+        try:
+            r = await client.get(_URL)
+            assert r.status_code == 200
+            assert r.text == "ok"
+        finally:
+            await client.aclose()
+
+    asyncio.run(main())
     assert len(httpx_mock.get_requests(url=_URL)) == 2
 
 

@@ -20,10 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Synchronous :class:`httpx.HTTPTransport` with retries.
+"""Synchronous and asynchronous :class:`httpx` transports with retries.
 
-This mirrors historical resilience from ``urllib3.Retry`` + ``requests.HTTPAdapter``
-while staying inside ``httpx``'s transport layer.
+The synchronous :class:`RetryingHTTPTransport` mirrors historical resilience from
+``urllib3.Retry`` + ``requests.HTTPAdapter`` while staying inside ``httpx``'s transport layer.
+:class:`RetryingAsyncHTTPTransport` applies the same policy for :class:`httpx.AsyncClient`.
 
 **Semantics**
 
@@ -46,6 +47,7 @@ retry behaviour is controlled only in this transport.
 
 from __future__ import annotations
 
+import asyncio
 import time
 from typing import Any, Collection, FrozenSet
 
@@ -148,3 +150,73 @@ class RetryingHTTPTransport(httpx.HTTPTransport):
             response.read()
         finally:
             response.close()
+
+
+class RetryingAsyncHTTPTransport(httpx.AsyncHTTPTransport):
+    """Async HTTP transport that retries failed requests up to ``max_attempts`` times."""
+
+    def __init__(
+        self,
+        *,
+        max_attempts: int = 3,
+        backoff_factor: float = 0.3,
+        retry_status_codes: Collection[int] | None = None,
+        retry_http_methods: Collection[str] | None = None,
+        **transport_kwargs: Any,
+    ) -> None:
+        """Create a retrying async transport.
+
+        Parameters match :class:`RetryingHTTPTransport`.
+        """
+        super().__init__(retries=0, **transport_kwargs)
+        self._max_attempts = max(1, max_attempts)
+        self._backoff_factor = backoff_factor
+        self._retry_status_codes = frozenset(retry_status_codes or _DEFAULT_RETRY_STATUSES)
+        self._retry_http_methods = frozenset(
+            m.upper() for m in (retry_http_methods or _DEFAULT_RETRY_METHODS)
+        )
+        self._retry_exceptions = _retryable_transport_exceptions()
+
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        """Dispatch ``request`` with retries for transport errors and configured statuses."""
+        method_upper = request.method.upper()
+        for attempt in range(self._max_attempts):
+            try:
+                response = await super().handle_async_request(request)
+            except self._retry_exceptions:
+                if attempt >= self._max_attempts - 1:
+                    raise
+                await self._sleep_backoff(attempt)
+                logger.debug(
+                    "Retrying HTTP request after transport error "
+                    f"(attempt {attempt + 2}/{self._max_attempts})"
+                )
+                continue
+
+            if (
+                response.status_code in self._retry_status_codes
+                and method_upper in self._retry_http_methods
+                and attempt < self._max_attempts - 1
+            ):
+                await self._adrain_response(response)
+                await self._sleep_backoff(attempt)
+                logger.debug(
+                    "Retrying HTTP request after status "
+                    f"{response.status_code} (attempt {attempt + 2}/{self._max_attempts})"
+                )
+                continue
+
+            return response
+
+        raise AssertionError("retry loop fell through")  # pragma: no cover
+
+    async def _sleep_backoff(self, attempt_index: int) -> None:
+        delay = self._backoff_factor * (2**attempt_index)
+        await asyncio.sleep(delay)
+
+    @staticmethod
+    async def _adrain_response(response: httpx.Response) -> None:
+        try:
+            await response.aread()
+        finally:
+            await response.aclose()

@@ -41,7 +41,7 @@ import httpx
 import pyparsing as pp
 from ._case_insensitive_dict import CaseInsensitiveDict
 
-from ._retry_transport import RetryingHTTPTransport
+from ._retry_transport import RetryingAsyncHTTPTransport, RetryingHTTPTransport
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
@@ -252,7 +252,7 @@ def httpx_client_init_kwargs(configuration: TransportConfiguration) -> dict[str,
     Returns
     -------
     dict[str, Any]
-        Keyword arguments suitable for ``httpx.Client(**kwargs)``.
+        Keyword arguments suitable for ``httpx.Client(**kwargs)`` or ``httpx.AsyncClient(**kwargs)``.
     """
     headers = configuration["headers"]
     kwargs: dict[str, Any] = {
@@ -481,6 +481,82 @@ def create_httpx_client_from_session_configuration(
         kwargs["mounts"] = {mount_prefix: proxied_transport}
 
     return httpx.Client(**kwargs)
+
+
+def create_async_httpx_client_from_session_configuration(
+    session_configuration: SessionConfiguration,
+    *,
+    mount_scheme_url: Optional[str] = None,
+    sync_client: Optional[httpx.Client] = None,
+) -> httpx.AsyncClient:
+    """Create an asynchronous :class:`httpx.AsyncClient` from a :class:`SessionConfiguration`.
+
+    Uses :class:`~ansys.openapi.common._retry_transport.RetryingAsyncHTTPTransport` with the
+    same retry semantics as :func:`create_httpx_client_from_session_configuration`.
+
+    When ``sync_client`` is provided (for example after synchronous authentication), its
+    ``headers``, ``cookies``, and ``auth`` are applied on top of the configuration-derived
+    defaults so the async client reuses the finalized session state.
+
+    Parameters
+    ----------
+    session_configuration : SessionConfiguration
+        Source configuration for TLS, cookies, headers, redirects, timeout, proxy, and retries.
+    mount_scheme_url :
+        URL whose scheme determines the proxy mount when ``proxy_url`` is set. Ignored when
+        ``proxy_url`` is unset.
+    sync_client : httpx.Client, optional
+        Optional sync client whose headers, cookies, and auth are merged into the async client.
+
+    Returns
+    -------
+    httpx.AsyncClient
+        Configured async HTTP client (call ``await client.aclose()`` when done).
+    """
+    kwargs = httpx_client_init_kwargs(session_configuration.get_transport_configuration())
+    kwargs["timeout"] = session_configuration.request_timeout
+
+    verify = kwargs.pop("verify", True)
+    cert = kwargs.pop("cert", None)
+
+    proxy_url = session_configuration.proxy_url
+    attempts = max(1, session_configuration.retry_count)
+    backoff = 0.3
+
+    default_transport = RetryingAsyncHTTPTransport(
+        verify=verify,
+        cert=cert,
+        proxy=None,
+        max_attempts=attempts,
+        backoff_factor=backoff,
+    )
+    kwargs["transport"] = default_transport
+
+    if proxy_url is not None:
+        if mount_scheme_url is None:
+            raise ValueError(
+                "mount_scheme_url is required when SessionConfiguration.proxy_url is set "
+                "(for example the API base URL)."
+            )
+        mount_prefix = _scheme_mount_prefix(mount_scheme_url)
+        proxied_transport = RetryingAsyncHTTPTransport(
+            verify=verify,
+            cert=cert,
+            proxy=proxy_url,
+            max_attempts=attempts,
+            backoff_factor=backoff,
+        )
+        kwargs["mounts"] = {mount_prefix: proxied_transport}
+
+    if sync_client is not None:
+        merged_headers = dict(kwargs.get("headers") or {})
+        merged_headers.update(sync_client.headers)
+        kwargs["headers"] = merged_headers
+        kwargs["cookies"] = sync_client.cookies
+        if sync_client.auth is not None:
+            kwargs["auth"] = sync_client.auth
+
+    return httpx.AsyncClient(**kwargs)
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:
