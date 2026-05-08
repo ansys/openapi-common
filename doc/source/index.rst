@@ -46,3 +46,4 @@ effort to facilitate the use of Ansys technologies directly from Python.
    api/index
    contributing
    changelog
+   planning/httpx-migration
