@@ -163,6 +163,7 @@ class ApiClient(ApiClientBase):
         rc.close()
 
     def __enter__(self) -> "ApiClient":
+        """Enter a context manager; returns this client."""
         return self
 
     def __exit__(
@@ -171,6 +172,7 @@ class ApiClient(ApiClientBase):
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
+        """Exit the context manager and close the underlying HTTP client."""
         self.close()
 
     def __repr__(self) -> str:
@@ -213,10 +215,9 @@ class ApiClient(ApiClientBase):
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
-        _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[httpx.Response, DeserializedType, None]:
+    ) -> Union[DeserializedType, Tuple[DeserializedType, int, httpx.Headers], None]:
         # header parameters
         header_params = header_params or {}
         if header_params:
@@ -260,26 +261,20 @@ class ApiClient(ApiClientBase):
             headers=header_params,
             post_params=post_params,
             body=body,
-            _preload_content=_preload_content,
             _request_timeout=_request_timeout,
         )
 
         self.last_response = response_data
         logger.debug(f"response body: {response_data.text}")
 
-        return_data: Union[httpx.Response, DeserializedType, None] = response_data
-        if _preload_content:
-            _response_type = response_type
-            if response_type_map is not None:
-                _response_type = response_type_map.get(response_data.status_code, None)
+        _response_type = response_type
+        if response_type_map is not None:
+            _response_type = response_type_map.get(response_data.status_code, None)
 
-            deserialized_response = self.deserialize(response_data, _response_type)
-            if not 200 <= response_data.status_code <= 299:
-                raise ApiException.from_response(response_data, deserialized_response)
-            return_data = deserialized_response
-        else:
-            if not 200 <= response_data.status_code <= 299:
-                raise ApiException.from_response(response_data)
+        deserialized_response = self.deserialize(response_data, _response_type)
+        if not 200 <= response_data.status_code <= 299:
+            raise ApiException.from_response(response_data, deserialized_response)
+        return_data = deserialized_response
 
         if _return_http_data_only:
             return return_data
@@ -514,10 +509,9 @@ class ApiClient(ApiClientBase):
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
-        _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[httpx.Response, DeserializedType, None]:
+    ) -> Union[DeserializedType, Tuple[DeserializedType, int, httpx.Headers], None]:
         """Make the HTTP request and return the deserialized data.
 
         Parameters
@@ -546,10 +540,6 @@ class ApiClient(ApiClientBase):
         collection_formats : Dict[str, str]
             Collection format name for path, query, header, and post parameters. This parameter maps the
             parameter name to the collection type.
-        _preload_content : bool, optional
-            Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case response data is read or decoded. If ``False``, response data is not
-            read or decoded.
         _request_timeout : Union[float, Tuple[float, float], None]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
@@ -570,7 +560,6 @@ class ApiClient(ApiClientBase):
             response_type,
             _return_http_data_only,
             collection_formats,
-            _preload_content,
             _request_timeout,
             response_type_map,
         )
@@ -591,7 +580,6 @@ class ApiClient(ApiClientBase):
             Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]
         ] = None,
         body: Optional[Any] = None,
-        _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
     ) -> httpx.Response:
         """Make the HTTP request and return it directly.
@@ -610,10 +598,6 @@ class ApiClient(ApiClientBase):
             Request post form parameters for ``multipart/form-data``.
         body : :obj:`.SerializedType`
             Request body.
-        _preload_content : bool, optional
-            Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case the response data is read or decoded.  If ``False``, the response
-            data is not read or decoded.
         _request_timeout : Union[float, Tuple[float, float], None]
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level

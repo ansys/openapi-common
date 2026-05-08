@@ -136,10 +136,9 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         response_type: Optional[str] = None,
         _return_http_data_only: Optional[bool] = None,
         collection_formats: Optional[Dict[str, str]] = None,
-        _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[httpx.Response, DeserializedType, None]:
+    ) -> Union[DeserializedType, Tuple[DeserializedType, int, httpx.Headers], None]:
         """Provide method signature for calling the API."""
 
 

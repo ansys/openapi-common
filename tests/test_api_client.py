@@ -714,7 +714,6 @@ class TestRequestDispatch:
     query_params = "foo=bar&baz=qux"
     post_params = [("clientId", secrets.token_hex(32))]
     header_params = {"Accept": "application/json"}
-    stream = False
     body = {
         "str": "foo",
         "int": 12,
@@ -736,7 +735,6 @@ class TestRequestDispatch:
             headers=self.header_params,
             post_params=self.post_params,
             body=self.body,
-            _preload_content=self.stream,
             _request_timeout=self.timeout,
         )
 
@@ -759,9 +757,7 @@ class TestRequestDispatch:
         elif verb == "HEAD":
             request_mock.assert_called_once_with(expected_url, **base_kw)
         elif verb == "OPTIONS":
-            request_mock.assert_called_once_with(
-                "OPTIONS", expected_url, **base_kw, **body_kw
-            )
+            request_mock.assert_called_once_with("OPTIONS", expected_url, **base_kw, **body_kw)
         elif verb == "POST":
             request_mock.assert_called_once_with(expected_url, **base_kw, **body_kw)
         elif verb == "PATCH":
@@ -769,9 +765,7 @@ class TestRequestDispatch:
         elif verb == "PUT":
             request_mock.assert_called_once_with(expected_url, **base_kw, **body_kw)
         elif verb == "DELETE":
-            request_mock.assert_called_once_with(
-                "DELETE", expected_url, **base_kw, **body_kw
-            )
+            request_mock.assert_called_once_with("DELETE", expected_url, **base_kw, **body_kw)
         else:
             raise AssertionError(verb)
 
@@ -1064,9 +1058,8 @@ class TestResponseHandling:
         assert "Content-Type" in e.value.headers
         assert e.value.headers["Content-Type"] == "application/json"
 
-    def test_get_object_with_preload_false_returns_raw_response(self, httpx_mock):
-        """This test represents getting an object from a server where we do not want to deserialize the response
-        immediately"""
+    def test_get_object_returns_deserialized_model_when_return_http_data_only(self, httpx_mock):
+        """GET with response_type_map returns a model when ``_return_http_data_only`` is True."""
 
         resource_path = "/items/1"
         method = "GET"
@@ -1088,64 +1081,20 @@ class TestResponseHandling:
             json=api_response,
             headers={"Content-Type": "application/json"},
         )
-        response = self._client.call_api(
+        from .models import ExampleModel
+
+        result = self._client.call_api(
             resource_path,
             method,
             response_type_map=response_type_map,
-            _preload_content=False,
             _return_http_data_only=True,
         )
 
-        assert isinstance(response, httpx.Response)
-        assert response.status_code == 200
-        assert response.json() == api_response
-
-    def test_get_object_with_preload_false_raises_exception(self, httpx_mock):
-        """This test represents getting an object from a server where we do not want to deserialize the response
-        immediately, but an exception is returned."""
-
-        resource_path = "/items/1"
-        method = "GET"
-
-        expected_url = TEST_URL + resource_path
-
-        exception_text = "Item not found"
-        exception_code = 1
-        stack_trace = [
-            "Source lines",
-            "101: if id_ not in items:",
-            "102:     raise ItemNotFound(id_)",
-        ]
-
-        api_response = {
-            "ExceptionText": exception_text,
-            "ExceptionCode": exception_code,
-            "StackTrace": stack_trace,
-        }
-
-        response_type_map = {200: "ExampleModel", 404: "ExampleException"}
-
-        def respond_404(request: httpx.Request) -> httpx.Response:
-            return httpx.Response(
-                404,
-                json=api_response,
-                headers={"Content-Type": "application/json"},
-                extensions={"reason_phrase": b"Not Found"},
-            )
-
-        httpx_mock.add_callback(respond_404, url=expected_url, method="GET")
-        with pytest.raises(ApiException) as e:
-            _ = self._client.call_api(
-                resource_path,
-                method,
-                response_type_map=response_type_map,
-                _preload_content=False,
-                _return_http_data_only=True,
-            )
-
-        assert e.value.status_code == 404
-        assert e.value.reason_phrase == "Not Found"
-        assert json.loads(e.value.body) == api_response
+        assert isinstance(result, ExampleModel)
+        assert result.string_property == "new_model"
+        assert result.int_property == 1
+        assert result.list_property == ["red", "yellow", "green"]
+        assert result.bool_property is False
 
     def test_patch_object(self, httpx_mock):
         """This test represents updating a value on an existing record using a custom json payload. The new object
