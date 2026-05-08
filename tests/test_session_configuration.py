@@ -39,7 +39,7 @@ from ansys.openapi.common._util import (
 CLIENT_CERT_PATH = "./client-cert.pem"
 CLIENT_CERT_KEY = "5up3rS3c43t!"
 CA_CERT_PATH = "./ca-certs.pem"
-PROXY_CONFIG = {"https://www.google.com:80": "https://proxy.mycompany.com:8080"}
+PROXY_URL = "https://proxy.mycompany.com:8080"
 
 
 def test_defaults():
@@ -47,15 +47,13 @@ def test_defaults():
     assert output["cert"] is None
     assert output["verify"]
     assert len(output["cookies"]) == 0
-    assert output["proxies"] == {}
+    assert output["proxy_url"] is None
     assert output["headers"] == {}
     assert output["max_redirects"] == 10
 
 
 def test_cert_path_returns_str():
-    output = SessionConfiguration(
-        client_cert_path=CLIENT_CERT_PATH
-    ).get_transport_configuration()
+    output = SessionConfiguration(client_cert_path=CLIENT_CERT_PATH).get_transport_configuration()
     assert output["cert"] == CLIENT_CERT_PATH
 
 
@@ -105,9 +103,9 @@ def test_update_headers_indistinct(header_test_fixture):
     assert not header_test_fixture["lower_case"]
 
 
-def test_proxies():
-    output = SessionConfiguration(proxies=PROXY_CONFIG).get_transport_configuration()
-    assert output["proxies"] == PROXY_CONFIG
+def test_proxy_url():
+    output = SessionConfiguration(proxy_url=PROXY_URL).get_transport_configuration()
+    assert output["proxy_url"] == PROXY_URL
 
 
 def test_cookies():
@@ -154,7 +152,7 @@ class TestDeserialization:
             "cert": None,
             "verify": None,
             "cookies": None,
-            "proxies": None,
+            "proxy_url": None,
             "headers": None,
             "max_redirects": None,
         }
@@ -169,7 +167,7 @@ class TestDeserialization:
         assert isinstance(configuration_obj.cookies, http.cookiejar.CookieJar)
         assert configuration_obj.cookies._cookies == {}  # noqa
         assert configuration_obj.headers == CaseInsensitiveDict()
-        assert configuration_obj.proxies == {}
+        assert configuration_obj.proxy_url is None
         assert configuration_obj.max_redirects == 10
         assert configuration_obj.temp_folder_path == tempfile.gettempdir()
 
@@ -258,7 +256,7 @@ class TestDeserialization:
         test_input["cookies"] = cookie_jar
 
         proxy_url = "http://10.10.1.10:3128"
-        test_input["proxies"] = {"http": proxy_url}
+        test_input["proxy_url"] = proxy_url
         header_name = "X-TestHeader"
         header_value = "Foo"
         test_input["headers"] = CaseInsensitiveDict({header_name: header_value})
@@ -268,8 +266,7 @@ class TestDeserialization:
 
         assert config_object.verify_ssl
         assert config_object.cert_store_path == CA_CERT_PATH
-        assert "http" in config_object.proxies
-        assert config_object.proxies["http"] == proxy_url
+        assert config_object.proxy_url == proxy_url
         assert header_name in config_object.headers
         assert config_object.headers[header_name] == header_value
         assert config_object.max_redirects == 30
@@ -300,6 +297,25 @@ class TestHttpxClientTransportFromSessionConfiguration:
         with create_httpx_client_from_session_configuration(config) as client:
             assert isinstance(client._transport, RetryingHTTPTransport)
             assert client._transport._max_attempts == 7
+
+    def test_proxy_url_requires_mount_scheme_url(self):
+        proxy_u = "http://127.0.0.1:8888"
+        config = SessionConfiguration(proxy_url=proxy_u)
+        with pytest.raises(ValueError, match="mount_scheme_url"):
+            create_httpx_client_from_session_configuration(config)
+
+    def test_proxy_url_mount_matches_api_scheme(self):
+        proxy_u = "http://127.0.0.1:8888"
+        config = SessionConfiguration(proxy_url=proxy_u)
+        with create_httpx_client_from_session_configuration(
+            config,
+            mount_scheme_url="https://api.example/v1/",
+        ) as client:
+            picked = client._transport_for_url(httpx.URL("https://api.example/resource"))
+            assert isinstance(picked, RetryingHTTPTransport)
+            assert picked is not client._transport
+            plain = client._transport_for_url(httpx.URL("http://other.example/"))
+            assert plain is client._transport
 
 
 class TestWwwAuthenticateHeaderMerging:

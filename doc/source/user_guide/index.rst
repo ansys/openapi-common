@@ -78,7 +78,7 @@ Currently only the Authorization Code authentication flow is supported.
 
 Session configuration
 ---------------------
-The :class:`~.SessionConfiguration` class holds TLS settings, proxies, headers, redirects, and
+The :class:`~.SessionConfiguration` class holds TLS settings, an optional outbound ``proxy_url``, headers, redirects, and
 timeouts. :class:`.ApiClientFactory` turns this into an :class:`httpx.Client` (with retries and
 timeouts applied in OpenAPI-Common’s transport layer), which backs each :class:`.ApiClient`.
 

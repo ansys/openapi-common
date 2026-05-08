@@ -24,6 +24,7 @@ from collections import OrderedDict
 import http.cookiejar
 from itertools import chain
 import tempfile
+import urllib.parse
 from typing import (
     Any,
     Collection,
@@ -204,6 +205,15 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     return parser.parse_header(value)
 
 
+def _scheme_mount_prefix(url: str) -> str:
+    scheme = urllib.parse.urlparse(url).scheme.lower()
+    if scheme not in ("http", "https"):
+        raise ValueError(
+            f"mount_scheme_url must use http or https scheme (got {scheme!r} from {url!r})."
+        )
+    return f"{scheme}://"
+
+
 def collect_www_authenticate_raw_values(response: httpx.Response) -> list[str]:
     """Return each raw ``WWW-Authenticate`` challenge line from ``response``.
 
@@ -222,7 +232,7 @@ class TransportConfiguration(TypedDict):
     cert: Union[None, str, Tuple[str, str]]
     verify: Union[None, str, bool]
     cookies: http.cookiejar.CookieJar
-    proxies: Dict[str, str]
+    proxy_url: Optional[str]
     headers: CaseInsensitiveDict
     max_redirects: int
 
@@ -230,10 +240,9 @@ class TransportConfiguration(TypedDict):
 def httpx_client_init_kwargs(configuration: TransportConfiguration) -> dict[str, Any]:
     """Build keyword arguments for :class:`httpx.Client` from transport configuration.
 
-    ``requests`` accepts a per-scheme ``proxies`` mapping on the session. ``httpx`` uses a
-    single ``proxy`` URL for the default transport in the common case. When exactly one
-    proxy URL is configured, it is passed through; otherwise a :class:`NotImplementedError`
-    is raised until full per-scheme routing is implemented.
+    ``proxy_url`` is not applied here; it is handled in
+    :func:`create_httpx_client_from_session_configuration` using a single ``httpx`` mount
+    derived from ``mount_scheme_url``.
 
     Parameters
     ----------
@@ -255,15 +264,6 @@ def httpx_client_init_kwargs(configuration: TransportConfiguration) -> dict[str,
         # requests follows redirects by default; match that for future Client wiring.
         "follow_redirects": True,
     }
-    proxies = configuration["proxies"]
-    if proxies:
-        if len(proxies) == 1:
-            kwargs["proxy"] = next(iter(proxies.values()))
-        else:
-            raise NotImplementedError(
-                "Multiple proxy mappings are not yet mapped to httpx.Client mounts; "
-                "configure a single proxy URL or extend httpx_client_init_kwargs."
-            )
     return kwargs
 
 
@@ -284,9 +284,11 @@ class SessionConfiguration:
         case-insensitive. The default is ``None``, in which case only required headers will be included.
     max_redirects : int, optional
         Maximum number of redirects to allow before halting. The default is ``10``.
-    proxies : dict, optional
-        Proxy server URLs, indexed by resource URLs. The default is ``None``, in which case
-        no proxies are registered for use.
+    proxy_url : str, optional
+        Outbound HTTP(S) proxy URL (e.g. ``http://proxy.corp:8080``). When set, pass
+        ``mount_scheme_url`` to :func:`create_httpx_client_from_session_configuration`
+        (for example the API base URL) so the correct ``http(s)://`` transport mount is used.
+        The default is ``None`` (no proxy).
     verify_ssl : bool, optional
         Whether to verify the SSL certificate of the remote host. The default is ``True``.
     cert_store_path : str, optional
@@ -314,7 +316,7 @@ class SessionConfiguration:
         cookies: Optional[http.cookiejar.CookieJar] = None,
         headers: Optional[CaseInsensitiveDict] = None,
         max_redirects: int = 10,
-        proxies: Optional[Dict[str, str]] = None,
+        proxy_url: Optional[str] = None,
         verify_ssl: bool = True,
         cert_store_path: Optional[str] = None,
         temp_folder_path: Optional[str] = None,
@@ -328,7 +330,7 @@ class SessionConfiguration:
         self.cookies = cookies or http.cookiejar.CookieJar()
         self.headers = headers or CaseInsensitiveDict()
         self.max_redirects = max_redirects
-        self.proxies = proxies or {}
+        self.proxy_url = (proxy_url.strip() if proxy_url else None) or None
         self.verify_ssl = verify_ssl
         self.cert_store_path = cert_store_path
         self.temp_folder_path = temp_folder_path or tempfile.gettempdir()
@@ -361,7 +363,7 @@ class SessionConfiguration:
             "cert": self._cert,
             "verify": self._verify,
             "cookies": self.cookies,
-            "proxies": self.proxies,
+            "proxy_url": self.proxy_url,
             "headers": self.headers,
             "max_redirects": self.max_redirects,
         }
@@ -402,8 +404,11 @@ class SessionConfiguration:
                 )
         if configuration_dict["cookies"] is not None:
             new.cookies = configuration_dict["cookies"]
-        if configuration_dict["proxies"] is not None:
-            new.proxies = configuration_dict["proxies"]
+        if configuration_dict["proxy_url"] is not None:
+            pu = configuration_dict["proxy_url"]
+            if not isinstance(pu, str):
+                raise ValueError(f"Invalid 'proxy_url' field. Must be str, not '{type(pu)}'.")
+            new.proxy_url = pu.strip() or None
         if configuration_dict["headers"] is not None:
             new.headers = configuration_dict["headers"]
         if configuration_dict["max_redirects"] is not None:
@@ -413,6 +418,8 @@ class SessionConfiguration:
 
 def create_httpx_client_from_session_configuration(
     session_configuration: SessionConfiguration,
+    *,
+    mount_scheme_url: Optional[str] = None,
 ) -> httpx.Client:
     """Create a synchronous :class:`httpx.Client` from a :class:`SessionConfiguration`.
 
@@ -420,10 +427,18 @@ def create_httpx_client_from_session_configuration(
     failures, timeouts, and selected HTTP status codes are retried according to
     ``session_configuration.retry_count`` (maximum total attempts per request).
 
+    When ``SessionConfiguration.proxy_url`` is set, ``mount_scheme_url`` (for example the
+    API base URL) is **required**. Its scheme selects a single ``httpx`` mount
+    (``http://`` or ``https://``) that uses the proxy; the default transport handles other
+    schemes without a proxy (for example redirects).
+
     Parameters
     ----------
     session_configuration : SessionConfiguration
-        Source configuration for TLS, cookies, headers, redirects, timeout, proxies, and retries.
+        Source configuration for TLS, cookies, headers, redirects, timeout, proxy, and retries.
+    mount_scheme_url :
+        URL whose scheme determines the proxy mount when ``proxy_url`` is set. Ignored when
+        ``proxy_url`` is unset.
 
     Returns
     -------
@@ -435,15 +450,36 @@ def create_httpx_client_from_session_configuration(
 
     verify = kwargs.pop("verify", True)
     cert = kwargs.pop("cert", None)
-    proxy = kwargs.pop("proxy", None)
 
-    kwargs["transport"] = RetryingHTTPTransport(
+    proxy_url = session_configuration.proxy_url
+    attempts = max(1, session_configuration.retry_count)
+    backoff = 0.3
+
+    default_transport = RetryingHTTPTransport(
         verify=verify,
         cert=cert,
-        proxy=proxy,
-        max_attempts=max(1, session_configuration.retry_count),
-        backoff_factor=0.3,
+        proxy=None,
+        max_attempts=attempts,
+        backoff_factor=backoff,
     )
+    kwargs["transport"] = default_transport
+
+    if proxy_url is not None:
+        if mount_scheme_url is None:
+            raise ValueError(
+                "mount_scheme_url is required when SessionConfiguration.proxy_url is set "
+                "(for example the API base URL)."
+            )
+        mount_prefix = _scheme_mount_prefix(mount_scheme_url)
+        proxied_transport = RetryingHTTPTransport(
+            verify=verify,
+            cert=cert,
+            proxy=proxy_url,
+            max_attempts=attempts,
+            backoff_factor=backoff,
+        )
+        kwargs["mounts"] = {mount_prefix: proxied_transport}
+
     return httpx.Client(**kwargs)
 
 

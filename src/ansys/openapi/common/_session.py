@@ -139,7 +139,10 @@ class ApiClientFactory:
             session_configuration.headers["User-Agent"] = user_agent
         self._session_configuration = session_configuration
 
-        self._session = create_httpx_client_from_session_configuration(session_configuration)
+        self._session = create_httpx_client_from_session_configuration(
+            session_configuration,
+            mount_scheme_url=api_url,
+        )
 
         logger.debug(
             f"Configured httpx client default timeout "

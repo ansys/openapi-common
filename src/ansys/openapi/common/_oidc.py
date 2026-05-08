@@ -108,10 +108,14 @@ class OIDCSessionFactory:
         discovery_sc = SessionConfiguration.from_dict(idp_transport)
         discovery_sc.retry_count = idp_sc.retry_count
         discovery_sc.request_timeout = idp_sc.request_timeout
-        with create_httpx_client_from_session_configuration(discovery_sc) as discovery_client:
+        authority = self._authenticate_parameters["authority"]
+        with create_httpx_client_from_session_configuration(
+            discovery_sc,
+            mount_scheme_url=authority,
+        ) as discovery_client:
             self._well_known_parameters = OIDCSessionFactory._fetch_and_parse_well_known(
                 discovery_client,
-                self._authenticate_parameters["authority"],
+                authority,
             )
 
         self._add_api_audience_if_set()
@@ -119,7 +123,10 @@ class OIDCSessionFactory:
         oauth_sc = SessionConfiguration.from_dict(idp_transport)
         oauth_sc.retry_count = idp_sc.retry_count
         oauth_sc.request_timeout = idp_sc.request_timeout
-        self._oauth_httpx_client = create_httpx_client_from_session_configuration(oauth_sc)
+        self._oauth_httpx_client = create_httpx_client_from_session_configuration(
+            oauth_sc,
+            mount_scheme_url=authority,
+        )
 
         logger.info("Configuring session...")
         scopes_raw = self._authenticate_parameters.get("scope")
@@ -156,7 +163,8 @@ class OIDCSessionFactory:
         api_client_sc.retry_count = api_sc.retry_count
         api_client_sc.request_timeout = api_sc.request_timeout
         self._authorized_httpx_client = create_httpx_client_from_session_configuration(
-            api_client_sc
+            api_client_sc,
+            mount_scheme_url=self._api_url,
         )
 
         logger.info("Configuration complete.")
