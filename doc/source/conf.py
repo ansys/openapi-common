@@ -46,7 +46,7 @@ autodoc_typehints_description_target = "documented"
 # sphinx.ext.intersphinx
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3.11", None),
-    "httpx": ("https://www.python-httpx.org", None),
+    # httpx docs are MkDocs-based; they do not publish a Sphinx objects.inv.
     "sphinx": ("https://www.sphinx-doc.org/en/master/", None),
 }
 

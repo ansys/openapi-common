@@ -98,6 +98,11 @@ class ApiClient(ApiClientBase):
     configuration : SessionConfiguration
         Configuration options for the API client.
 
+    Notes
+    -----
+    Call :meth:`close` when finished, or use ``with ApiClient(...) as client:``, so the
+    underlying HTTP client releases its connection pool.
+
     Examples
     --------
     >>> transport = httpx.MockTransport(lambda request: httpx.Response(200))
@@ -117,11 +122,6 @@ class ApiClient(ApiClientBase):
     ...                    session_config)
     ... ssl_client
     <ApiClient url: https://secure-api/API/v1.svc>
-
-    Notes
-    -----
-    Call :meth:`close` when finished, or use ``with ApiClient(...) as client:``, so the
-    underlying HTTP client releases its connection pool.
     """
 
     PRIMITIVE_TYPES = (float, bool, bytes, str, int)
