@@ -27,7 +27,7 @@ import mimetypes
 import os
 import re
 import tempfile
-from types import ModuleType
+from types import ModuleType, TracebackType
 from typing import (
     IO,
     Any,
@@ -46,12 +46,38 @@ from urllib.parse import quote
 import warnings
 
 from dateutil.parser import parse
-import requests
+import httpx
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException, UndefinedObjectWarning
 from ._logger import logger
 from ._util import SessionConfiguration
+
+
+def _close_distinct_httpx_auth_clients(rest_client: httpx.Client) -> None:
+    """Close extra :class:`~httpx.Client` instances held by auth handlers (e.g. OIDC IdP).
+
+    ``httpx-auth`` OAuth flows attach a dedicated client for token endpoint traffic so TLS
+    settings can differ from the API client. Closing only the API client would otherwise
+    leave that pool open.
+    """
+    auth = getattr(rest_client, "auth", None)
+    if auth is None:
+        return
+    modes = getattr(auth, "authentication_modes", None)
+    modes_list = list(modes) if modes is not None else [auth]
+    seen: set[int] = set()
+    for mode in modes_list:
+        token_client = getattr(mode, "client", None)
+        if not isinstance(token_client, httpx.Client):
+            continue
+        if token_client is rest_client:
+            continue
+        tid = id(token_client)
+        if tid in seen:
+            continue
+        seen.add(tid)
+        token_client.close()
 
 
 # noinspection DuplicatedCode
@@ -65,8 +91,8 @@ class ApiClient(ApiClientBase):
 
     Parameters
     ----------
-    session : requests.Session
-        Base session object that the API client is to use.
+    session : httpx.Client
+        HTTP client the API client uses (typically from :class:`ApiClientFactory`).
     api_url : str
         Base URL for the API. All generated endpoint URLs are relative to this address.
     configuration : SessionConfiguration
@@ -74,7 +100,8 @@ class ApiClient(ApiClientBase):
 
     Examples
     --------
-    >>> client = ApiClient(requests.Session(),
+    >>> transport = httpx.MockTransport(lambda request: httpx.Response(200))
+    >>> client = ApiClient(httpx.Client(transport=transport),
     ...                    'http://my-api.com/API/v1.svc',
     ...                    SessionConfiguration())
     ... <ApiClient url: http://my-api.com/API/v1.svc>
@@ -85,11 +112,16 @@ class ApiClient(ApiClientBase):
     :class:`SessionConfiguration`.
 
     >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
-    ... ssl_client = ApiClient(requests.Session(),
+    ... ssl_client = ApiClient(httpx.Client(transport=transport),
     ...                    'https://secure-api/API/v1.svc',
     ...                    session_config)
     ... ssl_client
     <ApiClient url: https://secure-api/API/v1.svc>
+
+    Notes
+    -----
+    Call :meth:`close` when finished, or use ``with ApiClient(...) as client:``, so the
+    underlying HTTP client releases its connection pool.
     """
 
     PRIMITIVE_TYPES = (float, bool, bytes, str, int)
@@ -107,7 +139,7 @@ class ApiClient(ApiClientBase):
 
     def __init__(
         self,
-        session: requests.Session,
+        session: httpx.Client,
         api_url: str,
         configuration: SessionConfiguration,
     ):
@@ -115,6 +147,31 @@ class ApiClient(ApiClientBase):
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
+        self._closed = False
+
+    def close(self) -> None:
+        """Close the underlying HTTP session or client and release connections.
+
+        When ``rest_client`` is an :class:`~httpx.Client` whose auth handler owns a separate
+        client (OpenID Connect token traffic to the IdP), that client is closed as well.
+        """
+        if self._closed:
+            return
+        self._closed = True
+        rc = self.rest_client
+        _close_distinct_httpx_auth_clients(rc)
+        rc.close()
+
+    def __enter__(self) -> "ApiClient":
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
+        self.close()
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
@@ -132,7 +189,8 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(),
+        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
+        >>> client = ApiClient(tc,
         ...                    'http://my-api.com/API/v1.svc',
         ...                    SessionConfiguration())
         ... import ApiModels as model_module
@@ -158,7 +216,7 @@ class ApiClient(ApiClientBase):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+    ) -> Union[httpx.Response, DeserializedType, None]:
         # header parameters
         header_params = header_params or {}
         if header_params:
@@ -209,7 +267,7 @@ class ApiClient(ApiClientBase):
         self.last_response = response_data
         logger.debug(f"response body: {response_data.text}")
 
-        return_data: Union[requests.Response, DeserializedType, None] = response_data
+        return_data: Union[httpx.Response, DeserializedType, None] = response_data
         if _preload_content:
             _response_type = response_type
             if response_type_map is not None:
@@ -273,13 +331,15 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(),
+        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
+        >>> client = ApiClient(tc,
         ...                    'http://my-api.com/API/v1.svc',
         ...                    SessionConfiguration())
         ... client.sanitize_for_serialization({'key': 'value'})
         {'key': 'value'}
 
-        >>> client = ApiClient(requests.Session(),
+        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
+        >>> client = ApiClient(tc,
         ...                    'http://my-api.com/API/v1.svc',
         ...                    SessionConfiguration())
         ... client.sanitize_for_serialization(datetime.datetime(2015, 10, 21, 10, 5, 10))
@@ -310,7 +370,7 @@ class ApiClient(ApiClientBase):
         return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
 
     def deserialize(
-        self, response: requests.Response, response_type: Optional[str]
+        self, response: httpx.Response, response_type: Optional[str]
     ) -> DeserializedType:
         """Deserialize the response into an object.
 
@@ -327,26 +387,26 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        response : requests.Response
+        response : httpx.Response
             Response object received from the API.
         response_type : str
             String name of the class represented.
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(),
+        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
+        >>> client = ApiClient(tc,
         ...                    'http://my-api.com/API/v1.svc',
         ...                    SessionConfiguration())
-        ... api_response = requests.Response()
-        ... api_response._content = b"{'key': 'value'}"
+        ... api_response = httpx.Response(200, content=b'{"key": "value"}')
         ... client.deserialize(api_response, 'Dict[str, str]]')
         {'key': 'value'}
 
-        >>> client = ApiClient(requests.Session(),
+        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
+        >>> client = ApiClient(tc,
         ...                    'http://my-api.com/API/v1.svc',
         ...                    SessionConfiguration())
-        ... api_response = requests.Response()
-        ... api_response._content = b"'2015-10-21T10:05:10'"
+        ... api_response = httpx.Response(200, content=b"'2015-10-21T10:05:10'")
         ... client.deserialize(api_response, 'datetime.datetime')
         datetime.datetime(2015, 10, 21, 10, 5, 10)
         """
@@ -457,7 +517,7 @@ class ApiClient(ApiClientBase):
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+    ) -> Union[httpx.Response, DeserializedType, None]:
         """Make the HTTP request and return the deserialized data.
 
         Parameters
@@ -515,6 +575,12 @@ class ApiClient(ApiClientBase):
             response_type_map,
         )
 
+    @staticmethod
+    def _url_with_query_string(url: str, query_params: Optional[str]) -> str:
+        if not query_params:
+            return url
+        return f"{url}&{query_params}" if "?" in url else f"{url}?{query_params}"
+
     def request(
         self,
         method: str,
@@ -527,7 +593,7 @@ class ApiClient(ApiClientBase):
         body: Optional[Any] = None,
         _preload_content: bool = True,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
-    ) -> requests.Response:
+    ) -> httpx.Response:
         """Make the HTTP request and return it directly.
 
         Parameters
@@ -553,75 +619,57 @@ class ApiClient(ApiClientBase):
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
         """
+        rc = self.rest_client
+        if not isinstance(rc, httpx.Client):
+            raise TypeError("ApiClient requires an httpx.Client instance.")
+        url_effective = ApiClient._url_with_query_string(url, query_params)
+        # httpx 0.28+ no longer accepts ``stream=`` on high-level methods; use
+        # ``Client.stream()`` only if true incremental reads are required.
+        kw: Dict[str, Any] = {
+            "headers": headers,
+            "timeout": _request_timeout,
+        }
+        body_kw: Dict[str, Any] = {}
+        if post_params is not None:
+            body_kw["files"] = post_params
+        if body is not None:
+            if post_params is not None:
+                # Multipart: mapping/list uses ``data``; raw text/bytes must use ``content``
+                # (httpx deprecates ``data=<str|bytes>`` for raw bodies).
+                if isinstance(body, str):
+                    body_kw["content"] = body.encode("utf-8")
+                elif isinstance(body, bytes):
+                    body_kw["content"] = body
+                else:
+                    body_kw["data"] = body
+            elif isinstance(body, bytes):
+                body_kw["content"] = body
+            elif isinstance(body, str):
+                body_kw["content"] = body.encode("utf-8")
+            else:
+                body_kw["data"] = body
         if method == "GET":
-            return self.rest_client.get(
-                url,
-                params=query_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                headers=headers,
+            return rc.get(url_effective, **kw)
+        if method == "HEAD":
+            return rc.head(url_effective, **kw)
+        if method == "OPTIONS":
+            return rc.request(
+                "OPTIONS",
+                url_effective,
+                **kw,
+                **body_kw,
             )
-        elif method == "HEAD":
-            return self.rest_client.head(
-                url,
-                params=query_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                headers=headers,
-            )
-        elif method == "OPTIONS":
-            return self.rest_client.options(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "POST":
-            return self.rest_client.post(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "PUT":
-            return self.rest_client.put(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "PATCH":
-            return self.rest_client.patch(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "DELETE":
-            return self.rest_client.delete(
-                url,
-                params=query_params,
-                headers=headers,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        else:
-            raise ValueError(
-                "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
-            )
+        if method == "POST":
+            return rc.post(url_effective, **kw, **body_kw)
+        if method == "PUT":
+            return rc.put(url_effective, **kw, **body_kw)
+        if method == "PATCH":
+            return rc.patch(url_effective, **kw, **body_kw)
+        if method == "DELETE":
+            return rc.request("DELETE", url_effective, **kw, **body_kw)
+        raise ValueError(
+            "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
+        )
 
     @staticmethod
     def parameters_to_tuples(
@@ -765,7 +813,7 @@ class ApiClient(ApiClientBase):
         else:
             return content_types[0]
 
-    def __deserialize_file(self, response: requests.Response) -> str:
+    def __deserialize_file(self, response: httpx.Response) -> str:
         """Deserialize the body to a file.
 
         This method saves the response body in a file in a temporary folder,
@@ -773,7 +821,7 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        response : requests.Response
+        response : httpx.Response
             The API response object to deserialize.
         """
         fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
