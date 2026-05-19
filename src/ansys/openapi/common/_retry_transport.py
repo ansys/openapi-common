@@ -22,27 +22,32 @@
 
 """Synchronous and asynchronous :class:`httpx` transports with retries.
 
-The synchronous :class:`RetryingHTTPTransport` mirrors historical resilience from
-``urllib3.Retry`` + ``requests.HTTPAdapter`` while staying inside ``httpx``'s transport layer.
-:class:`RetryingAsyncHTTPTransport` applies the same policy for :class:`httpx.AsyncClient`.
+:class:`RetryingHTTPTransport` mirrors historical resilience from
+:class:`urllib3.Retry` and ``requests`` HTTP adapters while staying inside the
+:class:`httpx` transport layer. :class:`RetryingAsyncHTTPTransport` applies the same
+policy for :class:`httpx.AsyncClient`.
 
-**Semantics**
+Notes
+-----
+- ``SessionConfiguration.retry_count`` is the maximum number of attempts per logical
+  request (including the first try). It maps directly to ``max_attempts`` on these
+  transports.
 
-* ``SessionConfiguration.retry_count`` is the **maximum number of attempts** per logical
-  request (including the first try). It maps directly to ``max_attempts`` below.
-* **HTTP status retries**: responses whose status is in ``retry_status_codes`` trigger
-  another attempt if attempts remain. Codes include **400** (see migration plan),
-  **429**, and **502–504**, plus **500** and **503**.
-* **Which methods**: retries apply to ``DELETE``, ``GET``, ``HEAD``, ``OPTIONS``,
-  ``PATCH``, ``POST``, and ``PUT``. Retrying ``POST`` when the server returns e.g. **400**
-  before accepting work can duplicate side effects—callers must assume that risk where
-  servers are flaky (same caveat as urllib3-style retries on non-idempotent verbs).
-* **Transport errors**: connection failures, timeouts, low-level read/write errors, and
-  ``RemoteProtocolError`` are retried with exponential backoff (same backoff shape as
-  urllib3: ``backoff_factor * 2**attempt`` seconds between attempts).
+- HTTP status retries: responses whose status is in ``retry_status_codes`` trigger
+  another attempt when attempts remain. Default codes include 400 (see migration plan),
+  429, 500, 502, 503, and 504.
 
-This layer does **not** duplicate httpcore connection-pool ``retries`` (leave those at 0);
-retry behaviour is controlled only in this transport.
+- Retries apply to ``DELETE``, ``GET``, ``HEAD``, ``OPTIONS``, ``PATCH``, ``POST``,
+  and ``PUT``. Retrying ``POST`` when the server returns e.g. 400 before accepting work
+  can duplicate side effects; callers must accept that risk on flaky servers (same
+  caveat as urllib3-style retries on non-idempotent verbs).
+
+- Transport errors (connection failures, timeouts, low-level read/write errors, and
+  :class:`httpx.RemoteProtocolError`) are retried with exponential backoff, with delay
+  ``backoff_factor * 2**attempt`` seconds between attempts (urllib3-style shape).
+
+Retry behaviour is not duplicated at the httpcore connection-pool level: leave pool
+``retries`` at 0 and control retries only through these transports.
 """
 
 from __future__ import annotations

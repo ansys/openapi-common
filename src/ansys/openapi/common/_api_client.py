@@ -145,10 +145,7 @@ class ApiClient(ApiClientBase):
 
     Examples
     --------
-    >>> transport = httpx.MockTransport(lambda request: httpx.Response(200))
-    >>> client = ApiClient(httpx.Client(transport=transport),
-    ...                    'http://my-api.com/API/v1.svc',
-    ...                    SessionConfiguration())
+    >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
     ... <ApiClient url: http://my-api.com/API/v1.svc>
 
     For testing purposes, it is common to configure an API with a self-signed certificate. By default, the
@@ -157,9 +154,7 @@ class ApiClient(ApiClientBase):
     :class:`SessionConfiguration`.
 
     >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
-    ... ssl_client = ApiClient(httpx.Client(transport=transport),
-    ...                    'https://secure-api/API/v1.svc',
-    ...                    session_config)
+    ... ssl_client = ApiClient(httpx.Client(), 'https://secure-api/API/v1.svc', session_config)
     ... ssl_client
     <ApiClient url: https://secure-api/API/v1.svc>
     """
@@ -231,10 +226,7 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
-        >>> client = ApiClient(tc,
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... import ApiModels as model_module
         ... client.setup_client(model_module)
         """
@@ -405,17 +397,11 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
-        >>> client = ApiClient(tc,
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... client.sanitize_for_serialization({'key': 'value'})
         {'key': 'value'}
 
-        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
-        >>> client = ApiClient(tc,
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... client.sanitize_for_serialization(datetime.datetime(2015, 10, 21, 10, 5, 10))
         '2015-10-21T10:05:10'
         """
@@ -468,18 +454,12 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
-        >>> client = ApiClient(tc,
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... api_response = httpx.Response(200, content=b'{"key": "value"}')
         ... client.deserialize(api_response, 'Dict[str, str]]')
         {'key': 'value'}
 
-        >>> tc = httpx.Client(transport=httpx.MockTransport(lambda request: httpx.Response(200)))
-        >>> client = ApiClient(tc,
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... api_response = httpx.Response(200, content=b"'2015-10-21T10:05:10'")
         ... client.deserialize(api_response, 'datetime.datetime')
         datetime.datetime(2015, 10, 21, 10, 5, 10)
@@ -1044,18 +1024,37 @@ class AsyncApiClient(ApiClient):
     Notes
     -----
     Use :meth:`acall_api` / :meth:`arequest` and ``await aclose()``, or the asynchronous
-    context manager. Synchronous :meth:`~ApiClient.call_api`, :meth:`~ApiClient.request`,
-    and :meth:`~ApiClient.close` are disabled and raise :class:`TypeError`.
+    context manager for lifecycle management.
+
+    Raises
+    ------
+    TypeError
+        If synchronous :meth:`~ApiClient.call_api`, :meth:`~ApiClient.request`,
+        :meth:`~ApiClient.close`, or synchronous ``with`` is used instead of the async
+        counterparts (:meth:`acall_api`, :meth:`arequest`, :meth:`aclose`, ``async with``).
     """
 
     def close(self) -> None:
-        """Raise :class:`TypeError`; use :meth:`aclose` instead."""
+        """Disallow synchronous close; use :meth:`aclose` instead.
+
+        Raises
+        ------
+        TypeError
+            Always. The async client must be closed with ``await aclose()`` or
+            ``async with AsyncApiClient(...)``.
+        """
         raise TypeError(
             "AsyncApiClient must be closed with await aclose() or 'async with AsyncApiClient(...)'."
         )
 
     def __enter__(self) -> NoReturn:
-        """Disallow synchronous ``with``; use ``async with``."""
+        """Disallow synchronous ``with``; use ``async with``.
+
+        Raises
+        ------
+        TypeError
+            Always. Use ``async with AsyncApiClient(...)``.
+        """
         raise TypeError("Use 'async with AsyncApiClient(...)' instead of synchronous 'with'.")
 
     def __exit__(
@@ -1064,7 +1063,13 @@ class AsyncApiClient(ApiClient):
         exc_val: Optional[BaseException],
         exc_tb: Optional[TracebackType],
     ) -> None:
-        """Disallow synchronous ``with``; use ``async with``."""
+        """Disallow synchronous ``with``; use ``async with``.
+
+        Raises
+        ------
+        TypeError
+            Always. Use ``async with AsyncApiClient(...)``.
+        """
         raise TypeError("Use 'async with AsyncApiClient(...)' instead of synchronous 'with'.")
 
     async def __aenter__(self) -> "AsyncApiClient":
@@ -1081,7 +1086,13 @@ class AsyncApiClient(ApiClient):
         await self.aclose()
 
     async def aclose(self) -> None:
-        """Close the underlying async HTTP client and any distinct auth helper clients."""
+        """Close the underlying async HTTP client and any distinct auth helper clients.
+
+        Raises
+        ------
+        TypeError
+            If ``rest_client`` is not an :class:`~httpx.AsyncClient`.
+        """
         if self._closed:
             return
         self._closed = True
@@ -1107,7 +1118,13 @@ class AsyncApiClient(ApiClient):
         _request_timeout: Union[float, Tuple[float, float], None] = None,
         response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
     ) -> Union[DeserializedType, Tuple[DeserializedType, int, httpx.Headers], None]:
-        """Raise :class:`TypeError`; use :meth:`acall_api` instead."""
+        """Disallow synchronous OpenAPI calls.
+
+        Raises
+        ------
+        TypeError
+            Always. Use :meth:`acall_api` instead.
+        """
         raise TypeError("Use await acall_api(...) for async OpenAPI calls.")
 
     def request(
@@ -1122,7 +1139,13 @@ class AsyncApiClient(ApiClient):
         body: Optional[Any] = None,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
     ) -> httpx.Response:
-        """Raise :class:`TypeError`; use :meth:`arequest` instead."""
+        """Disallow synchronous HTTP requests.
+
+        Raises
+        ------
+        TypeError
+            Always. Use :meth:`arequest` instead.
+        """
         raise TypeError("Use await arequest(...) for async HTTP.")
 
     async def arequest(
@@ -1137,7 +1160,15 @@ class AsyncApiClient(ApiClient):
         body: Optional[Any] = None,
         _request_timeout: Union[float, Tuple[float, float], None] = None,
     ) -> httpx.Response:
-        """Make an asynchronous HTTP request and return the response."""
+        """Make an asynchronous HTTP request and return the response.
+
+        Raises
+        ------
+        TypeError
+            If ``rest_client`` is not an :class:`~httpx.AsyncClient`.
+        ValueError
+            If ``method`` is not one of the supported HTTP verbs (see :meth:`ApiClient.request`).
+        """
         rc = self.rest_client
         if not isinstance(rc, httpx.AsyncClient):
             raise TypeError("AsyncApiClient requires an httpx.AsyncClient instance.")
