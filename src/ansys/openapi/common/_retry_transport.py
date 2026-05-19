@@ -115,35 +115,40 @@ class RetryingHTTPTransport(httpx.HTTPTransport):
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         """Dispatch ``request`` with retries for transport errors and configured statuses."""
         method_upper = request.method.upper()
-        for attempt in range(self._max_attempts):
+        attempt = 0
+        last_attempt_index = self._max_attempts - 1
+
+        while True:
             try:
                 response = super().handle_request(request)
             except self._retry_exceptions:
-                if attempt >= self._max_attempts - 1:
+                if attempt == last_attempt_index:
+                    # Bare ``raise`` re-raises the transport error with original traceback.
                     raise
                 self._sleep_backoff(attempt)
                 logger.debug(
                     "Retrying HTTP request after transport error "
-                    f"(attempt {attempt + 2}/{self._max_attempts})"
+                    f"(next attempt will be {attempt + 2}/{self._max_attempts})"
                 )
+                attempt += 1
                 continue
 
             if (
                 response.status_code in self._retry_status_codes
                 and method_upper in self._retry_http_methods
-                and attempt < self._max_attempts - 1
+                and attempt < last_attempt_index
             ):
                 self._drain_response(response)
                 self._sleep_backoff(attempt)
                 logger.debug(
                     "Retrying HTTP request after status "
-                    f"{response.status_code} (attempt {attempt + 2}/{self._max_attempts})"
+                    f"{response.status_code} (next attempt will be "
+                    f"{attempt + 2}/{self._max_attempts})"
                 )
+                attempt += 1
                 continue
 
             return response
-
-        raise AssertionError("retry loop fell through")  # pragma: no cover
 
     def _sleep_backoff(self, attempt_index: int) -> None:
         delay = self._backoff_factor * (2**attempt_index)
@@ -185,35 +190,40 @@ class RetryingAsyncHTTPTransport(httpx.AsyncHTTPTransport):
     async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         """Dispatch ``request`` with retries for transport errors and configured statuses."""
         method_upper = request.method.upper()
-        for attempt in range(self._max_attempts):
+        attempt = 0
+        last_attempt_index = self._max_attempts - 1
+
+        while True:
             try:
                 response = await super().handle_async_request(request)
             except self._retry_exceptions:
-                if attempt >= self._max_attempts - 1:
+                if attempt == last_attempt_index:
+                    # Bare ``raise`` re-raises the transport error with original traceback.
                     raise
                 await self._sleep_backoff(attempt)
                 logger.debug(
                     "Retrying HTTP request after transport error "
-                    f"(attempt {attempt + 2}/{self._max_attempts})"
+                    f"(next attempt will be {attempt + 2}/{self._max_attempts})"
                 )
+                attempt += 1
                 continue
 
             if (
                 response.status_code in self._retry_status_codes
                 and method_upper in self._retry_http_methods
-                and attempt < self._max_attempts - 1
+                and attempt < last_attempt_index
             ):
                 await self._adrain_response(response)
                 await self._sleep_backoff(attempt)
                 logger.debug(
                     "Retrying HTTP request after status "
-                    f"{response.status_code} (attempt {attempt + 2}/{self._max_attempts})"
+                    f"{response.status_code} (next attempt will be "
+                    f"{attempt + 2}/{self._max_attempts})"
                 )
+                attempt += 1
                 continue
 
             return response
-
-        raise AssertionError("retry loop fell through")  # pragma: no cover
 
     async def _sleep_backoff(self, attempt_index: int) -> None:
         delay = self._backoff_factor * (2**attempt_index)
