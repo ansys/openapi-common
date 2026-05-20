@@ -157,7 +157,8 @@ def test_can_connect_with_basic(httpx_mock):
         match_headers={"Authorization": "Basic VEVTVF9VU0VSOlBBU1NXT1JE"},
     )
     _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-        username="TEST_USER", password="PASSWORD"
+        username="TEST_USER",
+        password="PASSWORD",  # nosec B106
     )
 
 
@@ -170,7 +171,7 @@ def test_can_connect_with_pre_emptive_basic(httpx_mock):
     )
     _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
         username="TEST_USER",
-        password="PASSWORD",
+        password="PASSWORD",  # nosec B106
         authentication_scheme=AuthenticationScheme.BASIC,
     )
     assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
@@ -190,7 +191,9 @@ def test_can_connect_with_basic_and_domain(httpx_mock):
         match_headers={"Authorization": "Basic RE9NQUlOXFRFU1RfVVNFUjpQQVNTV09SRA=="},
     )
     _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-        username="TEST_USER", password="PASSWORD", domain="DOMAIN"
+        username="TEST_USER",
+        password="PASSWORD",
+        domain="DOMAIN",  # nosec B106
     )
 
 
@@ -203,7 +206,7 @@ def test_can_connect_with_pre_emptive_basic_and_domain(httpx_mock):
     )
     _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
         username="TEST_USER",
-        password="PASSWORD",
+        password="PASSWORD",  # nosec B106
         domain="DOMAIN",
         authentication_scheme=AuthenticationScheme.BASIC,
     )
@@ -237,7 +240,7 @@ def test_with_credentials_single_request_when_anonymous_allowed(
     with expect_warning:
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="TEST_USER",
-            password="PASSWORD",
+            password="PASSWORD",  # nosec B106
             authentication_scheme=auth_mode,
         )
     assert len(httpx_mock.get_requests(url=SERVICELAYER_URL)) == 1
@@ -301,7 +304,7 @@ def test_with_credentials_raises_when_server_rejects_connection_probe(
     with pytest.raises(ApiConnectionException) as exception_info:
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="NOT_A_TEST_USER",
-            password="PASSWORD",
+            password="PASSWORD",  # nosec B106
             authentication_scheme=auth_mode,
         )
     assert exception_info.value.response.status_code == 401
@@ -313,7 +316,7 @@ def test_with_credentials_ntlm_raises_on_linux():
     with pytest.raises(ValueError, match="AuthenticationScheme.NTLM is not supported on Linux"):
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
             username="NOT_A_TEST_USER",
-            password="PASSWORD",
+            password="PASSWORD",  # nosec B106
             authentication_scheme=AuthenticationScheme.NTLM,
         )
 
@@ -331,7 +334,7 @@ def test_can_connect_with_ntlm(mocker, auth_mode, httpx_mock):
     configuration.verify_ssl = False
     _ = ApiClientFactory(SERVICELAYER_URL, session_configuration=configuration).with_credentials(
         username="IIS_Test",
-        password="rosebud",
+        password="rosebud",  # nosec B106
         authentication_scheme=auth_mode,
     )
 
@@ -516,7 +519,8 @@ def test_with_credentials_raises_when_server_offers_only_bearer(httpx_mock):
     )
     with pytest.raises(ConnectionError) as exception_info:
         _ = ApiClientFactory(SERVICELAYER_URL).with_credentials(
-            username="TEST_USER", password="PASSWORD"
+            username="TEST_USER",
+            password="PASSWORD",  # nosec B106
         )
     assert "Unable to connect with credentials" in str(exception_info.value)
 

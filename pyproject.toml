@@ -115,6 +115,13 @@ xfail_strict = true
 [tool.pydocstyle]
 convention = "numpy"
 
+# Bandit (e.g. Codacy): skip B101 in pytest code.
+[tool.bandit.assert_used]
+skips = [
+    "*test_*.py",
+    "*_test.py"
+]
+
 [tool.mypy]
 warn_return_any = true
 warn_unused_configs = true

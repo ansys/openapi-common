@@ -1413,6 +1413,62 @@ class TestStaticMethods:
     def test_header_content_type(self, content_type, expected_output):
         assert ApiClient.select_header_content_type(content_type) == expected_output
 
+    @pytest.mark.parametrize(
+        ("base_url", "extra_qs", "expected"),
+        [
+            ("https://example.test/api", "a=1", "https://example.test/api?a=1"),
+            ("https://example.test/api#section", "a=1", "https://example.test/api?a=1#section"),
+            (
+                "https://example.test/api?x=0#section",
+                "a=1",
+                "https://example.test/api?x=0&a=1#section",
+            ),
+            ("https://example.test/r#f", None, "https://example.test/r#f"),
+            ("https://example.test/r#f", "", "https://example.test/r#f"),
+            (
+                "https://example.test/api?x=1",
+                "x=2",
+                "https://example.test/api?x=2",
+            ),
+            (
+                "https://example.test/api",
+                "a=1&b=2",
+                "https://example.test/api?a=1&b=2",
+            ),
+            ("/api/items", "limit=10", "/api/items?limit=10"),
+            (
+                "https://[::1]:8443/v",
+                "a=1",
+                "https://[::1]:8443/v?a=1",
+            ),
+            (
+                "https://example.test/api",
+                "q=n%2F1",
+                "https://example.test/api?q=n%2F1",
+            ),
+            (
+                "http://h/?y=1",
+                "y=2&y=3",
+                "http://h/?y=2&y=3",
+            ),
+        ],
+        ids=[
+            "append_to_path_no_fragment",
+            "append_preserves_fragment",
+            "append_to_existing_query_and_fragment",
+            "noop_when_extra_is_none",
+            "noop_when_extra_is_empty_string",
+            "extra_overwrites_existing_key",
+            "multiple_pairs_in_extra",
+            "relative_base_url",
+            "ipv6_host_with_port",
+            "percent_encoded_values_in_extra",
+            "duplicate_keys_in_extra_preserved",
+        ],
+    )
+    def test_url_with_query_string_merge(self, base_url, extra_qs, expected):
+        assert ApiClient._url_with_query_string(base_url, extra_qs) == expected
+
     def get_example_params(self, param_type: str):
         if param_type == "dict":
             return {

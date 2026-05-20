@@ -604,9 +604,15 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def _url_with_query_string(url: str, query_params: str | None) -> str:
+        """
+        Merge an additional ``application/x-www-form-urlencoded`` query string into ``url``.
+
+        Uses :class:`httpx.URL` and :method:`httpx.URL.copy_merge_params` to ensure that the behaviour is consistent
+        with RFC-3986.
+        """
         if not query_params:
             return url
-        return f"{url}&{query_params}" if "?" in url else f"{url}?{query_params}"
+        return str(httpx.URL(url).copy_merge_params(query_params))
 
     @staticmethod
     def _prepare_httpx_request_args(

@@ -62,7 +62,7 @@ def test_api_exception_repr():
     api_exception = ApiException(status_code, reason_phrase, message)
     exception_repr = api_exception.__repr__()
 
-    exception_from_repr = eval(exception_repr)
+    exception_from_repr = eval(exception_repr)  # nosec B307
     assert isinstance(exception_from_repr, ApiException)
     assert exception_from_repr.status_code == api_exception.status_code
     assert exception_from_repr.reason_phrase == api_exception.reason_phrase
@@ -75,7 +75,7 @@ def test_authentication_warning():
     authentication_warning = AuthenticationWarning(message)
     warning_repr = authentication_warning.__repr__()
 
-    warning_from_repr = eval(warning_repr)
+    warning_from_repr = eval(warning_repr)  # nosec B307
     assert isinstance(warning_from_repr, AuthenticationWarning)
     assert warning_from_repr.message == authentication_warning.message
 

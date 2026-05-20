@@ -49,12 +49,6 @@ class OIDCSessionFactory:
     This class uses either the provided token credentials or authorizes a user with a browser-based
     interactive prompt.
 
-    Flow (unchanged): the **resource server** returns ``401`` with ``WWW-Authenticate: Bearer ...``
-    containing IdP-specific parameters (``authority``, ``clientid``, ``redirecturi``, optional
-    ``scope`` / ``apiAudience``). Those parameters drive discovery against that authority's
-    ``/.well-known/openid-configuration`` before building the OAuth2 PKCE handler—so different
-    APIs can target different identity providers.
-
     Parameters
     ----------
     initial_response : httpx.Response
@@ -94,21 +88,21 @@ class OIDCSessionFactory:
 
         self._authenticate_parameters = self._parse_unauthorized_header(initial_response)
 
-        api_sc = api_session_configuration or SessionConfiguration()
-        idp_sc = idp_session_configuration or SessionConfiguration()
+        _api_sc = api_session_configuration or SessionConfiguration()
+        _idp_sc = idp_session_configuration or SessionConfiguration()
 
-        self._api_session_configuration = api_sc.get_transport_configuration()
+        self._api_session_configuration = _api_sc.get_transport_configuration()
         idp_transport = OIDCSessionFactory._override_idp_header(
-            idp_sc.get_transport_configuration()
+            _idp_sc.get_transport_configuration()
         )
         self._idp_session_configuration = idp_transport
 
-        discovery_sc = SessionConfiguration.from_dict(idp_transport)
-        discovery_sc.retry_count = idp_sc.retry_count
-        discovery_sc.request_timeout = idp_sc.request_timeout
+        _discovery_sc = SessionConfiguration.from_dict(idp_transport)
+        _discovery_sc.retry_count = _idp_sc.retry_count
+        _discovery_sc.request_timeout = _idp_sc.request_timeout
         authority = self._authenticate_parameters["authority"]
         with create_httpx_client_from_session_configuration(
-            discovery_sc,
+            _discovery_sc,
             mount_scheme_url=authority,
         ) as discovery_client:
             self._well_known_parameters = OIDCSessionFactory._fetch_and_parse_well_known(
@@ -119,8 +113,8 @@ class OIDCSessionFactory:
         self._add_api_audience_if_set()
 
         oauth_sc = SessionConfiguration.from_dict(idp_transport)
-        oauth_sc.retry_count = idp_sc.retry_count
-        oauth_sc.request_timeout = idp_sc.request_timeout
+        oauth_sc.retry_count = _idp_sc.retry_count
+        oauth_sc.request_timeout = _idp_sc.request_timeout
         self._oauth_httpx_client = create_httpx_client_from_session_configuration(
             oauth_sc,
             mount_scheme_url=authority,
@@ -157,11 +151,11 @@ class OIDCSessionFactory:
         # endpoint: the token is returned without the audience required for some APIs.
         self._auth.refresh_data.pop("audience", None)
 
-        api_client_sc = SessionConfiguration.from_dict(self._api_session_configuration)
-        api_client_sc.retry_count = api_sc.retry_count
-        api_client_sc.request_timeout = api_sc.request_timeout
+        _api_client_sc = SessionConfiguration.from_dict(self._api_session_configuration)
+        _api_client_sc.retry_count = _api_sc.retry_count
+        _api_client_sc.request_timeout = _api_sc.request_timeout
         self._authorized_httpx_client = create_httpx_client_from_session_configuration(
-            api_client_sc,
+            _api_client_sc,
             mount_scheme_url=self._api_url,
         )
 
