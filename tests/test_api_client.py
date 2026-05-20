@@ -28,7 +28,7 @@ from pathlib import Path
 import secrets
 import sys
 import tempfile
-from typing import IO, Any, Dict, Iterable, List, Tuple, Union
+from typing import IO, Any, Iterable
 import uuid
 
 import httpx
@@ -754,7 +754,7 @@ class TestRequestDispatch:
     def assert_responses(self, verb, request_mock):
         expected_url = ApiClient._url_with_query_string(self.url, self.query_params)
         base_kw = {"headers": self.header_params, "timeout": self.timeout}
-        body_kw: Dict[str, Any] = {}
+        body_kw: dict[str, Any] = {}
         if self.post_params is not None:
             body_kw["files"] = self.post_params
         if self.body is not None:
@@ -1206,7 +1206,7 @@ class TestResponseHandling:
         file_name_list = []
         file_contents_list = []
 
-        def create_files_for_test(file_count: int) -> Tuple[List[str], List[bytes]]:
+        def create_files_for_test(file_count: int) -> tuple[list[str], list[bytes]]:
             for file_index in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
@@ -1472,7 +1472,7 @@ class TestStaticMethods:
 
         def create_files_for_test(
             file_count: int,
-        ) -> Tuple[Iterable[str], Iterable[bytes]]:
+        ) -> tuple[Iterable[str], Iterable[bytes]]:
             for file_index in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
@@ -1490,13 +1490,13 @@ class TestStaticMethods:
 
     @pytest.fixture
     def opened_file_context(self, file_context):
-        file_name_list: List[str] = []
-        file_handle_list: List[IO] = []
-        file_contents_list: List[bytes] = []
+        file_name_list: list[str] = []
+        file_handle_list: list[IO[Any]] = []
+        file_contents_list: list[bytes] = []
 
         def create_files_for_test(
             file_count: int,
-        ) -> Tuple[Iterable[IO], Iterable[str], Iterable[bytes]]:
+        ) -> tuple[Iterable[IO[Any]], Iterable[str], Iterable[bytes]]:
             for file_index in range(0, file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
@@ -1539,7 +1539,7 @@ class TestStaticMethods:
 
     @staticmethod
     def _check_file_contents(
-        output: Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]],
+        output: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]],
         file_count: int,
         file_names: Iterable[str],
         file_contents: Iterable[bytes],
