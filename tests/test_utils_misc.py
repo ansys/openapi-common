@@ -98,5 +98,5 @@ class TestCaseInsensitiveOrderedDict:
 
     def test_repr(self):
         repr = self.example_dict.__repr__()
-        dict_from_repr = eval(repr)
+        dict_from_repr = eval(repr)  # nosec B307
         assert dict_from_repr == self.example_dict

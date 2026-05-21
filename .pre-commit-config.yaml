@@ -27,6 +27,12 @@ repos:
   - id: pydocstyle
     additional_dependencies: [tomli]
     files: "^(src/)"
+    exclude: "_case_insensitive_dict\\.py$"
+  - id: pydocstyle
+    name: pydocstyle (vendored CaseInsensitiveDict)
+    additional_dependencies: [tomli]
+    files: "^src/ansys/openapi/common/_case_insensitive_dict\\.py$"
+    args: ["--convention=numpy", "--add-ignore=D105,D102"]
 
 - repo: https://github.com/ansys/pre-commit-hooks
   rev: v0.7.2

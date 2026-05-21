@@ -22,7 +22,7 @@
 
 import os
 import secrets
-from typing import List, Optional
+from typing import Any
 
 from fastapi import HTTPException, Response, status
 from fastapi.security import HTTPBasicCredentials
@@ -60,10 +60,10 @@ def validate_user_basic(credentials: HTTPBasicCredentials) -> None:
 
 
 class ExampleModelPyd(BaseModel):
-    String: Optional[str] = None
-    Integer: Optional[int] = None
-    ListOfStrings: Optional[List[str]] = None
-    Boolean: Optional[bool] = None
+    String: str | None = None
+    Integer: int | None = None
+    ListOfStrings: list[str] | None = None
+    Boolean: bool | None = None
 
 
 def return_model(model_id: str, example_model: ExampleModelPyd):
@@ -99,7 +99,7 @@ class CustomResponseHeaders:
 
     HEADER_ENVIRON_ROOT = "OPENAPI_COMMON_INT_TEST_HEADER_"
 
-    def __init__(self, name: str, value: Optional[str]) -> None:
+    def __init__(self, name: str, value: str | None) -> None:
         self._environ_name = f"{self.HEADER_ENVIRON_ROOT}{name}"
         self._value = value if value is not None else ""
 
@@ -127,3 +127,85 @@ class CustomResponseHeaders:
                 del response.headers[header_name.lower()]
             else:
                 response.headers[header_name.lower()] = value
+
+
+def patch_model_integration_expectations() -> dict[str, Any]:
+    """Return call kwargs and the expected :class:`~.models.ExampleModel` for PATCH integration tests."""
+    ctx = model_endpoint_integration_expectations("PATCH")
+    ctx["upload_data"] = ctx["body"]
+    return ctx
+
+
+def model_endpoint_integration_expectations(http_method: str) -> dict[str, Any]:
+    """Return ``call_api`` / ``acall_api`` kwargs and expected deserialized value for ``/models`` routes.
+
+    Covers GET, POST, PUT, PATCH, DELETE, HEAD, and OPTIONS. HEAD expects no JSON body
+    (``response_type`` is ``None``); OPTIONS returns a small JSON object.
+    """
+    from .. import models
+
+    method = http_method.upper()
+    upload = {"ListOfStrings": ["red", "yellow", "green"]}
+
+    example_expected = models.ExampleModel(
+        string_property="new_model",
+        int_property=1,
+        list_property=["red", "yellow", "green"],
+        bool_property=False,
+    )
+
+    if method == "GET":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method == "POST":
+        return {
+            "resource_path": "/models",
+            "http_method": method,
+            "path_params": None,
+            "body": upload,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method in ("PUT", "PATCH"):
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": upload,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method == "DELETE":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": "ExampleModel",
+            "expected": example_expected,
+        }
+    if method == "HEAD":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": None,
+            "expected": None,
+        }
+    if method == "OPTIONS":
+        return {
+            "resource_path": "/models/{ID}",
+            "http_method": method,
+            "path_params": {"ID": TEST_MODEL_ID},
+            "body": None,
+            "response_type": "dict(str, str)",
+            "expected": {"allowed_methods": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"},
+        }
+    raise ValueError(f"unsupported HTTP method for integration: {method!r}")

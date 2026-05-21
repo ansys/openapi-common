@@ -20,155 +20,210 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from multiprocessing import Process
 import sys
-from time import sleep
 
-from fastapi import FastAPI
 import pytest
 from starlette.requests import Request
-import uvicorn
 
 from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
-from tests.integration.common import (
-    TEST_MODEL_ID,
-    TEST_PORT,
-    CustomResponseHeaders,
-    ExampleModelPyd,
-    return_model,
+
+from .async_integration import run_with_factory_and_async_client
+from .common import (
+    model_endpoint_integration_expectations,
+    patch_model_integration_expectations,
     validate_user_principal,
 )
+from .fixture_apps import NEGOTIATE_APP, NEGOTIATE_TEST_URL, run_negotiate_server
+from .server_utils import spawn_uvicorn_subprocess
 
 pytestmark = pytest.mark.kerberos
-
-TEST_URL = f"http://test-server:{TEST_PORT}"
-TEST_PRINCIPAL = "httpuser@EXAMPLE.COM"
-
-custom_test_app = FastAPI()
-
-
-@custom_test_app.middleware("http")
-async def modify_response_headers(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 401:
-        CustomResponseHeaders.modify_response_headers(response)
-    return response
-
-
-@custom_test_app.patch("/models/{model_id}")
-async def patch_model(model_id: str, example_model: ExampleModelPyd, request: Request):
-    validate_user_principal(request, TEST_PRINCIPAL)
-    return return_model(model_id, example_model)
-
-
-@custom_test_app.get("/test_api")
-async def get_test_api(request: Request):
-    validate_user_principal(request, TEST_PRINCIPAL)
-    return {"msg": "OK"}
-
-
-@custom_test_app.get("/")
-async def get_none(request: Request):
-    validate_user_principal(request, TEST_PRINCIPAL)
-    return None
-
-
-def run_server():
-    # Function is only executed if testing in Linux
-    from asgi_gssapi import SPNEGOAuthMiddleware
-
-    authenticated_app = SPNEGOAuthMiddleware(custom_test_app, hostname="test-server")
-    uvicorn.run(authenticated_app, port=TEST_PORT)
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
 class TestNegotiate:
     @pytest.fixture(autouse=True)
     def server(self):
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        while proc.is_alive():
-            sleep(1)
+        with spawn_uvicorn_subprocess(run_negotiate_server):
+            yield
 
     def test_can_connect(self):
-        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_autologon().connect()
+        client_factory = ApiClientFactory(NEGOTIATE_TEST_URL, SessionConfiguration())
+        try:
+            _ = client_factory.with_autologon().connect()
+        finally:
+            client_factory.close()
 
     def test_get_health_returns_200_ok(self):
-        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon().connect()
-
-        resp = client.request("GET", TEST_URL + "/test_api")
-        assert resp.status_code == 200
-        assert "OK" in resp.text
+        client_factory = ApiClientFactory(NEGOTIATE_TEST_URL, SessionConfiguration())
+        try:
+            client = client_factory.with_autologon().connect()
+            resp = client.request("GET", NEGOTIATE_TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
+        finally:
+            client_factory.close()
 
     def test_patch_model(self):
         from .. import models
 
-        deserialized_response = models.ExampleModel(
-            string_property="new_model",
-            int_property=1,
-            list_property=["red", "yellow", "green"],
-            bool_property=False,
+        ctx = patch_model_integration_expectations()
+        expected = ctx["expected"]
+
+        client_factory = ApiClientFactory(NEGOTIATE_TEST_URL, SessionConfiguration())
+        try:
+            client = client_factory.with_autologon().connect()
+            client.setup_client(models)
+            response = client.call_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["upload_data"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+        finally:
+            client_factory.close()
+
+    @pytest.mark.parametrize(
+        "http_method",
+        ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    )
+    def test_model_resource_http_verbs(self, http_method):
+        from .. import models
+
+        ctx = model_endpoint_integration_expectations(http_method)
+        expected = ctx["expected"]
+
+        client_factory = ApiClientFactory(NEGOTIATE_TEST_URL, SessionConfiguration())
+        try:
+            client = client_factory.with_autologon().connect()
+            client.setup_client(models)
+            response = client.call_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["body"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+        finally:
+            client_factory.close()
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
+class TestNegotiateAsync:
+    @pytest.fixture(autouse=True)
+    def server(self):
+        with spawn_uvicorn_subprocess(run_negotiate_server):
+            yield
+
+    def test_can_connect(self):
+        async def body(api):
+            resp = await api.arequest("GET", NEGOTIATE_TEST_URL + "/test_api")
+            assert resp.status_code == 200
+
+        run_with_factory_and_async_client(
+            NEGOTIATE_TEST_URL,
+            lambda f: f.with_autologon().connect(),
+            body,
         )
 
-        resource_path = "/models/{ID}"
-        method = "PATCH"
-        path_params = {"ID": TEST_MODEL_ID}
+    def test_get_health_returns_200_ok(self):
+        async def body(api):
+            resp = await api.arequest("GET", NEGOTIATE_TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
 
-        response_type = "ExampleModel"
-
-        upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
-
-        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_autologon().connect()
-        client.setup_client(models)
-
-        response = client.call_api(
-            resource_path,
-            method,
-            path_params=path_params,
-            body=upload_data,
-            response_type=response_type,
-            _return_http_data_only=True,
+        run_with_factory_and_async_client(
+            NEGOTIATE_TEST_URL,
+            lambda f: f.with_autologon().connect(),
+            body,
         )
-        assert response == deserialized_response
+
+    def test_patch_model(self):
+        from .. import models
+
+        ctx = patch_model_integration_expectations()
+        expected = ctx["expected"]
+
+        async def body(api):
+            api.setup_client(models)
+            response = await api.acall_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["upload_data"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+
+        run_with_factory_and_async_client(
+            NEGOTIATE_TEST_URL,
+            lambda f: f.with_autologon().connect(),
+            body,
+        )
+
+    @pytest.mark.parametrize(
+        "http_method",
+        ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    )
+    def test_model_resource_http_verbs(self, http_method):
+        from .. import models
+
+        ctx = model_endpoint_integration_expectations(http_method)
+        expected = ctx["expected"]
+
+        async def body(api):
+            api.setup_client(models)
+            response = await api.acall_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["body"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+
+        run_with_factory_and_async_client(
+            NEGOTIATE_TEST_URL,
+            lambda f: f.with_autologon().connect(),
+            body,
+        )
 
 
 @pytest.mark.skipif(sys.platform == "win32", reason="No portable KDC is available at present")
 class TestNegotiateFailures:
     @pytest.fixture(autouse=True)
     def server(self):
-        # Stash the original routes
-        original_routes = custom_test_app.router.routes
+        original_routes = NEGOTIATE_APP.router.routes
+        NEGOTIATE_APP.router.routes = []
 
-        # Remove all the routes (a bit drastic)
-        custom_test_app.router.routes = []
-
-        @custom_test_app.get("/")
+        @NEGOTIATE_APP.get("/")
         async def get_forbidden(request: Request):
             validate_user_principal(request, "otheruser@EXAMPLE.COM")
             return None
 
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        while proc.is_alive():
-            sleep(1)
+        with spawn_uvicorn_subprocess(run_negotiate_server):
+            yield
 
-        # Restore the original routes
-        custom_test_app.router.routes = original_routes
+        NEGOTIATE_APP.router.routes = original_routes
 
     @pytest.mark.xfail(
         sys.version_info[:2] == (3, 14),
         reason="Unexpectedly returns 200 with unauthorized user on Python 3.14",
     )
     def test_bad_principal_returns_403(self):
-        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        with pytest.raises(ApiConnectionException) as excinfo:
-            _ = client_factory.with_autologon().connect()
-        assert excinfo.value.response.status_code == 403
-        assert excinfo.value.response.reason == "Forbidden"
+        client_factory = ApiClientFactory(NEGOTIATE_TEST_URL, SessionConfiguration())
+        try:
+            with pytest.raises(ApiConnectionException) as excinfo:
+                _ = client_factory.with_autologon().connect()
+            resp = excinfo.value.response
+            assert resp.status_code == 403
+            reason_text = getattr(resp, "reason_phrase", None) or getattr(resp, "reason", "")
+            assert "Forbidden" in reason_text
+        finally:
+            client_factory.close()

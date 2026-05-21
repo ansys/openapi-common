@@ -20,13 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from multiprocessing import Process
-from time import sleep
-
-from fastapi import Depends, FastAPI, Request
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pytest
-import uvicorn
 
 from ansys.openapi.common import (
     ApiClientFactory,
@@ -34,150 +28,251 @@ from ansys.openapi.common import (
     AuthenticationScheme,
     SessionConfiguration,
 )
-from tests.integration.common import (
-    TEST_MODEL_ID,
+
+from .async_integration import run_with_factory_and_async_client
+from .common import (
+    CustomResponseHeaders,
     TEST_PASS,
-    TEST_PORT,
     TEST_URL,
     TEST_USER,
-    CustomResponseHeaders,
-    ExampleModelPyd,
-    return_model,
-    validate_user_basic,
+    model_endpoint_integration_expectations,
+    patch_model_integration_expectations,
 )
-
-custom_test_app = FastAPI()
-security = HTTPBasic()
-
-
-@custom_test_app.middleware("http")
-async def modify_response_headers(request: Request, call_next):
-    response = await call_next(request)
-    if response.status_code == 401:
-        CustomResponseHeaders.modify_response_headers(response)
-    return response
-
-
-@custom_test_app.patch("/models/{model_id}")
-async def patch_model(
-    model_id: str,
-    example_model: ExampleModelPyd,
-    credentials: HTTPBasicCredentials = Depends(security),
-):
-    validate_user_basic(credentials)
-    return return_model(model_id, example_model)
-
-
-@custom_test_app.get("/test_api")
-async def get_test_api(credentials: HTTPBasicCredentials = Depends(security)):
-    validate_user_basic(credentials)
-    return {"msg": "OK"}
-
-
-@custom_test_app.get("/")
-async def get_none(credentials: HTTPBasicCredentials = Depends(security)):
-    validate_user_basic(credentials)
-    return None
-
-
-def run_server():
-    uvicorn.run(custom_test_app, port=TEST_PORT)
+from .fixture_apps import run_basic_auth_server
+from .server_utils import spawn_uvicorn_subprocess, spawn_uvicorn_with_optional_context
 
 
 class BasicTestCases:
     def test_can_connect(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        _ = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=auth_mode
-        ).connect()
+        try:
+            _ = client_factory.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect()
+        finally:
+            client_factory.close()
 
     def test_invalid_user_return_401(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        with pytest.raises(ApiConnectionException) as exception_info:
-            _ = client_factory.with_credentials(
-                "eve", "password", authentication_scheme=auth_mode
-            ).connect()
-        assert exception_info.value.response.status_code == 401
-        assert "Unauthorized" in exception_info.value.response.reason
+        try:
+            with pytest.raises(ApiConnectionException) as exception_info:
+                _ = client_factory.with_credentials(
+                    "eve", "password", authentication_scheme=auth_mode
+                ).connect()
+            resp = exception_info.value.response
+            reason_text = getattr(resp, "reason_phrase", None) or getattr(resp, "reason", "")
+            assert resp.status_code == 401
+            assert "Unauthorized" in reason_text
+        finally:
+            client_factory.close()
 
     def test_get_health_returns_200_ok(self, auth_mode):
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=auth_mode
-        ).connect()
-
-        resp = client.request("GET", TEST_URL + "/test_api")
-        assert resp.status_code == 200
-        assert "OK" in resp.text
+        try:
+            client = client_factory.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect()
+            resp = client.request("GET", TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
+        finally:
+            client_factory.close()
 
     def test_patch_model(self, auth_mode):
         from .. import models
 
-        deserialized_response = models.ExampleModel(
-            string_property="new_model",
-            int_property=1,
-            list_property=["red", "yellow", "green"],
-            bool_property=False,
-        )
-
-        resource_path = "/models/{ID}"
-        http_method = "PATCH"
-        path_params = {"ID": TEST_MODEL_ID}
-
-        response_type = "ExampleModel"
-
-        upload_data = {"ListOfStrings": ["red", "yellow", "green"]}
+        ctx = patch_model_integration_expectations()
+        expected = ctx["expected"]
 
         client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
-        client = client_factory.with_credentials(
-            TEST_USER, TEST_PASS, authentication_scheme=auth_mode
-        ).connect()
-        client.setup_client(models)
+        try:
+            client = client_factory.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect()
+            client.setup_client(models)
+            response = client.call_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["upload_data"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+        finally:
+            client_factory.close()
 
-        response = client.call_api(
-            resource_path,
-            http_method,
-            path_params=path_params,
-            body=upload_data,
-            response_type=response_type,
-            _return_http_data_only=True,
+    @pytest.mark.parametrize(
+        "http_method",
+        ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    )
+    def test_model_resource_http_verbs(self, auth_mode, http_method):
+        from .. import models
+
+        ctx = model_endpoint_integration_expectations(http_method)
+        expected = ctx["expected"]
+
+        client_factory = ApiClientFactory(TEST_URL, SessionConfiguration())
+        try:
+            client = client_factory.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect()
+            client.setup_client(models)
+            response = client.call_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["body"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+        finally:
+            client_factory.close()
+
+
+class AsyncBasicTestCases:
+    """HTTP via :class:`~ansys.openapi.common.AsyncApiClient` after sync :meth:`ApiClientFactory.connect`."""
+
+    def test_can_connect(self, auth_mode):
+        async def body(api):
+            resp = await api.arequest("GET", TEST_URL + "/test_api")
+            assert resp.status_code == 200
+
+        run_with_factory_and_async_client(
+            TEST_URL,
+            lambda f: f.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect(),
+            body,
         )
-        assert response == deserialized_response
+
+    def test_get_health_returns_200_ok(self, auth_mode):
+        async def body(api):
+            resp = await api.arequest("GET", TEST_URL + "/test_api")
+            assert resp.status_code == 200
+            assert "OK" in resp.text
+
+        run_with_factory_and_async_client(
+            TEST_URL,
+            lambda f: f.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect(),
+            body,
+        )
+
+    def test_patch_model(self, auth_mode):
+        from .. import models
+
+        ctx = patch_model_integration_expectations()
+        expected = ctx["expected"]
+
+        async def body(api):
+            api.setup_client(models)
+            response = await api.acall_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["upload_data"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+
+        run_with_factory_and_async_client(
+            TEST_URL,
+            lambda f: f.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect(),
+            body,
+        )
+
+    @pytest.mark.parametrize(
+        "http_method",
+        ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    )
+    def test_model_resource_http_verbs(self, auth_mode, http_method):
+        from .. import models
+
+        ctx = model_endpoint_integration_expectations(http_method)
+        expected = ctx["expected"]
+
+        async def body(api):
+            api.setup_client(models)
+            response = await api.acall_api(
+                ctx["resource_path"],
+                ctx["http_method"],
+                path_params=ctx["path_params"],
+                body=ctx["body"],
+                response_type=ctx["response_type"],
+                _return_http_data_only=True,
+            )
+            assert response == expected
+
+        run_with_factory_and_async_client(
+            TEST_URL,
+            lambda f: f.with_credentials(
+                TEST_USER, TEST_PASS, authentication_scheme=auth_mode
+            ).connect(),
+            body,
+        )
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.BASIC])
 class TestBasic(BasicTestCases):
     @pytest.fixture(autouse=True)
     def server(self):
-        proc = Process(target=run_server, args=(), daemon=True)
-        proc.start()
-        yield
-        proc.terminate()
-        while proc.is_alive():
-            sleep(1)
+        with spawn_uvicorn_subprocess(run_basic_auth_server):
+            yield
+
+
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.AUTO, AuthenticationScheme.BASIC])
+class TestBasicAsync(AsyncBasicTestCases):
+    @pytest.fixture(autouse=True)
+    def server(self):
+        with spawn_uvicorn_subprocess(run_basic_auth_server):
+            yield
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.BASIC])
 class TestBasicWrongHeader(BasicTestCases):
     @pytest.fixture(autouse=True)
     def server(self):
-        with CustomResponseHeaders("www-authenticate", 'Bearer realm="example"'):
-            proc = Process(target=run_server, args=(), daemon=True)
-            proc.start()
+        with spawn_uvicorn_with_optional_context(
+            run_basic_auth_server,
+            CustomResponseHeaders("www-authenticate", 'Bearer realm="example"'),
+        ):
             yield
-            proc.terminate()
-        while proc.is_alive():
-            sleep(1)
+
+
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.BASIC])
+class TestBasicWrongHeaderAsync(AsyncBasicTestCases):
+    @pytest.fixture(autouse=True)
+    def server(self):
+        with spawn_uvicorn_with_optional_context(
+            run_basic_auth_server,
+            CustomResponseHeaders("www-authenticate", 'Bearer realm="example"'),
+        ):
+            yield
 
 
 @pytest.mark.parametrize("auth_mode", [AuthenticationScheme.BASIC])
 class TestBasicMissingHeader(BasicTestCases):
     @pytest.fixture(autouse=True)
     def server(self):
-        with CustomResponseHeaders("www-authenticate", None):
-            proc = Process(target=run_server, args=(), daemon=True)
-            proc.start()
+        with spawn_uvicorn_with_optional_context(
+            run_basic_auth_server,
+            CustomResponseHeaders("www-authenticate", None),
+        ):
             yield
-            proc.terminate()
-        while proc.is_alive():
-            sleep(1)
+
+
+@pytest.mark.parametrize("auth_mode", [AuthenticationScheme.BASIC])
+class TestBasicMissingHeaderAsync(AsyncBasicTestCases):
+    @pytest.fixture(autouse=True)
+    def server(self):
+        with spawn_uvicorn_with_optional_context(
+            run_basic_auth_server,
+            CustomResponseHeaders("www-authenticate", None),
+        ):
+            yield

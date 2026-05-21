@@ -24,54 +24,54 @@ import http.cookiejar
 import secrets
 import tempfile
 import time
-from unittest.mock import MagicMock
 
+import httpx
 import pytest
-import requests
-from requests.utils import CaseInsensitiveDict
 
-from ansys.openapi.common import SessionConfiguration
-from ansys.openapi.common._session import _RequestsTimeoutAdapter
-from ansys.openapi.common._util import RequestsConfiguration
+from ansys.openapi.common import CaseInsensitiveDict, SessionConfiguration
+from ansys.openapi.common._retry_transport import RetryingHTTPTransport
+from ansys.openapi.common._session import ApiClientFactory
+from ansys.openapi.common._util import (
+    TransportConfiguration,
+    create_httpx_client_from_session_configuration,
+)
 
 CLIENT_CERT_PATH = "./client-cert.pem"
 CLIENT_CERT_KEY = "5up3rS3c43t!"
 CA_CERT_PATH = "./ca-certs.pem"
-PROXY_CONFIG = {"https://www.google.com:80": "https://proxy.mycompany.com:8080"}
+PROXY_URL = "https://proxy.mycompany.com:8080"
 
 
 def test_defaults():
-    output = SessionConfiguration().get_configuration_for_requests()
+    output = SessionConfiguration().get_transport_configuration()
     assert output["cert"] is None
     assert output["verify"]
     assert len(output["cookies"]) == 0
-    assert output["proxies"] == {}
+    assert output["proxy_url"] is None
     assert output["headers"] == {}
     assert output["max_redirects"] == 10
 
 
 def test_cert_path_returns_str():
-    output = SessionConfiguration(
-        client_cert_path=CLIENT_CERT_PATH
-    ).get_configuration_for_requests()
+    output = SessionConfiguration(client_cert_path=CLIENT_CERT_PATH).get_transport_configuration()
     assert output["cert"] == CLIENT_CERT_PATH
 
 
 def test_cert_path_and_key_returns_tuple():
     output = SessionConfiguration(
         client_cert_path=CLIENT_CERT_PATH, client_cert_key=CLIENT_CERT_KEY
-    ).get_configuration_for_requests()
+    ).get_transport_configuration()
     assert output["cert"] == (CLIENT_CERT_PATH, CLIENT_CERT_KEY)
 
 
 @pytest.mark.parametrize("verify", [True, False])
 def test_verify_returns_valid(verify):
-    output = SessionConfiguration(verify_ssl=verify).get_configuration_for_requests()
+    output = SessionConfiguration(verify_ssl=verify).get_transport_configuration()
     assert output["verify"] == verify
 
 
 def test_verify_with_path_returns_path():
-    output = SessionConfiguration(cert_store_path=CA_CERT_PATH).get_configuration_for_requests()
+    output = SessionConfiguration(cert_store_path=CA_CERT_PATH).get_transport_configuration()
     assert output["verify"] == CA_CERT_PATH
 
 
@@ -79,7 +79,7 @@ def test_verify_with_path_returns_path():
 def header_test_fixture():
     config = SessionConfiguration()
     config.headers.update({"lower_case": True, "LoWeR_CaSe": True})
-    output = config.get_configuration_for_requests()
+    output = config.get_transport_configuration()
     yield output["headers"]
 
 
@@ -103,9 +103,9 @@ def test_update_headers_indistinct(header_test_fixture):
     assert not header_test_fixture["lower_case"]
 
 
-def test_proxies():
-    output = SessionConfiguration(proxies=PROXY_CONFIG).get_configuration_for_requests()
-    assert output["proxies"] == PROXY_CONFIG
+def test_proxy_url():
+    output = SessionConfiguration(proxy_url=PROXY_URL).get_transport_configuration()
+    assert output["proxy_url"] == PROXY_URL
 
 
 def test_cookies():
@@ -131,21 +131,17 @@ def test_cookies():
         rfc2109=True,
     )
     cookie_jar.set_cookie(test_cookie)
-    output = SessionConfiguration(cookies=cookie_jar).get_configuration_for_requests()
+    output = SessionConfiguration(cookies=cookie_jar).get_transport_configuration()
     assert output["cookies"] is not None
 
-    request = requests.Request(
-        method="GET",
-        url="http://www.testdomain.com:443/test/",
-        cookies=output["cookies"],
-    )
-    prepared_request = request.prepare()
-    assert "Cookie" in prepared_request.headers
-    assert "131071" in prepared_request.headers["Cookie"]
+    with httpx.Client(cookies=output["cookies"]) as client:
+        req = client.build_request("GET", "http://www.testdomain.com:443/test/")
+    assert "cookie" in req.headers
+    assert "131071" in req.headers["cookie"]
 
 
 def test_redirects():
-    output = SessionConfiguration(max_redirects=12000).get_configuration_for_requests()
+    output = SessionConfiguration(max_redirects=12000).get_transport_configuration()
     assert output["max_redirects"] == 12000
 
 
@@ -156,7 +152,7 @@ class TestDeserialization:
             "cert": None,
             "verify": None,
             "cookies": None,
-            "proxies": None,
+            "proxy_url": None,
             "headers": None,
             "max_redirects": None,
         }
@@ -171,7 +167,7 @@ class TestDeserialization:
         assert isinstance(configuration_obj.cookies, http.cookiejar.CookieJar)
         assert configuration_obj.cookies._cookies == {}  # noqa
         assert configuration_obj.headers == CaseInsensitiveDict()
-        assert configuration_obj.proxies == {}
+        assert configuration_obj.proxy_url is None
         assert configuration_obj.max_redirects == 10
         assert configuration_obj.temp_folder_path == tempfile.gettempdir()
 
@@ -233,7 +229,7 @@ class TestDeserialization:
         assert "int" in str(excinfo.value)
 
     def test_assign_all_values(self):
-        test_input: RequestsConfiguration = self.blank_input
+        test_input: TransportConfiguration = self.blank_input
         test_input["verify"] = CA_CERT_PATH
 
         cookie_jar = http.cookiejar.CookieJar()
@@ -260,7 +256,7 @@ class TestDeserialization:
         test_input["cookies"] = cookie_jar
 
         proxy_url = "http://10.10.1.10:3128"
-        test_input["proxies"] = {"http": proxy_url}
+        test_input["proxy_url"] = proxy_url
         header_name = "X-TestHeader"
         header_value = "Foo"
         test_input["headers"] = CaseInsensitiveDict({header_name: header_value})
@@ -270,74 +266,67 @@ class TestDeserialization:
 
         assert config_object.verify_ssl
         assert config_object.cert_store_path == CA_CERT_PATH
-        assert "http" in config_object.proxies
-        assert config_object.proxies["http"] == proxy_url
+        assert config_object.proxy_url == proxy_url
         assert header_name in config_object.headers
         assert config_object.headers[header_name] == header_value
         assert config_object.max_redirects == 30
 
         assert config_object.cookies is not None
 
-        request = requests.Request(
-            method="GET",
-            url="http://www.testdomain.com:443/test/",
-            cookies=config_object.cookies,
+        with httpx.Client(cookies=config_object.cookies) as client:
+            req = client.build_request("GET", "http://www.testdomain.com:443/test/")
+        assert "cookie" in req.headers
+        assert "131071" in req.headers["cookie"]
+
+
+class TestHttpxClientTransportFromSessionConfiguration:
+    """Timeout and retry settings from :class:`SessionConfiguration` apply to ``httpx.Client``."""
+
+    def test_default_timeout_matches_session_configuration(self):
+        config = SessionConfiguration()
+        with create_httpx_client_from_session_configuration(config) as client:
+            assert client.timeout == httpx.Timeout(config.request_timeout)
+
+    def test_custom_request_timeout(self):
+        config = SessionConfiguration(request_timeout=17)
+        with create_httpx_client_from_session_configuration(config) as client:
+            assert client.timeout == httpx.Timeout(17)
+
+    def test_retry_count_maps_to_transport_max_attempts(self):
+        config = SessionConfiguration(retry_count=7)
+        with create_httpx_client_from_session_configuration(config) as client:
+            assert isinstance(client._transport, RetryingHTTPTransport)
+            assert client._transport._max_attempts == 7
+
+    def test_proxy_url_requires_mount_scheme_url(self):
+        proxy_u = "http://127.0.0.1:8888"
+        config = SessionConfiguration(proxy_url=proxy_u)
+        with pytest.raises(ValueError, match="mount_scheme_url"):
+            create_httpx_client_from_session_configuration(config)
+
+    def test_proxy_url_mount_matches_api_scheme(self):
+        proxy_u = "http://127.0.0.1:8888"
+        config = SessionConfiguration(proxy_url=proxy_u)
+        with create_httpx_client_from_session_configuration(
+            config,
+            mount_scheme_url="https://api.example/v1/",
+        ) as client:
+            picked = client._transport_for_url(httpx.URL("https://api.example/resource"))
+            assert isinstance(picked, RetryingHTTPTransport)
+            assert picked is not client._transport
+            plain = client._transport_for_url(httpx.URL("http://other.example/"))
+            assert plain is client._transport
+
+
+class TestWwwAuthenticateHeaderMerging:
+    def test_multiple_header_lines_merged(self):
+        headers = httpx.Headers(
+            [
+                ("www-authenticate", "Negotiate"),
+                ("www-authenticate", 'Basic realm="example.com"'),
+            ]
         )
-        prepared_request = request.prepare()
-        assert "Cookie" in prepared_request.headers
-        assert "131071" in prepared_request.headers["Cookie"]
-
-
-class TestTimeoutAdapter:
-    TEST_URL = "https://www.testdomain.com/test"
-    DEFAULT_TIMEOUT = 31
-
-    @pytest.fixture
-    def test_request(self):
-        yield requests.Request("GET", self.TEST_URL)
-
-    @staticmethod
-    def check_timeout(patched_urlopen: MagicMock, connect_timeout: int, read_timeout: int):
-        patched_urlopen.assert_called_once()
-        assert "timeout" in patched_urlopen.call_args[1]
-        timeout = patched_urlopen.call_args[1]["timeout"]
-        assert timeout.connect_timeout == connect_timeout
-        assert timeout.read_timeout == read_timeout
-
-    def test_get_default_timeout(self):
-        adapter = _RequestsTimeoutAdapter()
-        assert adapter.timeout == self.DEFAULT_TIMEOUT
-
-    def test_default_timeout_is_applied_to_request(self, mocker, test_request):
-        adapter = _RequestsTimeoutAdapter()
-        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
-        patched_urlopen = mocker.patch.object(connection, "urlopen")
-        adapter.send(test_request.prepare())
-        self.check_timeout(patched_urlopen, self.DEFAULT_TIMEOUT, self.DEFAULT_TIMEOUT)
-
-    def test_custom_timeout_int_is_applied_to_request(self, mocker, test_request):
-        timeout = 10
-        adapter = _RequestsTimeoutAdapter(timeout=timeout)
-        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
-        patched_urlopen = mocker.patch.object(connection, "urlopen")
-        adapter.send(test_request.prepare())
-        self.check_timeout(patched_urlopen, timeout, timeout)
-
-    def test_custom_timeout_tuple_is_applied_to_request(self, mocker, test_request):
-        timeout = (10, 100)
-        adapter = _RequestsTimeoutAdapter(timeout=timeout)
-        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
-        patched_urlopen = mocker.patch.object(connection, "urlopen")
-        adapter.send(test_request.prepare())
-        self.check_timeout(patched_urlopen, *timeout)
-
-    def test_custom_max_retries_is_applied_to_request(self, mocker, test_request):
-        max_retries = 99
-        adapter = _RequestsTimeoutAdapter(max_retries=max_retries)
-        connection = adapter.get_connection_with_tls_context(test_request.prepare(), True)
-        patched_urlopen = mocker.patch.object(connection, "urlopen")
-        adapter.send(test_request.prepare())
-        patched_urlopen.assert_called_once()
-        assert "retries" in patched_urlopen.call_args[1]
-        retry_obj = patched_urlopen.call_args[1]["retries"]
-        assert retry_obj.total == max_retries
+        response = httpx.Response(401, headers=headers)
+        parsed = ApiClientFactory._ApiClientFactory__get_authenticate_header(response)
+        assert "negotiate" in parsed
+        assert "basic" in parsed

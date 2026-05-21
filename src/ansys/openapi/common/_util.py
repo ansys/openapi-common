@@ -24,21 +24,19 @@ from collections import OrderedDict
 import http.cookiejar
 from itertools import chain
 import tempfile
+import urllib.parse
 from typing import (
     Any,
     Collection,
-    Dict,
-    List,
-    Optional,
-    Tuple,
     TypedDict,
-    Union,
     cast,
 )
 
+import httpx
 import pyparsing as pp
-import requests
-from requests.structures import CaseInsensitiveDict
+from ._case_insensitive_dict import CaseInsensitiveDict
+
+from ._retry_transport import RetryingAsyncHTTPTransport, RetryingHTTPTransport
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
@@ -71,11 +69,11 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         """Override __delitem__ to delete lower-case key."""
         return super().__delitem__(k.lower())
 
-    def get(self, k: str, default: Optional[Any] = None) -> Any:
+    def get(self, k: str, default: Any = None) -> Any:
         """Override get to retrieve lower-case key."""
         return super().get(k.lower(), default)
 
-    def setdefault(self, k: str, default: Optional[Any] = None) -> Any:
+    def setdefault(self, k: str, default: Any = None) -> Any:
         """Override setdefault to use lower-case key."""
         return super().setdefault(k.lower(), default)
 
@@ -102,7 +100,7 @@ class CaseInsensitiveOrderedDict(OrderedDict):
     def fromkeys(
         cls,
         keys: Collection[str],
-        v: Optional[Any] = None,
+        v: Any = None,
     ) -> "CaseInsensitiveOrderedDict":
         """Override fromkeys to use lower-case keys."""
         return cast("CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v))
@@ -120,7 +118,7 @@ class Singleton(type):
     class will fetch the existing instance, rather than creating a new one.
     """
 
-    _instances: Dict[type, object] = {}
+    _instances: dict[type, object] = {}
 
     def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         """Invoke when calling this object."""
@@ -175,8 +173,8 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
     @staticmethod
     def _render_options(
-        scheme: List[Union[str, List[str]]],
-    ) -> Optional[Union[str, CaseInsensitiveOrderedDict]]:
+        scheme: list[Any],
+    ) -> str | CaseInsensitiveOrderedDict | None:
         if len(scheme) == 1:
             return None
         if isinstance(scheme[1], str):
@@ -202,29 +200,66 @@ def parse_authenticate(value: str) -> CaseInsensitiveOrderedDict:
     return parser.parse_header(value)
 
 
-def set_session_kwargs(session: requests.Session, property_dict: "RequestsConfiguration") -> None:
-    """Set session parameters from the dictionary provided.
+def _scheme_mount_prefix(url: str) -> str:
+    scheme = urllib.parse.urlparse(url).scheme.lower()
+    if scheme not in ("http", "https"):
+        raise ValueError(
+            f"mount_scheme_url must use http or https scheme (got {scheme!r} from {url!r})."
+        )
+    return f"{scheme}://"
+
+
+def collect_www_authenticate_raw_values(response: httpx.Response) -> list[str]:
+    """Return each raw ``WWW-Authenticate`` challenge line from ``response``.
+
+    Multiple header field lines are preserved as separate entries (RFC 9110). ``httpx``
+    exposes these via :meth:`httpx.Headers.get_list`.
+    """
+    return [v.strip() for v in response.headers.get_list("www-authenticate") if v.strip()]
+
+
+class TransportConfiguration(TypedDict):
+    """Serializable HTTP transport settings used to build :class:`httpx.Client`.
+
+    These keys feed :func:`httpx_client_init_kwargs` for ``httpx.Client`` construction.
+    """
+
+    cert: str | tuple[str, str] | None
+    verify: str | bool | None
+    cookies: http.cookiejar.CookieJar
+    proxy_url: str | None
+    headers: CaseInsensitiveDict
+    max_redirects: int
+
+
+def httpx_client_init_kwargs(configuration: TransportConfiguration) -> dict[str, Any]:
+    """Build keyword arguments for :class:`httpx.Client` from transport configuration.
+
+    ``proxy_url`` is not applied here; it is handled in
+    :func:`create_httpx_client_from_session_configuration` using a single ``httpx`` mount
+    derived from ``mount_scheme_url``.
 
     Parameters
     ----------
-    session : :obj:`requests.Session`
-        Session object to configure.
-    property_dict : dict
-        Mapping from requests session parameter to value.
+    configuration : TransportConfiguration
+        Output of :meth:`SessionConfiguration.get_transport_configuration`.
+
+    Returns
+    -------
+    dict[str, Any]
+        Keyword arguments suitable for ``httpx.Client(**kwargs)`` or ``httpx.AsyncClient(**kwargs)``.
     """
-    for k, v in property_dict.items():
-        session.__dict__[k] = v
-
-
-class RequestsConfiguration(TypedDict):
-    """Configuration for requests session."""
-
-    cert: Union[None, str, Tuple[str, str]]
-    verify: Union[None, str, bool]
-    cookies: http.cookiejar.CookieJar
-    proxies: Dict[str, str]
-    headers: CaseInsensitiveDict
-    max_redirects: int
+    headers = configuration["headers"]
+    kwargs: dict[str, Any] = {
+        "cert": configuration["cert"],
+        "verify": configuration["verify"],
+        "cookies": configuration["cookies"],
+        "headers": dict(headers) if headers else {},
+        "max_redirects": configuration["max_redirects"],
+        # requests follows redirects by default; match that for future Client wiring.
+        "follow_redirects": True,
+    }
+    return kwargs
 
 
 class SessionConfiguration:
@@ -244,9 +279,11 @@ class SessionConfiguration:
         case-insensitive. The default is ``None``, in which case only required headers will be included.
     max_redirects : int, optional
         Maximum number of redirects to allow before halting. The default is ``10``.
-    proxies : dict, optional
-        Proxy server URLs, indexed by resource URLs. The default is ``None``, in which case
-        no proxies are registered for use.
+    proxy_url : str, optional
+        Outbound HTTP(S) proxy URL (e.g. ``http://proxy.corp:8080``). When set, pass
+        ``mount_scheme_url`` to :func:`create_httpx_client_from_session_configuration`
+        (for example the API base URL) so the correct ``http(s)://`` transport mount is used.
+        The default is ``None`` (no proxy).
     verify_ssl : bool, optional
         Whether to verify the SSL certificate of the remote host. The default is ``True``.
     cert_store_path : str, optional
@@ -269,15 +306,15 @@ class SessionConfiguration:
 
     def __init__(
         self,
-        client_cert_path: Optional[str] = None,
-        client_cert_key: Optional[str] = None,
-        cookies: Optional[http.cookiejar.CookieJar] = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        client_cert_path: str | None = None,
+        client_cert_key: str | None = None,
+        cookies: http.cookiejar.CookieJar | None = None,
+        headers: CaseInsensitiveDict | None = None,
         max_redirects: int = 10,
-        proxies: Optional[Dict[str, str]] = None,
+        proxy_url: str | None = None,
         verify_ssl: bool = True,
-        cert_store_path: Optional[str] = None,
-        temp_folder_path: Optional[str] = None,
+        cert_store_path: str | None = None,
+        temp_folder_path: str | None = None,
         debug: bool = False,
         safe_chars_for_path_param: str = "",
         retry_count: int = 3,
@@ -288,7 +325,7 @@ class SessionConfiguration:
         self.cookies = cookies or http.cookiejar.CookieJar()
         self.headers = headers or CaseInsensitiveDict()
         self.max_redirects = max_redirects
-        self.proxies = proxies or {}
+        self.proxy_url = (proxy_url.strip() if proxy_url else None) or None
         self.verify_ssl = verify_ssl
         self.cert_store_path = cert_store_path
         self.temp_folder_path = temp_folder_path or tempfile.gettempdir()
@@ -298,7 +335,7 @@ class SessionConfiguration:
         self.request_timeout = request_timeout
 
     @property
-    def _cert(self) -> Union[None, str, Tuple[str, str]]:
+    def _cert(self) -> str | tuple[str, str] | None:
         if self.client_cert_path is None:
             return None
         elif self.client_cert_key is None:
@@ -307,32 +344,32 @@ class SessionConfiguration:
             return self.client_cert_path, self.client_cert_key
 
     @property
-    def _verify(self) -> Union[None, bool, str]:
+    def _verify(self) -> bool | str | None:
         if self.cert_store_path is None:
             return self.verify_ssl
         else:
             return self.cert_store_path
 
-    def get_configuration_for_requests(
+    def get_transport_configuration(
         self,
-    ) -> "RequestsConfiguration":
-        """Retrieve the configuration as a dictionary, with keys corresponding to ``requests`` session properties."""
-        output: RequestsConfiguration = {
+    ) -> TransportConfiguration:
+        """Retrieve settings as a mapping aligned with HTTP client transport configuration."""
+        output: TransportConfiguration = {
             "cert": self._cert,
             "verify": self._verify,
             "cookies": self.cookies,
-            "proxies": self.proxies,
+            "proxy_url": self.proxy_url,
             "headers": self.headers,
             "max_redirects": self.max_redirects,
         }
         return output
 
     @classmethod
-    def from_dict(cls, configuration_dict: "RequestsConfiguration") -> "SessionConfiguration":
+    def from_dict(cls, configuration_dict: TransportConfiguration) -> "SessionConfiguration":
         """
         Create a :class:`SessionConfiguration` object from its dictionary form.
 
-        This is the inverse of the :meth:`.get_configuration_for_requests` method.
+        This is the inverse of the :meth:`.get_transport_configuration` method.
 
         Parameters
         ----------
@@ -362,13 +399,159 @@ class SessionConfiguration:
                 )
         if configuration_dict["cookies"] is not None:
             new.cookies = configuration_dict["cookies"]
-        if configuration_dict["proxies"] is not None:
-            new.proxies = configuration_dict["proxies"]
+        if configuration_dict["proxy_url"] is not None:
+            pu = configuration_dict["proxy_url"]
+            if not isinstance(pu, str):
+                raise ValueError(f"Invalid 'proxy_url' field. Must be str, not '{type(pu)}'.")
+            new.proxy_url = pu.strip() or None
         if configuration_dict["headers"] is not None:
             new.headers = configuration_dict["headers"]
         if configuration_dict["max_redirects"] is not None:
             new.max_redirects = configuration_dict["max_redirects"]
         return new
+
+
+def create_httpx_client_from_session_configuration(
+    session_configuration: SessionConfiguration,
+    *,
+    mount_scheme_url: str | None = None,
+) -> httpx.Client:
+    """Create a synchronous :class:`httpx.Client` from a :class:`SessionConfiguration`.
+
+    Uses :class:`~ansys.openapi.common._retry_transport.RetryingHTTPTransport` so connection
+    failures, timeouts, and selected HTTP status codes are retried according to
+    ``session_configuration.retry_count`` (maximum total attempts per request).
+
+    When ``SessionConfiguration.proxy_url`` is set, ``mount_scheme_url`` (for example the
+    API base URL) is **required**. Its scheme selects a single ``httpx`` mount
+    (``http://`` or ``https://``) that uses the proxy; the default transport handles other
+    schemes without a proxy (for example redirects).
+
+    Parameters
+    ----------
+    session_configuration : SessionConfiguration
+        Source configuration for TLS, cookies, headers, redirects, timeout, proxy, and retries.
+    mount_scheme_url :
+        URL whose scheme determines the proxy mount when ``proxy_url`` is set. Ignored when
+        ``proxy_url`` is unset.
+
+    Returns
+    -------
+    httpx.Client
+        Configured HTTP client.
+    """
+    kwargs = httpx_client_init_kwargs(session_configuration.get_transport_configuration())
+    kwargs["timeout"] = session_configuration.request_timeout
+
+    verify = kwargs.pop("verify", True)
+    cert = kwargs.pop("cert", None)
+
+    proxy_url = session_configuration.proxy_url
+    attempts = max(1, session_configuration.retry_count)
+    backoff = 0.3
+
+    default_transport = RetryingHTTPTransport(
+        verify=verify,
+        cert=cert,
+        proxy=None,
+        max_attempts=attempts,
+        backoff_factor=backoff,
+    )
+    kwargs["transport"] = default_transport
+
+    if proxy_url is not None:
+        if mount_scheme_url is None:
+            raise ValueError(
+                "mount_scheme_url is required when SessionConfiguration.proxy_url is set "
+                "(for example the API base URL)."
+            )
+        mount_prefix = _scheme_mount_prefix(mount_scheme_url)
+        proxied_transport = RetryingHTTPTransport(
+            verify=verify,
+            cert=cert,
+            proxy=proxy_url,
+            max_attempts=attempts,
+            backoff_factor=backoff,
+        )
+        kwargs["mounts"] = {mount_prefix: proxied_transport}
+
+    return httpx.Client(**kwargs)
+
+
+def create_async_httpx_client_from_session_configuration(
+    session_configuration: SessionConfiguration,
+    *,
+    mount_scheme_url: str | None = None,
+    sync_client: httpx.Client | None = None,
+) -> httpx.AsyncClient:
+    """Create an asynchronous :class:`httpx.AsyncClient` from a :class:`SessionConfiguration`.
+
+    Uses :class:`~ansys.openapi.common._retry_transport.RetryingAsyncHTTPTransport` with the
+    same retry semantics as :func:`create_httpx_client_from_session_configuration`.
+
+    When ``sync_client`` is provided (for example after synchronous authentication), its
+    ``headers``, ``cookies``, and ``auth`` are applied on top of the configuration-derived
+    defaults so the async client reuses the finalized session state.
+
+    Parameters
+    ----------
+    session_configuration : SessionConfiguration
+        Source configuration for TLS, cookies, headers, redirects, timeout, proxy, and retries.
+    mount_scheme_url :
+        URL whose scheme determines the proxy mount when ``proxy_url`` is set. Ignored when
+        ``proxy_url`` is unset.
+    sync_client : httpx.Client, optional
+        Optional sync client whose headers, cookies, and auth are merged into the async client.
+
+    Returns
+    -------
+    httpx.AsyncClient
+        Configured async HTTP client (call ``await client.aclose()`` when done).
+    """
+    kwargs = httpx_client_init_kwargs(session_configuration.get_transport_configuration())
+    kwargs["timeout"] = session_configuration.request_timeout
+
+    verify = kwargs.pop("verify", True)
+    cert = kwargs.pop("cert", None)
+
+    proxy_url = session_configuration.proxy_url
+    attempts = max(1, session_configuration.retry_count)
+    backoff = 0.3
+
+    default_transport = RetryingAsyncHTTPTransport(
+        verify=verify,
+        cert=cert,
+        proxy=None,
+        max_attempts=attempts,
+        backoff_factor=backoff,
+    )
+    kwargs["transport"] = default_transport
+
+    if proxy_url is not None:
+        if mount_scheme_url is None:
+            raise ValueError(
+                "mount_scheme_url is required when SessionConfiguration.proxy_url is set "
+                "(for example the API base URL)."
+            )
+        mount_prefix = _scheme_mount_prefix(mount_scheme_url)
+        proxied_transport = RetryingAsyncHTTPTransport(
+            verify=verify,
+            cert=cert,
+            proxy=proxy_url,
+            max_attempts=attempts,
+            backoff_factor=backoff,
+        )
+        kwargs["mounts"] = {mount_prefix: proxied_transport}
+
+    if sync_client is not None:
+        merged_headers = dict(kwargs.get("headers") or {})
+        merged_headers.update(sync_client.headers)
+        kwargs["headers"] = merged_headers
+        kwargs["cookies"] = sync_client.cookies
+        if sync_client.auth is not None:
+            kwargs["auth"] = sync_client.auth
+
+    return httpx.AsyncClient(**kwargs)
 
 
 def generate_user_agent(package_name: str, package_version: str) -> str:

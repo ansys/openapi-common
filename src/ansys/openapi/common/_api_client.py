@@ -27,31 +27,82 @@ import mimetypes
 import os
 import re
 import tempfile
-from types import ModuleType
-from typing import (
-    IO,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Type,
-    Union,
-    cast,
-)
+from types import ModuleType, TracebackType
+from typing import IO, Any, Callable, Iterable, Mapping, NamedTuple, NoReturn, cast
 from urllib.parse import quote
 import warnings
 
 from dateutil.parser import parse
-import requests
+import httpx
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
 from ._exceptions import ApiException, UndefinedObjectWarning
 from ._logger import logger
 from ._util import SessionConfiguration
+
+
+def _close_distinct_httpx_auth_clients(rest_client: httpx.Client) -> None:
+    """Close extra :class:`~httpx.Client` instances held by auth handlers (e.g. OIDC IdP).
+
+    ``httpx-auth`` OAuth flows attach a dedicated client for token endpoint traffic so TLS
+    settings can differ from the API client. Closing only the API client would otherwise
+    leave that pool open.
+    """
+    auth = getattr(rest_client, "auth", None)
+    if auth is None:
+        return
+    modes = getattr(auth, "authentication_modes", None)
+    modes_list = list(modes) if modes is not None else [auth]
+    seen: set[int] = set()
+    for mode in modes_list:
+        token_client = getattr(mode, "client", None)
+        if not isinstance(token_client, httpx.Client):
+            continue
+        if token_client is rest_client:
+            continue
+        tid = id(token_client)
+        if tid in seen:
+            continue
+        seen.add(tid)
+        token_client.close()
+
+
+class _CallRequestParts(NamedTuple):
+    method: str
+    url: str
+    query_params_str: str
+    header_params: dict[str, Any]
+    post_params: list[tuple[Any, Any]] | None
+    body: Any | None
+    request_timeout: float | tuple[float, float] | None
+
+
+async def _aclose_distinct_httpx_auth_clients(rest_client: httpx.AsyncClient) -> None:
+    """Close distinct clients held by auth handlers (sync or async), excluding ``rest_client``."""
+    auth = getattr(rest_client, "auth", None)
+    if auth is None:
+        return
+    modes = getattr(auth, "authentication_modes", None)
+    modes_list = list(modes) if modes is not None else [auth]
+    seen: set[int] = set()
+    for mode in modes_list:
+        token_client = getattr(mode, "client", None)
+        if isinstance(token_client, httpx.AsyncClient):
+            if token_client is rest_client:
+                continue
+            tid = id(token_client)
+            if tid in seen:
+                continue
+            seen.add(tid)
+            await token_client.aclose()
+        elif isinstance(token_client, httpx.Client):
+            if token_client is rest_client:
+                continue
+            tid = id(token_client)
+            if tid in seen:
+                continue
+            seen.add(tid)
+            token_client.close()
 
 
 # noinspection DuplicatedCode
@@ -65,18 +116,21 @@ class ApiClient(ApiClientBase):
 
     Parameters
     ----------
-    session : requests.Session
-        Base session object that the API client is to use.
+    session : httpx.Client
+        HTTP client the API client uses (typically from :class:`ApiClientFactory`).
     api_url : str
         Base URL for the API. All generated endpoint URLs are relative to this address.
     configuration : SessionConfiguration
         Configuration options for the API client.
 
+    Notes
+    -----
+    Call :meth:`close` when finished, or use ``with ApiClient(...) as client:``, so the
+    underlying HTTP client releases its connection pool.
+
     Examples
     --------
-    >>> client = ApiClient(requests.Session(),
-    ...                    'http://my-api.com/API/v1.svc',
-    ...                    SessionConfiguration())
+    >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
     ... <ApiClient url: http://my-api.com/API/v1.svc>
 
     For testing purposes, it is common to configure an API with a self-signed certificate. By default, the
@@ -85,9 +139,7 @@ class ApiClient(ApiClientBase):
     :class:`SessionConfiguration`.
 
     >>> session_config = SessionConfiguration(cert_store_path='./self-signed-cert.pem')
-    ... ssl_client = ApiClient(requests.Session(),
-    ...                    'https://secure-api/API/v1.svc',
-    ...                    session_config)
+    ... ssl_client = ApiClient(httpx.Client(), 'https://secure-api/API/v1.svc', session_config)
     ... ssl_client
     <ApiClient url: https://secure-api/API/v1.svc>
     """
@@ -107,14 +159,41 @@ class ApiClient(ApiClientBase):
 
     def __init__(
         self,
-        session: requests.Session,
+        session: httpx.Client,
         api_url: str,
         configuration: SessionConfiguration,
     ):
-        self.models: Dict[str, Union[Type[ModelBase], Type[Enum]]] = {}
+        self.models: dict[str, type[ModelBase] | type[Enum]] = {}
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
+        self._closed = False
+
+    def close(self) -> None:
+        """Close the underlying HTTP session or client and release connections.
+
+        When ``rest_client`` is an :class:`~httpx.Client` whose auth handler owns a separate
+        client (OpenID Connect token traffic to the IdP), that client is closed as well.
+        """
+        if self._closed:
+            return
+        self._closed = True
+        rc = self.rest_client
+        _close_distinct_httpx_auth_clients(rc)
+        rc.close()
+
+    def __enter__(self) -> "ApiClient":
+        """Enter a context manager; returns this client."""
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        """Exit the context manager and close the underlying HTTP client."""
+        self.close()
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
@@ -132,34 +211,25 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... import ApiModels as model_module
         ... client.setup_client(model_module)
         """
         self.models = models.__dict__
 
-    def __call_api(
+    def _build_call_request_parts(
         self,
         resource_path: str,
         method: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        header_params: Union[Dict[str, Union[str, int]], None] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[
-            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
-        ] = None,
-        response_type: Optional[str] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
-        _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
-        # header parameters
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any] | Iterable[str | bytes | IO[Any]]] | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+    ) -> _CallRequestParts:
         header_params = header_params or {}
         if header_params:
             header_params_sanitized = self.sanitize_for_serialization(header_params)
@@ -167,72 +237,107 @@ class ApiClient(ApiClientBase):
                 self.parameters_to_tuples(header_params_sanitized, collection_formats)
             )
 
-        # path parameters
         if path_params:
             resource_path = self.__handle_path_params(
                 resource_path, path_params, collection_formats
             )
 
-        # query parameters
         query_params_str = ""
         if query_params:
             query_params_str = self.__handle_query_params(query_params, collection_formats)
 
-        # post parameters
         if post_params or files:
             post_param_tuples = self.prepare_post_parameters(post_params, files)
             sanitized_post_params = self.sanitize_for_serialization(post_param_tuples)
             post_params = self.parameters_to_tuples(sanitized_post_params, collection_formats)
 
-        # body
         if body:
             body = self.sanitize_for_serialization(body)
             if isinstance(body, (list, dict)):
                 body = json.dumps(body).encode("utf8")
                 header_params.setdefault("Content-Type", "application/json")
 
-        # request url
         url = self.api_url + resource_path
-
-        # perform request and return response
-        response_data = self.request(
-            method,
-            url,
-            query_params=query_params_str,
-            headers=header_params,
+        return _CallRequestParts(
+            method=method,
+            url=url,
+            query_params_str=query_params_str,
+            header_params=header_params,
             post_params=post_params,
             body=body,
-            _preload_content=_preload_content,
-            _request_timeout=_request_timeout,
+            request_timeout=_request_timeout,
         )
 
+    def _finish_call_api(
+        self,
+        response_data: httpx.Response,
+        response_type: str | None,
+        _return_http_data_only: bool | None,
+        response_type_map: Mapping[int, str | None] | None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
         self.last_response = response_data
         logger.debug(f"response body: {response_data.text}")
 
-        return_data: Union[requests.Response, DeserializedType, None] = response_data
-        if _preload_content:
-            _response_type = response_type
-            if response_type_map is not None:
-                _response_type = response_type_map.get(response_data.status_code, None)
+        _response_type = response_type
+        if response_type_map is not None:
+            _response_type = response_type_map.get(response_data.status_code, None)
 
-            deserialized_response = self.deserialize(response_data, _response_type)
-            if not 200 <= response_data.status_code <= 299:
-                raise ApiException.from_response(response_data, deserialized_response)
-            return_data = deserialized_response
-        else:
-            if not 200 <= response_data.status_code <= 299:
-                raise ApiException.from_response(response_data)
+        deserialized_response = self.deserialize(response_data, _response_type)
+        if not 200 <= response_data.status_code <= 299:
+            raise ApiException.from_response(response_data, deserialized_response)
+        return_data = deserialized_response
 
         if _return_http_data_only:
             return return_data
         else:
             return return_data, response_data.status_code, response_data.headers
 
+    def __call_api(
+        self,
+        resource_path: str,
+        method: str,
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any] | Iterable[str | bytes | IO[Any]]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
+        parts = self._build_call_request_parts(
+            resource_path,
+            method,
+            path_params,
+            query_params,
+            header_params,
+            body,
+            post_params,
+            files,
+            collection_formats,
+            _request_timeout,
+        )
+        response_data = self.request(
+            parts.method,
+            parts.url,
+            query_params=parts.query_params_str,
+            headers=parts.header_params,
+            post_params=parts.post_params,
+            body=parts.body,
+            _request_timeout=parts.request_timeout,
+        )
+        return self._finish_call_api(
+            response_data, response_type, _return_http_data_only, response_type_map
+        )
+
     def __handle_path_params(
         self,
         resource_path: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None],
-        collection_formats: Optional[Dict[str, str]],
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None,
+        collection_formats: dict[str, str] | None,
     ) -> str:
         path_params_sanitized = self.sanitize_for_serialization(path_params)
         path_params_tuples = self.parameters_to_tuples(path_params_sanitized, collection_formats)
@@ -246,8 +351,8 @@ class ApiClient(ApiClientBase):
 
     def __handle_query_params(
         self,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None],
-        collection_formats: Optional[Dict[str, str]],
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None,
+        collection_formats: dict[str, str] | None,
     ) -> str:
         query_params_sanitized = self.sanitize_for_serialization(query_params)
         query_params_tuples = self.parameters_to_tuples(query_params_sanitized, collection_formats)
@@ -273,15 +378,11 @@ class ApiClient(ApiClientBase):
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... client.sanitize_for_serialization({'key': 'value'})
         {'key': 'value'}
 
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
         ... client.sanitize_for_serialization(datetime.datetime(2015, 10, 21, 10, 5, 10))
         '2015-10-21T10:05:10'
         """
@@ -309,9 +410,7 @@ class ApiClient(ApiClientBase):
 
         return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
 
-    def deserialize(
-        self, response: requests.Response, response_type: Optional[str]
-    ) -> DeserializedType:
+    def deserialize(self, response: httpx.Response, response_type: str | None) -> DeserializedType:
         """Deserialize the response into an object.
 
         Based on the type of response, the appropriate object is created for use.
@@ -327,26 +426,20 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        response : requests.Response
+        response : httpx.Response
             Response object received from the API.
         response_type : str
             String name of the class represented.
 
         Examples
         --------
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
-        ... api_response = requests.Response()
-        ... api_response._content = b"{'key': 'value'}"
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        ... api_response = httpx.Response(200, content=b'{"key": "value"}')
         ... client.deserialize(api_response, 'Dict[str, str]]')
         {'key': 'value'}
 
-        >>> client = ApiClient(requests.Session(),
-        ...                    'http://my-api.com/API/v1.svc',
-        ...                    SessionConfiguration())
-        ... api_response = requests.Response()
-        ... api_response._content = b"'2015-10-21T10:05:10'"
+        >>> client = ApiClient(httpx.Client(), 'http://my-api.com/API/v1.svc', SessionConfiguration())
+        ... api_response = httpx.Response(200, content=b"'2015-10-21T10:05:10'")
         ... client.deserialize(api_response, 'datetime.datetime')
         datetime.datetime(2015, 10, 21, 10, 5, 10)
         """
@@ -371,7 +464,7 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        data : Union[dict, list, str]
+        data : dict | list | str
             Response data to deserialize.
         klass_name : str
             Type of object to deserialize the data to. The type can be a:
@@ -445,19 +538,18 @@ class ApiClient(ApiClientBase):
         self,
         resource_path: str,
         method: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        header_params: Union[Dict[str, Union[str, int]], None] = None,
-        body: Optional[DeserializedType] = None,
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
-        response_type: Optional[str] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
-        _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: DeserializedType | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
         """Make the HTTP request and return the deserialized data.
 
         Parameters
@@ -466,35 +558,31 @@ class ApiClient(ApiClientBase):
             Path to the method endpoint, relative to the base URL.
         method : str
             HTTP method verb to call.
-        path_params : Union[Dict[str, Union[str, int]], List[Tuple]]
+        path_params : dict[str, str | int] | list[tuple[Any, ...]]
             Path parameters to pass in the URL.
-        query_params : Union[Dict[str, Union[str, int]], List[Tuple]]
+        query_params : dict[str, str | int] | list[tuple[Any, ...]]
             Query parameters to pass in the URL.
-        header_params : Union[Dict[str, Union[str, int]], List[Tuple]]
+        header_params : dict[str, str | int] | list[tuple[Any, ...]]
             Header parameters to place in the request header.
         body : :obj:`.DeserializedType`
             Request body.
-        post_params : Optional[List[Tuple[str, Union[str, bytes, IO]]]]
+        post_params : list[tuple[str, str | bytes | IO]] | None
             Request POST form parameters for ``application/x-www-form-urlencoded`` and ``multipart/form-data``.
         response_type : str, optional
             Expected response data type.
-        files : Optional[Mapping[str, Union[str, bytes, IO]]]
+        files : Mapping[str, str | bytes | IO] | None
             Dictionary of the file name and path for ``multipart/form-data``.
         _return_http_data_only : bool, optional
             Whether to return response data without head status code and headers. The default
             is ``False``.
-        collection_formats : Dict[str, str]
+        collection_formats : dict[str, str]
             Collection format name for path, query, header, and post parameters. This parameter maps the
             parameter name to the collection type.
-        _preload_content : bool, optional
-            Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case response data is read or decoded. If ``False``, response data is not
-            read or decoded.
-        _request_timeout : Union[float, Tuple[float, float], None]
+        _request_timeout : float | tuple[float, float] | None
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
-        response_type_map : Dict[int, Union[str, None]]
+        response_type_map : dict[int, str | None]
             Dictionary of response status codes and response types for response deserialization. If provided, has
             precedence over response_type.
         """
@@ -510,24 +598,65 @@ class ApiClient(ApiClientBase):
             response_type,
             _return_http_data_only,
             collection_formats,
-            _preload_content,
             _request_timeout,
             response_type_map,
         )
+
+    @staticmethod
+    def _url_with_query_string(url: str, query_params: str | None) -> str:
+        """
+        Merge an additional ``application/x-www-form-urlencoded`` query string into ``url``.
+
+        Uses :class:`httpx.URL` and :method:`httpx.URL.copy_merge_params` to ensure that the behaviour is consistent
+        with RFC-3986.
+        """
+        if not query_params:
+            return url
+        return str(httpx.URL(url).copy_merge_params(query_params))
+
+    @staticmethod
+    def _prepare_httpx_request_args(
+        url: str,
+        query_params: str | None,
+        headers: dict | None,
+        post_params: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None,
+        body: Any | None,
+        _request_timeout: float | tuple[float, float] | None,
+    ) -> tuple[str, dict[str, Any], dict[str, Any]]:
+        url_effective = ApiClient._url_with_query_string(url, query_params)
+        kw: dict[str, Any] = {
+            "headers": headers,
+            "timeout": _request_timeout,
+        }
+        body_kw: dict[str, Any] = {}
+        if post_params is not None:
+            body_kw["files"] = post_params
+        if body is not None:
+            if post_params is not None:
+                if isinstance(body, str):
+                    body_kw["content"] = body.encode("utf-8")
+                elif isinstance(body, bytes):
+                    body_kw["content"] = body
+                else:
+                    body_kw["data"] = body
+            elif isinstance(body, bytes):
+                body_kw["content"] = body
+            elif isinstance(body, str):
+                body_kw["content"] = body.encode("utf-8")
+            else:
+                body_kw["data"] = body
+        return url_effective, kw, body_kw
 
     def request(
         self,
         method: str,
         url: str,
-        query_params: Optional[str] = None,
-        headers: Optional[Dict] = None,
-        post_params: Optional[
-            Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]
-        ] = None,
-        body: Optional[Any] = None,
-        _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
-    ) -> requests.Response:
+        query_params: str | None = None,
+        headers: dict | None = None,
+        post_params: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None = None,
+        body: Any | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+    ) -> httpx.Response:
         """Make the HTTP request and return it directly.
 
         Parameters
@@ -538,106 +667,61 @@ class ApiClient(ApiClientBase):
             Absolute URL of the target endpoint, including any path and query parameters.
         query_params : str
             Query parameters to pass in the URL.
-        headers : Dict
+        headers : dict
             Headers to attach to the request.
-        post_params : Optional[Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]]
+        post_params : Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None
             Request post form parameters for ``multipart/form-data``.
         body : :obj:`.SerializedType`
             Request body.
-        _preload_content : bool, optional
-            Whether to return the underlying response without reading or decoding response data. The default
-            is ``True``, in which case the response data is read or decoded.  If ``False``, the response
-            data is not read or decoded.
-        _request_timeout : Union[float, Tuple[float, float], None]
+        _request_timeout : float | tuple[float, float] | None
             Timeout setting for the request. If only one number is provided, it is used as a total request timeout.
             It can also be a pair (tuple) of (connection, read) timeouts. This parameter overrides the session-level
             timeout setting.
         """
+        rc = self.rest_client
+        if not isinstance(rc, httpx.Client):
+            raise TypeError("ApiClient requires an httpx.Client instance.")
+        url_effective, kw, body_kw = self._prepare_httpx_request_args(
+            url, query_params, headers, post_params, body, _request_timeout
+        )
         if method == "GET":
-            return self.rest_client.get(
-                url,
-                params=query_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                headers=headers,
+            return rc.get(url_effective, **kw)
+        if method == "HEAD":
+            return rc.head(url_effective, **kw)
+        if method == "OPTIONS":
+            return rc.request(
+                "OPTIONS",
+                url_effective,
+                **kw,
+                **body_kw,
             )
-        elif method == "HEAD":
-            return self.rest_client.head(
-                url,
-                params=query_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                headers=headers,
-            )
-        elif method == "OPTIONS":
-            return self.rest_client.options(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "POST":
-            return self.rest_client.post(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "PUT":
-            return self.rest_client.put(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "PATCH":
-            return self.rest_client.patch(
-                url,
-                params=query_params,
-                headers=headers,
-                files=post_params,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        elif method == "DELETE":
-            return self.rest_client.delete(
-                url,
-                params=query_params,
-                headers=headers,
-                stream=_preload_content,
-                timeout=_request_timeout,
-                data=body,
-            )
-        else:
-            raise ValueError(
-                "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
-            )
+        if method == "POST":
+            return rc.post(url_effective, **kw, **body_kw)
+        if method == "PUT":
+            return rc.put(url_effective, **kw, **body_kw)
+        if method == "PATCH":
+            return rc.patch(url_effective, **kw, **body_kw)
+        if method == "DELETE":
+            return rc.request("DELETE", url_effective, **kw, **body_kw)
+        raise ValueError(
+            "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
+        )
 
     @staticmethod
     def parameters_to_tuples(
-        params: Union[Dict, List[Tuple]], collection_formats: Optional[Dict[str, str]]
-    ) -> List[Tuple[Any, Any]]:
+        params: dict | list[tuple[Any, ...]], collection_formats: dict[str, str] | None
+    ) -> list[tuple[Any, Any]]:
         """Get parameters as a list of tuples, formatting collections.
 
         Parameters
         ----------
-        params : Union[Dict, List[Tuple]]
+        params : dict | list[tuple[Any, ...]]
             Parameters for the request, either a dictionary with a name and value or a list
             of tuples with names and values.
-        collection_formats : Dict[str, str]
+        collection_formats : dict[str, str]
             Dictionary with a parameter name and collection type specifier.
         """
-        new_params: List[Tuple[Any, Any]] = []
+        new_params: list[tuple[Any, Any]] = []
         if collection_formats is None:
             collection_formats = {}
         for k, v in params.items() if isinstance(params, dict) else params:
@@ -661,24 +745,22 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def prepare_post_parameters(
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[
-            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
-        ] = None,
-    ) -> Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]:
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any] | Iterable[str | bytes | IO[Any]]] | None = None,
+    ) -> Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]]:
         """Build form parameters.
 
         This method combines plain form parameters and file parameters into a structure suitable for transmission.
 
         Parameters
         ----------
-        post_params : Optional[List[Tuple[str, Union[str, bytes]]]]
+        post_params : list[tuple[str, str | bytes]] | None
             Plain form parameters.
-        files : Optional[Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]]
+        files : Mapping[str, str | bytes | IO[Any] | Iterable[str | bytes | IO[Any]]] | None
             File parameters. Each value may be a file path (``str`` or ``bytes``), an open
             file-like object (``IO``), or an iterable of any combination thereof.
         """
-        params: List[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]] = []
+        params: list[tuple[str, str | bytes | tuple[str, str | bytes, str]]] = []
 
         if post_params:
             params.extend(post_params)
@@ -692,11 +774,11 @@ class ApiClient(ApiClientBase):
                 )
                 for file_name_or_content in file_names_or_contents:
                     if hasattr(file_name_or_content, "read"):
-                        file_content = cast(IO, file_name_or_content)
+                        file_content = cast(IO[Any], file_name_or_content)
                         param = ApiClient._process_file(file_content)
                         params.append((parameter, param))
                     else:
-                        file_name = cast(Union[str, bytes], file_name_or_content)
+                        file_name = cast(str | bytes, file_name_or_content)
                         with open(file_name, "rb") as f:
                             param = ApiClient._process_file(f)
                             params.append((parameter, param))
@@ -704,19 +786,19 @@ class ApiClient(ApiClientBase):
         return params
 
     @staticmethod
-    def _process_file(fp: IO) -> Tuple[str, Union[str, bytes], str]:
+    def _process_file(fp: IO[Any]) -> tuple[str, str | bytes, str]:
         filename = os.path.basename(fp.name)
         file_data = fp.read()
         mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
         return filename, file_data, mimetype
 
     @staticmethod
-    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
+    def select_header_accept(accepts: list[str] | None) -> str | None:
         """Return a correctly formatted ``Accept`` header value from the provided array of accepted content types.
 
         Parameters
         ----------
-        accepts : List[str], optional
+        accepts : list[str], optional
             List of accepted content types.
 
         Examples
@@ -732,12 +814,12 @@ class ApiClient(ApiClientBase):
         return ", ".join(accepts)
 
     @staticmethod
-    def select_header_content_type(content_types: Optional[List[str]]) -> str:
+    def select_header_content_type(content_types: list[str] | None) -> str:
         """Return the preferred ``Content-Type`` header value from the provided array of valid content types.
 
         Parameters
         ----------
-        content_types : List[str], optional
+        content_types : list[str], optional
             List of content types.
 
         Notes
@@ -765,7 +847,7 @@ class ApiClient(ApiClientBase):
         else:
             return content_types[0]
 
-    def __deserialize_file(self, response: requests.Response) -> str:
+    def __deserialize_file(self, response: httpx.Response) -> str:
         """Deserialize the body to a file.
 
         This method saves the response body in a file in a temporary folder,
@@ -773,7 +855,7 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        response : requests.Response
+        response : httpx.Response
             The API response object to deserialize.
         """
         fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
@@ -802,9 +884,9 @@ class ApiClient(ApiClientBase):
 
         Parameters
         ----------
-        data : Union[str, int, float, bool, bytes]
+        data : str | int | float | bool | bytes
             Data to deserialize into the primitive type.
-        klass : Type
+        klass : type
             Type of target object for deserialization.
         """
         try:
@@ -860,15 +942,15 @@ class ApiClient(ApiClientBase):
             )
 
     def __deserialize_model(
-        self, data: Union[Dict, str], klass: Type[ModelBase]
-    ) -> Union[ModelBase, Dict, str]:
+        self, data: dict | str, klass: type[ModelBase]
+    ) -> ModelBase | dict | str:
         """Deserialize model representation to model.
 
         Given a model type and the serialized data, deserialize into an instance of the model class.
 
         Parameters
         ----------
-        data : Union[Dict, str]
+        data : dict | str
             Serialized representation of the model object.
         klass : ModelType
             Type of the model to deserialize.
@@ -910,3 +992,257 @@ class ApiClient(ApiClientBase):
             pass
 
         return instance
+
+
+class AsyncApiClient(ApiClient):
+    """OpenAPI API client that performs HTTP I/O with :class:`httpx.AsyncClient`.
+
+    Build an async client with :func:`~.create_async_httpx_client_from_session_configuration`
+    (optionally passing a finalized sync client to reuse headers, cookies, and auth).
+
+    Notes
+    -----
+    Use :meth:`acall_api` / :meth:`arequest` and ``await aclose()``, or the asynchronous
+    context manager for lifecycle management.
+
+    Raises
+    ------
+    TypeError
+        If synchronous :meth:`~ApiClient.call_api`, :meth:`~ApiClient.request`,
+        :meth:`~ApiClient.close`, or synchronous ``with`` is used instead of the async
+        counterparts (:meth:`acall_api`, :meth:`arequest`, :meth:`aclose`, ``async with``).
+    """
+
+    def close(self) -> None:
+        """Disallow synchronous close; use :meth:`aclose` instead.
+
+        Raises
+        ------
+        TypeError
+            Always. The async client must be closed with ``await aclose()`` or
+            ``async with AsyncApiClient(...)``.
+        """
+        raise TypeError(
+            "AsyncApiClient must be closed with await aclose() or 'async with AsyncApiClient(...)'."
+        )
+
+    def __enter__(self) -> NoReturn:
+        """Disallow synchronous ``with``; use ``async with``.
+
+        Raises
+        ------
+        TypeError
+            Always. Use ``async with AsyncApiClient(...)``.
+        """
+        raise TypeError("Use 'async with AsyncApiClient(...)' instead of synchronous 'with'.")
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        """Disallow synchronous ``with``; use ``async with``.
+
+        Raises
+        ------
+        TypeError
+            Always. Use ``async with AsyncApiClient(...)``.
+        """
+        raise TypeError("Use 'async with AsyncApiClient(...)' instead of synchronous 'with'.")
+
+    async def __aenter__(self) -> "AsyncApiClient":
+        """Return this client for use in ``async with``."""
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        """Close the HTTP client when leaving ``async with``."""
+        await self.aclose()
+
+    async def aclose(self) -> None:
+        """Close the underlying async HTTP client and any distinct auth helper clients.
+
+        Raises
+        ------
+        TypeError
+            If ``rest_client`` is not an :class:`~httpx.AsyncClient`.
+        """
+        if self._closed:
+            return
+        self._closed = True
+        rc = self.rest_client
+        if not isinstance(rc, httpx.AsyncClient):
+            raise TypeError("AsyncApiClient requires an httpx.AsyncClient instance.")
+        await _aclose_distinct_httpx_auth_clients(rc)
+        await rc.aclose()
+
+    def call_api(
+        self,
+        resource_path: str,
+        method: str,
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: DeserializedType | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
+        """Disallow synchronous OpenAPI calls.
+
+        Raises
+        ------
+        TypeError
+            Always. Use :meth:`acall_api` instead.
+        """
+        raise TypeError("Use await acall_api(...) for async OpenAPI calls.")
+
+    def request(
+        self,
+        method: str,
+        url: str,
+        query_params: str | None = None,
+        headers: dict | None = None,
+        post_params: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None = None,
+        body: Any | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+    ) -> httpx.Response:
+        """Disallow synchronous HTTP requests.
+
+        Raises
+        ------
+        TypeError
+            Always. Use :meth:`arequest` instead.
+        """
+        raise TypeError("Use await arequest(...) for async HTTP.")
+
+    async def arequest(
+        self,
+        method: str,
+        url: str,
+        query_params: str | None = None,
+        headers: dict | None = None,
+        post_params: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None = None,
+        body: Any | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+    ) -> httpx.Response:
+        """Make an asynchronous HTTP request and return the response.
+
+        Raises
+        ------
+        TypeError
+            If ``rest_client`` is not an :class:`~httpx.AsyncClient`.
+        ValueError
+            If ``method`` is not one of the supported HTTP verbs (see :meth:`ApiClient.request`).
+        """
+        rc = self.rest_client
+        if not isinstance(rc, httpx.AsyncClient):
+            raise TypeError("AsyncApiClient requires an httpx.AsyncClient instance.")
+        url_effective, kw, body_kw = self._prepare_httpx_request_args(
+            url, query_params, headers, post_params, body, _request_timeout
+        )
+        if method == "GET":
+            return await rc.get(url_effective, **kw)
+        if method == "HEAD":
+            return await rc.head(url_effective, **kw)
+        if method == "OPTIONS":
+            return await rc.request(
+                "OPTIONS",
+                url_effective,
+                **kw,
+                **body_kw,
+            )
+        if method == "POST":
+            return await rc.post(url_effective, **kw, **body_kw)
+        if method == "PUT":
+            return await rc.put(url_effective, **kw, **body_kw)
+        if method == "PATCH":
+            return await rc.patch(url_effective, **kw, **body_kw)
+        if method == "DELETE":
+            return await rc.request("DELETE", url_effective, **kw, **body_kw)
+        raise ValueError(
+            "http method must be `GET`, `HEAD`, `OPTIONS`, `POST`, `PATCH`, `PUT`, or `DELETE`."
+        )
+
+    async def acall_api(
+        self,
+        resource_path: str,
+        method: str,
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: DeserializedType | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
+        """Async counterpart of :meth:`ApiClient.call_api`."""
+        return await self.__acall_api(
+            resource_path,
+            method,
+            path_params,
+            query_params,
+            header_params,
+            body,
+            post_params,
+            files,
+            response_type,
+            _return_http_data_only,
+            collection_formats,
+            _request_timeout,
+            response_type_map,
+        )
+
+    async def __acall_api(
+        self,
+        resource_path: str,
+        method: str,
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any] | Iterable[str | bytes | IO[Any]]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
+        parts = self._build_call_request_parts(
+            resource_path,
+            method,
+            path_params,
+            query_params,
+            header_params,
+            body,
+            post_params,
+            files,
+            collection_formats,
+            _request_timeout,
+        )
+        response_data = await self.arequest(
+            parts.method,
+            parts.url,
+            query_params=parts.query_params_str,
+            headers=parts.header_params,
+            post_params=parts.post_params,
+            body=parts.body,
+            _request_timeout=parts.request_timeout,
+        )
+        return self._finish_call_api(
+            response_data, response_type, _return_http_data_only, response_type_map
+        )

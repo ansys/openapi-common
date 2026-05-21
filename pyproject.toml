@@ -37,11 +37,11 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "requests>=2.26",
-  "requests-negotiate-sspi>=0.5.2,<0.6; sys_platform == 'win32'",
-  "requests-ntlm>=1.1,<2.0",
   "pyparsing>=3.2,<3.4",
   "python-dateutil>=2.9",
+  "httpx>=0.27",
+  "httpx-ntlm>=1.4.0",
+  "httpx-negotiate-sspi>=0.28,<0.29; sys_platform == 'win32'",
 ]
 
 [dependency-groups]
@@ -51,13 +51,12 @@ dev = [
     "uvicorn",
     "fastapi",
     "pydantic",
-    "requests-mock",
+    "pytest-httpx>=0.35",
     "pytest-mock",
     "covertable",
     "mypy>=1.8.0",
-    "types-requests",
     "types-python-dateutil",
-    "requests_auth",
+    "httpx-auth>=0.22",
     "keyring",
     "sphinx-design>=0.6.0"
 ]
@@ -75,11 +74,14 @@ dev-linux = [
 
 [project.optional-dependencies]
 oidc = [
-  "requests_auth>=8.0.0,<9.0.0",
-  "keyring>=22,<26"
+  "httpx-auth>=0.22",
+  "keyring>=22,<26",
 ]
+# GSSAPI/Kerberos via python-gssapi is Linux-oriented. Windows Negotiate uses SSPI:
+# ``httpx-negotiate-sspi``; do not add ``httpx-gssapi`` for win32.
+# Validation: optional Negotiate integration tests (Linux) and manual SSPI checks (Windows).
 linux-kerberos = [
-  "requests-kerberos>=0.13,<0.16; sys_platform == 'linux'"
+  "httpx-gssapi>=0.6,<0.7; sys_platform == 'linux'"
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -113,6 +115,13 @@ xfail_strict = true
 [tool.pydocstyle]
 convention = "numpy"
 
+# Bandit (e.g. Codacy): skip B101 in pytest code.
+[tool.bandit.assert_used]
+skips = [
+    "*test_*.py",
+    "*_test.py"
+]
+
 [tool.mypy]
 warn_return_any = true
 warn_unused_configs = true
@@ -127,6 +136,21 @@ explicit_package_bases = true
 mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
 namespace_packages = true
 
+# Third-party auth: optional Linux extras and untyped packages. Suppressing only
+# ``import-untyped`` in the modules that import them keeps Windows CI (and
+# ``warn_unused_ignores``) stable without ``# type: ignore`` on each import line.
+[[tool.mypy.overrides]]
+module = "httpx_gssapi"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "ansys.openapi.common._session"
+disable_error_code = ["import-untyped"]
+
+[[tool.mypy.overrides]]
+module = "ansys.openapi.common._oidc"
+disable_error_code = ["import-untyped"]
+
 [tool.towncrier]
 package = "ansys.openapi.common"
 directory = "doc/changelog.d"
@@ -137,13 +161,13 @@ title_format = "`{version} <https://github.com/ansys/openapi-common/releases/tag
 issue_format = "`#{issue} <https://github.com/ansys/openapi-common/pull/{issue}>`_"
 
 [[tool.towncrier.type]]
-directory = "added"
-name = "Added"
+directory = "breaking"
+name = "Breaking"
 showcontent = true
 
 [[tool.towncrier.type]]
-directory = "changed"
-name = "Changed"
+directory = "added"
+name = "Added"
 showcontent = true
 
 [[tool.towncrier.type]]
@@ -152,18 +176,13 @@ name = "Fixed"
 showcontent = true
 
 [[tool.towncrier.type]]
-directory = "dependencies"
-name = "Dependencies"
-showcontent = true
-
-[[tool.towncrier.type]]
-directory = "miscellaneous"
-name = "Miscellaneous"
-showcontent = true
-
-[[tool.towncrier.type]]
 directory = "documentation"
 name = "Documentation"
+showcontent = true
+
+[[tool.towncrier.type]]
+directory = "dependencies"
+name = "Dependencies"
 showcontent = true
 
 [[tool.towncrier.type]]
@@ -172,6 +191,17 @@ name = "Maintenance"
 showcontent = true
 
 [[tool.towncrier.type]]
+directory = "miscellaneous"
+name = "Miscellaneous"
+showcontent = true
+
+[[tool.towncrier.type]]
 directory = "test"
 name = "Test"
 showcontent = true
+
+[[tool.towncrier.type]]
+directory = "changed"
+name = "Changed"
+showcontent = true
+

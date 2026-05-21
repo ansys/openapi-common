@@ -20,14 +20,27 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
-from requests.structures import CaseInsensitiveDict
+from ._case_insensitive_dict import CaseInsensitiveDict
 
 if TYPE_CHECKING:
-    import requests
+    import httpx
 
     from ansys.openapi.common._base._types import DeserializedType
+
+
+def _response_url(response: "httpx.Response") -> str:
+    url = getattr(response, "url", "")
+    return str(url)
+
+
+def _response_reason(response: "httpx.Response") -> str:
+    return response.reason_phrase
+
+
+def _response_headers_for_exception(response: "httpx.Response") -> CaseInsensitiveDict:
+    return CaseInsensitiveDict(dict(response.headers))
 
 
 class ApiConnectionException(Exception):
@@ -38,12 +51,15 @@ class ApiConnectionException(Exception):
 
     Parameters
     ----------
-    response : requests.Response
+    response : httpx.Response
         Response from the server.
     """
 
-    def __init__(self, response: "requests.Response"):
-        exception_message = f"Request url '{response.url}' failed with reason {response.status_code}: {response.reason}."
+    def __init__(self, response: "httpx.Response"):
+        exception_message = (
+            f"Request url '{_response_url(response)}' failed with reason "
+            f"{response.status_code}: {_response_reason(response)}."
+        )
         if response.text:
             exception_message += f"\n{response.text}"
         super().__init__(exception_message)
@@ -94,17 +110,17 @@ class ApiException(Exception):
 
     status_code: int
     reason_phrase: str
-    body: Optional[str]
+    body: str | None
     exception_model: "DeserializedType"
-    headers: Optional[CaseInsensitiveDict]
+    headers: CaseInsensitiveDict | None
 
     def __init__(
         self,
         status_code: int,
         reason_phrase: str,
-        body: Optional[str] = None,
+        body: str | None = None,
         exception_model: "DeserializedType" = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        headers: CaseInsensitiveDict | None = None,
     ):
         self.status_code = status_code
         self.reason_phrase = reason_phrase
@@ -114,15 +130,17 @@ class ApiException(Exception):
 
     @classmethod
     def from_response(
-        cls, http_response: "requests.Response", exception_model: "DeserializedType" = None
+        cls,
+        http_response: "httpx.Response",
+        exception_model: "DeserializedType" = None,
     ) -> "ApiException":
-        """Initialize object from a requests.Response object."""
+        """Initialize object from an HTTP response object."""
         new = cls(
             status_code=http_response.status_code,
-            reason_phrase=http_response.reason,
+            reason_phrase=_response_reason(http_response),
             body=http_response.text,
             exception_model=exception_model,
-            headers=http_response.headers,
+            headers=_response_headers_for_exception(http_response),
         )
         return new
 

@@ -58,7 +58,7 @@ class TestMissingExtras:
             return self.real_import(name, *args)
 
     def test_create_oidc_with_no_extra_throws(self, mocker):
-        self.blocked_import = "requests_auth"
+        self.blocked_import = "httpx_auth"
         mocker.patch("builtins.__import__", side_effect=self.mocked_import)
 
         from ansys.openapi.common import ApiClientFactory
@@ -71,7 +71,7 @@ class TestMissingExtras:
 
     @pytest.mark.skipif(os.name == "nt", reason="Test only applies to linux")
     def test_create_autologon_on_linux_with_no_extra_throws(self, mocker):
-        self.blocked_import = "requests_kerberos"
+        self.blocked_import = "httpx_gssapi"
         mocker.patch("builtins.__import__", side_effect=self.mocked_import)
 
         from ansys.openapi.common import ApiClientFactory

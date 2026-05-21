@@ -22,12 +22,13 @@
 
 import uuid
 
+import httpx
 import pytest
-import requests
-from requests.utils import CaseInsensitiveDict
-from requests_mock import Mocker
-
-from ansys.openapi.common import ApiConnectionException, ApiException
+from ansys.openapi.common import (
+    ApiConnectionException,
+    ApiException,
+    CaseInsensitiveDict,
+)
 from ansys.openapi.common._exceptions import AuthenticationWarning
 
 
@@ -39,9 +40,12 @@ def test_api_connection_exception_repr():
         "text": "You do not have permission to access this resource",
     }
 
-    with Mocker() as m:
-        m.get(**args)
-        response = requests.get(args["url"])
+    request = httpx.Request("GET", args["url"])
+    response = httpx.Response(
+        args["status_code"],
+        request=request,
+        content=args["text"].encode("utf-8"),
+    )
 
     assert response.status_code == args["status_code"]
     api_connection_exception = ApiConnectionException(response)
@@ -58,7 +62,7 @@ def test_api_exception_repr():
     api_exception = ApiException(status_code, reason_phrase, message)
     exception_repr = api_exception.__repr__()
 
-    exception_from_repr = eval(exception_repr)
+    exception_from_repr = eval(exception_repr)  # nosec B307
     assert isinstance(exception_from_repr, ApiException)
     assert exception_from_repr.status_code == api_exception.status_code
     assert exception_from_repr.reason_phrase == api_exception.reason_phrase
@@ -71,7 +75,7 @@ def test_authentication_warning():
     authentication_warning = AuthenticationWarning(message)
     warning_repr = authentication_warning.__repr__()
 
-    warning_from_repr = eval(warning_repr)
+    warning_from_repr = eval(warning_repr)  # nosec B307
     assert isinstance(warning_from_repr, AuthenticationWarning)
     assert warning_from_repr.message == authentication_warning.message
 

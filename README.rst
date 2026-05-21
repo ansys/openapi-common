@@ -51,7 +51,7 @@ APIs, this Python library provides a common client to consume
 HTTP APIs, minimizing overhead and reducing code duplication.
 
 OpenAPI-Common supports authentication with Basic, Negotiate, NTLM,
-and OpenID Connect. Most features of the underlying requests session
+and OpenID Connect. Most features of the underlying ``httpx`` client
 are exposed for use. Some basic configuration is also provided by default.
 
 Dependencies
