@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from ._case_insensitive_dict import CaseInsensitiveDict
 
@@ -110,17 +110,17 @@ class ApiException(Exception):
 
     status_code: int
     reason_phrase: str
-    body: Optional[str]
+    body: str | None
     exception_model: "DeserializedType"
-    headers: Optional[CaseInsensitiveDict]
+    headers: CaseInsensitiveDict | None
 
     def __init__(
         self,
         status_code: int,
         reason_phrase: str,
-        body: Optional[str] = None,
+        body: str | None = None,
         exception_model: "DeserializedType" = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        headers: CaseInsensitiveDict | None = None,
     ):
         self.status_code = status_code
         self.reason_phrase = reason_phrase

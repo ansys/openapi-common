@@ -22,6 +22,9 @@
 
 """Tests for :class:`~ansys.openapi.common.AsyncApiClient` and async client factory."""
 
+# PEP 563 postponed annotations — safe to drop when the project's minimum Python
+# evaluates annotations lazily by default; confirm PEP 649 / release notes before
+# removing ``from __future__ import annotations``.
 from __future__ import annotations
 
 import asyncio

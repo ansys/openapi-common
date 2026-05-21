@@ -21,7 +21,7 @@
 # SOFTWARE.
 
 import urllib.parse
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import keyring
@@ -79,8 +79,8 @@ class OIDCSessionFactory:
     def __init__(
         self,
         initial_response: httpx.Response,
-        api_session_configuration: Optional[SessionConfiguration] = None,
-        idp_session_configuration: Optional[SessionConfiguration] = None,
+        api_session_configuration: SessionConfiguration | None = None,
+        idp_session_configuration: SessionConfiguration | None = None,
     ) -> None:
         self._api_url = str(initial_response.url)
 

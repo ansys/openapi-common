@@ -50,18 +50,21 @@ Retry behaviour is not duplicated at the httpcore connection-pool level: leave p
 ``retries`` at 0 and control retries only through these transports.
 """
 
+# PEP 563 postponed annotations — safe to drop when the project's minimum Python
+# evaluates annotations lazily by default; confirm PEP 649 / release notes before
+# removing ``from __future__ import annotations``.
 from __future__ import annotations
 
 import asyncio
 import time
-from typing import Any, Collection, FrozenSet
+from typing import Any, Collection
 
 import httpx
 
 from ._logger import logger
 
-_DEFAULT_RETRY_STATUSES: FrozenSet[int] = frozenset({400, 429, 500, 502, 503, 504})
-_DEFAULT_RETRY_METHODS: FrozenSet[str] = frozenset(
+_DEFAULT_RETRY_STATUSES: frozenset[int] = frozenset({400, 429, 500, 502, 503, 504})
+_DEFAULT_RETRY_METHODS: frozenset[str] = frozenset(
     {"DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT"}
 )
 

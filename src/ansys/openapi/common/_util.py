@@ -28,12 +28,7 @@ import urllib.parse
 from typing import (
     Any,
     Collection,
-    Dict,
-    List,
-    Optional,
-    Tuple,
     TypedDict,
-    Union,
     cast,
 )
 
@@ -74,11 +69,11 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         """Override __delitem__ to delete lower-case key."""
         return super().__delitem__(k.lower())
 
-    def get(self, k: str, default: Optional[Any] = None) -> Any:
+    def get(self, k: str, default: Any = None) -> Any:
         """Override get to retrieve lower-case key."""
         return super().get(k.lower(), default)
 
-    def setdefault(self, k: str, default: Optional[Any] = None) -> Any:
+    def setdefault(self, k: str, default: Any = None) -> Any:
         """Override setdefault to use lower-case key."""
         return super().setdefault(k.lower(), default)
 
@@ -105,7 +100,7 @@ class CaseInsensitiveOrderedDict(OrderedDict):
     def fromkeys(
         cls,
         keys: Collection[str],
-        v: Optional[Any] = None,
+        v: Any = None,
     ) -> "CaseInsensitiveOrderedDict":
         """Override fromkeys to use lower-case keys."""
         return cast("CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v))
@@ -123,7 +118,7 @@ class Singleton(type):
     class will fetch the existing instance, rather than creating a new one.
     """
 
-    _instances: Dict[type, object] = {}
+    _instances: dict[type, object] = {}
 
     def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         """Invoke when calling this object."""
@@ -178,8 +173,8 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
     @staticmethod
     def _render_options(
-        scheme: List[Union[str, List[str]]],
-    ) -> Optional[Union[str, CaseInsensitiveOrderedDict]]:
+        scheme: list[Any],
+    ) -> str | CaseInsensitiveOrderedDict | None:
         if len(scheme) == 1:
             return None
         if isinstance(scheme[1], str):
@@ -229,10 +224,10 @@ class TransportConfiguration(TypedDict):
     These keys feed :func:`httpx_client_init_kwargs` for ``httpx.Client`` construction.
     """
 
-    cert: Union[None, str, Tuple[str, str]]
-    verify: Union[None, str, bool]
+    cert: str | tuple[str, str] | None
+    verify: str | bool | None
     cookies: http.cookiejar.CookieJar
-    proxy_url: Optional[str]
+    proxy_url: str | None
     headers: CaseInsensitiveDict
     max_redirects: int
 
@@ -311,15 +306,15 @@ class SessionConfiguration:
 
     def __init__(
         self,
-        client_cert_path: Optional[str] = None,
-        client_cert_key: Optional[str] = None,
-        cookies: Optional[http.cookiejar.CookieJar] = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        client_cert_path: str | None = None,
+        client_cert_key: str | None = None,
+        cookies: http.cookiejar.CookieJar | None = None,
+        headers: CaseInsensitiveDict | None = None,
         max_redirects: int = 10,
-        proxy_url: Optional[str] = None,
+        proxy_url: str | None = None,
         verify_ssl: bool = True,
-        cert_store_path: Optional[str] = None,
-        temp_folder_path: Optional[str] = None,
+        cert_store_path: str | None = None,
+        temp_folder_path: str | None = None,
         debug: bool = False,
         safe_chars_for_path_param: str = "",
         retry_count: int = 3,
@@ -340,7 +335,7 @@ class SessionConfiguration:
         self.request_timeout = request_timeout
 
     @property
-    def _cert(self) -> Union[None, str, Tuple[str, str]]:
+    def _cert(self) -> str | tuple[str, str] | None:
         if self.client_cert_path is None:
             return None
         elif self.client_cert_key is None:
@@ -349,7 +344,7 @@ class SessionConfiguration:
             return self.client_cert_path, self.client_cert_key
 
     @property
-    def _verify(self) -> Union[None, bool, str]:
+    def _verify(self) -> bool | str | None:
         if self.cert_store_path is None:
             return self.verify_ssl
         else:
@@ -419,7 +414,7 @@ class SessionConfiguration:
 def create_httpx_client_from_session_configuration(
     session_configuration: SessionConfiguration,
     *,
-    mount_scheme_url: Optional[str] = None,
+    mount_scheme_url: str | None = None,
 ) -> httpx.Client:
     """Create a synchronous :class:`httpx.Client` from a :class:`SessionConfiguration`.
 
@@ -486,8 +481,8 @@ def create_httpx_client_from_session_configuration(
 def create_async_httpx_client_from_session_configuration(
     session_configuration: SessionConfiguration,
     *,
-    mount_scheme_url: Optional[str] = None,
-    sync_client: Optional[httpx.Client] = None,
+    mount_scheme_url: str | None = None,
+    sync_client: httpx.Client | None = None,
 ) -> httpx.AsyncClient:
     """Create an asynchronous :class:`httpx.AsyncClient` from a :class:`SessionConfiguration`.
 

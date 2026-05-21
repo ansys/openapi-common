@@ -22,6 +22,9 @@
 
 """Process-spawn helpers for integration tests that need a real uvicorn server."""
 
+# PEP 563 postponed annotations — safe to drop when the project's minimum Python
+# evaluates annotations lazily by default; confirm PEP 649 / release notes before
+# removing ``from __future__ import annotations``.
 from __future__ import annotations
 
 from collections.abc import Callable, Generator

@@ -20,9 +20,19 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# PEP 563: postpone evaluating annotations. Required here because
+# ``OIDCSessionFactory`` is only defined when the optional OIDC extra imports
+# succeed. Unions like ``OIDCSessionFactory | None`` must not execute at module
+# import in bare environments.
+# Remove this import when ``requires-python`` is high enough that annotations are
+# evaluated lazily by default (monitor PEP 649 / CPython release notes), or when
+# this module no longer cites possibly-undefined names (e.g. use only string hints
+# such as ``"OIDCSessionFactory | None"``).
+from __future__ import annotations
+
 from enum import Enum
 import os
-from typing import TYPE_CHECKING, Literal, Optional, TypeVar
+from typing import TYPE_CHECKING, Literal, TypeVar
 from urllib.parse import urlparse, urlunparse
 import warnings
 
@@ -125,7 +135,7 @@ class ApiClientFactory:
     _configured: bool
 
     def __init__(
-        self, api_url: str, session_configuration: Optional[SessionConfiguration] = None
+        self, api_url: str, session_configuration: SessionConfiguration | None = None
     ) -> None:
         self._api_url = api_url
         self._configured = False
@@ -221,7 +231,7 @@ class ApiClientFactory:
         self: Api_Client_Factory,
         username: str,
         password: str,
-        domain: Optional[str] = None,
+        domain: str | None = None,
         authentication_scheme: AuthenticationScheme = AuthenticationScheme.AUTO,
     ) -> Api_Client_Factory:
         """Set up client authentication for use with provided credentials.
@@ -367,7 +377,7 @@ class ApiClientFactory:
 
     def with_oidc(
         self,
-        idp_session_configuration: Optional[SessionConfiguration] = None,
+        idp_session_configuration: SessionConfiguration | None = None,
     ) -> "OIDCSessionBuilder":
         """Set up client authentication for use with OpenID Connect.
 
@@ -429,7 +439,7 @@ class ApiClientFactory:
 
     def __handle_initial_response(
         self, initial_response: httpx.Response
-    ) -> "Optional[ApiClientFactory]":
+    ) -> ApiClientFactory | None:
         """Verify that an initial 401 response is returned if we expect to require authentication.
 
         If a 2XX response is returned, then all is well, but we will not use any authentication in
@@ -505,7 +515,7 @@ class OIDCSessionBuilder:
     def __init__(
         self,
         client_factory: ApiClientFactory,
-        session_factory: "Optional[OIDCSessionFactory]" = None,
+        session_factory: OIDCSessionFactory | None = None,
     ) -> None:
         self._client_factory = client_factory
         self._session_factory = session_factory
