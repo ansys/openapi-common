@@ -27,7 +27,15 @@ from importlib import metadata as metadata
 __version__ = metadata.version("ansys-openapi-common")
 
 from ._api_client import ApiClient, AsyncApiClient
-from ._base import ApiBase, ApiClientBase, ModelBase, Unset, Unset_Type
+from ._base import (
+    ApiBase,
+    AsyncApiBase,
+    ApiClientBase,
+    AsyncApiClientBase,
+    ModelBase,
+    Unset,
+    Unset_Type,
+)
 from ._case_insensitive_dict import CaseInsensitiveDict
 from ._exceptions import (
     ApiConnectionException,
@@ -58,7 +66,9 @@ __all__ = [
     "generate_user_agent",
     "OIDCSessionBuilder",
     "ApiBase",
+    "AsyncApiBase",
     "ApiClientBase",
+    "AsyncApiClientBase",
     "ModelBase",
     "UndefinedObjectWarning",
     "Unset",

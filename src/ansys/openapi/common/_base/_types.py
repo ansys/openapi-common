@@ -24,7 +24,8 @@ import abc
 import datetime
 from enum import Enum
 import pprint
-from typing import Any, Literal, Mapping, TypeAlias, Union
+from collections.abc import Iterable
+from typing import IO, Any, Literal, Mapping, TypeAlias, Union
 
 import httpx
 
@@ -109,6 +110,13 @@ class ApiBase(metaclass=abc.ABCMeta):
         self.api_client = api_client
 
 
+class AsyncApiBase(metaclass=abc.ABCMeta):
+    """Provides a base class for all generated asynchronous API classes."""
+
+    def __init__(self, api_client: "AsyncApiClientBase") -> None:
+        self.api_client = api_client
+
+
 class ApiClientBase(metaclass=abc.ABCMeta):
     """Provides a base class defining the interface that generated client libraries depend upon."""
 
@@ -140,6 +148,56 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         response_type_map: Mapping[int, str | None] | None = None,
     ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
         """Provide method signature for calling the API."""
+
+
+class AsyncApiClientBase(metaclass=abc.ABCMeta):
+    """Defines the async interface that generated asynchronous client libraries depend upon.
+
+    This mirrors :class:`ApiClientBase` but declares :meth:`acall_api` and :meth:`arequest`
+    instead of synchronous HTTP entry points.
+    """
+
+    @staticmethod
+    @abc.abstractmethod
+    def select_header_accept(accepts: list[str] | None) -> str | None:
+        """Provide method signature for determining header priority."""
+
+    @staticmethod
+    @abc.abstractmethod
+    def select_header_content_type(content_types: list[str] | None) -> str:
+        """Provide method signature for determining header priority."""
+
+    @abc.abstractmethod
+    async def arequest(
+        self,
+        method: str,
+        url: str,
+        query_params: str | None = None,
+        headers: dict | None = None,
+        post_params: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None = None,
+        body: Any | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+    ) -> httpx.Response:
+        """Provide method signature for asynchronous HTTP requests."""
+
+    @abc.abstractmethod
+    async def acall_api(
+        self,
+        resource_path: str,
+        method: str,
+        path_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        query_params: dict[str, str | int] | list[tuple[Any, ...]] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: DeserializedType | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO[Any]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> DeserializedType | tuple[DeserializedType, int, httpx.Headers] | None:
+        """Provide method signature for calling the API asynchronously."""
 
 
 class _Unset:

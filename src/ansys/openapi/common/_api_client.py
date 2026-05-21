@@ -35,7 +35,15 @@ import warnings
 from dateutil.parser import parse
 import httpx
 
-from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
+from ._base import (
+    ApiClientBase,
+    AsyncApiClientBase,
+    DeserializedType,
+    ModelBase,
+    PrimitiveType,
+    SerializedType,
+    Unset,
+)
 from ._exceptions import ApiException, UndefinedObjectWarning
 from ._logger import logger
 from ._util import SessionConfiguration
@@ -994,7 +1002,7 @@ class ApiClient(ApiClientBase):
         return instance
 
 
-class AsyncApiClient(ApiClient):
+class AsyncApiClient(ApiClient, AsyncApiClientBase):
     """OpenAPI API client that performs HTTP I/O with :class:`httpx.AsyncClient`.
 
     Build an async client with :func:`~.create_async_httpx_client_from_session_configuration`
