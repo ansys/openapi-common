@@ -27,6 +27,7 @@ from urllib.parse import parse_qs
 from covertable import make
 import pytest
 import requests
+from requests.models import CaseInsensitiveDict
 from requests_auth import OAuth2
 import requests_mock
 
@@ -464,3 +465,152 @@ def test_redirect_uri_from_configuration_is_wired():
         "redirect_uri_port": 1729,
         "redirect_uri_endpoint": "callback",
     }
+
+
+def _unauthorized_oidc_response(api_url: str, authority_url: str) -> requests.Response:
+    response = requests.Response()
+    response.url = api_url
+    response.status_code = 401
+    response.headers["WWW-Authenticate"] = (
+        f'Bearer redirecturi="{REQUIRED_HEADERS["redirecturi"]}", '
+        f'authority="{authority_url}", clientid="{REQUIRED_HEADERS["clientid"]}"'
+    )
+    return response
+
+
+def test_oidc_session_factory_init_delegates_to_unauthorized_response():
+    api_url = "https://api.example.com/v1"
+    authority_url = "https://www.example.com/authority/"
+    response = _unauthorized_oidc_response(api_url, authority_url)
+    well_known_response = json.dumps(
+        {
+            "token_endpoint": f"{authority_url}token",
+            "authorization_endpoint": f"{authority_url}authorization",
+        }
+    )
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{authority_url}.well-known/openid-configuration",
+            status_code=200,
+            text=well_known_response,
+        )
+        initial_session = requests.Session()
+        via_init = OIDCSessionFactory(initial_session, response)
+        via_classmethod = OIDCSessionFactory.from_unauthorized_response(initial_session, response)
+
+        assert via_init._api_url == via_classmethod._api_url
+        assert via_init._oidc_config.client_id == via_classmethod._oidc_config.client_id
+        assert via_init._auth.token_url == via_classmethod._auth.token_url
+
+
+def test_from_configuration_without_client_id_raises():
+    config = OIDCConfiguration(
+        well_known_url="https://idp.example.com/.well-known/openid-configuration"
+    )
+    with pytest.raises(ValueError, match="client_id"):
+        OIDCSessionFactory.from_configuration(
+            "https://api.example.com",
+            config,
+            requests.Session(),
+        )
+
+
+def test_initialize_sessions_uses_default_session_configuration():
+    config = OIDCConfiguration(
+        client_id="client",
+        authorization_endpoint="https://idp.example.com/auth",
+        token_endpoint="https://idp.example.com/token",  # nosec B106
+    )
+    factory = OIDCSessionFactory.from_configuration(
+        "https://api.example.com",
+        config,
+        requests.Session(),
+        api_session_configuration=None,
+        idp_session_configuration=None,
+    )
+
+    assert factory._api_session_configuration["verify"] is True
+    assert factory._idp_session_configuration["headers"]["accept"] == "application/json"
+
+
+def test_oidc_config_from_bearer_accepts_scope_list():
+    bearer_parameters = CaseInsensitiveDict(
+        {
+            **REQUIRED_HEADERS,
+            "scope": ["openid", "offline_access", "profile"],
+        }
+    )
+    config = OIDCSessionFactory._oidc_config_from_bearer(bearer_parameters)
+    assert config.scopes == ["openid", "offline_access", "profile"]
+
+
+def test_oidc_config_from_bearer_maps_api_audience():
+    api_audience = "https://contoso.onmicrosoft.com/api"
+    bearer_parameters = CaseInsensitiveDict({**REQUIRED_HEADERS, "apiAudience": api_audience})
+    config = OIDCSessionFactory._oidc_config_from_bearer(bearer_parameters)
+    assert config.api_audience == api_audience
+
+
+def test_api_audience_is_wired_from_upfront_configuration():
+    api_url = "https://localhost/mi_servicelayer"
+    api_audience = "https://contoso.onmicrosoft.com/api"
+    oidc_configuration = OIDCConfiguration(
+        client_id="client",
+        authorization_endpoint="https://idp.example.com/auth",
+        token_endpoint="https://idp.example.com/token",  # nosec B106
+        api_audience=api_audience,
+        scopes=["openid", "offline_access"],
+    )
+
+    factory = OIDCSessionFactory.from_configuration(api_url, oidc_configuration, requests.Session())
+
+    assert factory._api_session_configuration["headers"]["audience"] == api_audience
+    assert factory._idp_session_configuration["headers"]["audience"] == api_audience
+    assert "audience" not in factory._auth.refresh_data
+
+
+def test_api_audience_is_wired_from_unauthorized_response():
+    api_url = "https://api.example.com/v1"
+    authority_url = "https://www.example.com/authority/"
+    api_audience = "https://api.example.com/audience"
+    response = requests.Response()
+    response.url = api_url
+    response.status_code = 401
+    response.headers["WWW-Authenticate"] = (
+        f'Bearer redirecturi="{REQUIRED_HEADERS["redirecturi"]}", '
+        f'authority="{authority_url}", clientid="{REQUIRED_HEADERS["clientid"]}", '
+        f'apiAudience="{api_audience}"'
+    )
+    well_known_response = json.dumps(
+        {
+            "token_endpoint": f"{authority_url}token",
+            "authorization_endpoint": f"{authority_url}authorization",
+        }
+    )
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            f"{authority_url}.well-known/openid-configuration",
+            status_code=200,
+            text=well_known_response,
+        )
+        factory = OIDCSessionFactory.from_unauthorized_response(requests.Session(), response)
+
+    assert factory._api_session_configuration["headers"]["audience"] == api_audience
+    assert factory._oidc_config.api_audience == api_audience
+
+
+def test_missing_single_well_known_parameter_uses_singular_error_message():
+    parameters = {"authorization_endpoint": WELL_KNOWN_PARAMETERS["authorization_endpoint"]}
+    identity_provider_url = "http://www.example.com/.well-known/openid-configuration"
+    with requests_mock.Mocker() as requests_mocker:
+        requests_mocker.get(
+            identity_provider_url,
+            status_code=200,
+            text=json.dumps(parameters),
+        )
+        mock_factory = Mock()
+        mock_factory._oauth_requests_session = requests.Session()
+        with pytest.raises(ConnectionError, match="Well-known parameter 'token_endpoint'"):
+            OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, identity_provider_url)
