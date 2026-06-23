@@ -508,7 +508,7 @@ class OIDCSessionBuilder:
         self._client_factory = client_factory
         self._session_factory = session_factory
 
-    def with_stored_token(self, token_name: str = "ansys-openapi-common-oidc") -> ApiClientFactory:
+    def with_stored_token(self, token_name: str = "ansys-openapi-common-oidc") -> ApiClientFactory:  # nosec B107
         """Use a token stored in the system keyring to authenticate the session.
 
         This method requires a correctly configured system keyring backend.
