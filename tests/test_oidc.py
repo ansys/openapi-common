@@ -30,7 +30,7 @@ import requests
 from requests_auth import OAuth2
 import requests_mock
 
-from ansys.openapi.common import ApiClientFactory
+from ansys.openapi.common import ApiClientFactory, OIDCConfiguration
 from ansys.openapi.common._oidc import OIDCSessionFactory
 
 REQUIRED_HEADERS = {
@@ -107,16 +107,17 @@ def test_valid_header_returns_correct_values(authenticate_parsing_fixture):
 
 
 @pytest.mark.parametrize(
-    "authority_url",
-    ["https://www.example.com/", "https://www.example.com", "https://www.example.com/api/"],
+    "well_known_url",
+    [
+        "https://www.example.com/.well-known/openid-configuration",
+        "https://www.example.com/api/.well-known/openid-configuration",
+    ],
 )
-def test_valid_well_known_parsed_correctly(authority_url):
+def test_valid_well_known_parsed_correctly(well_known_url):
     response = json.dumps(WELL_KNOWN_PARAMETERS)
     with requests_mock.Mocker() as requests_mocker:
-        if not authority_url.endswith("/"):
-            authority_url += "/"
         requests_mocker.get(
-            f"{authority_url}.well-known/openid-configuration",
+            well_known_url,
             status_code=200,
             text=response,
         )
@@ -124,7 +125,7 @@ def test_valid_well_known_parsed_correctly(authority_url):
         mock_factory._oauth_requests_session = requests.Session()
         mock_factory._idp_session_configuration = {}
         mock_factory._api_session_configuration = {}
-        output = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, authority_url)
+        output = OIDCSessionFactory._fetch_and_parse_well_known(mock_factory, well_known_url)
         for k, v in WELL_KNOWN_PARAMETERS.items():
             assert output[k] == v
             assert output[k.upper()] == v
@@ -135,10 +136,10 @@ def test_missing_well_known_parameters_throws(missing_parameter):
     parameters = WELL_KNOWN_PARAMETERS.copy()
     del parameters[missing_parameter]
     response = json.dumps(parameters)
-    identity_provider_url = "http://www.example.com/"
+    identity_provider_url = "http://www.example.com/.well-known/openid-configuration"
     with requests_mock.Mocker() as requests_mocker:
         requests_mocker.get(
-            "{}.well-known/openid-configuration".format(identity_provider_url),
+            identity_provider_url,
             status_code=200,
             text=response,
         )
@@ -155,10 +156,10 @@ def test_missing_well_known_parameters_throws(missing_parameter):
 def test_multiple_missing_well_known_parameters_throws():
     parameters = {}
     response = json.dumps(parameters)
-    identity_provider_url = "http://www.example.com/"
+    identity_provider_url = "http://www.example.com/.well-known/openid-configuration"
     with requests_mock.Mocker() as requests_mocker:
         requests_mocker.get(
-            "{}.well-known/openid-configuration".format(identity_provider_url),
+            identity_provider_url,
             status_code=200,
             text=response,
         )
@@ -342,3 +343,124 @@ def mock_oidc_session_builder():
 
         session_builder = ApiClientFactory(secure_servicelayer_url).with_oidc()
     return session_builder
+
+
+def test_oidc_configuration_is_complete_with_well_known_url():
+    config = OIDCConfiguration(
+        client_id="client",
+        well_known_url="https://idp.example.com/.well-known/openid-configuration",
+    )
+    assert config.is_complete()
+
+
+def test_oidc_configuration_is_complete_with_endpoints():
+    config = OIDCConfiguration(
+        client_id="client",
+        authorization_endpoint="https://idp.example.com/auth",
+        token_endpoint="https://idp.example.com/token",
+    )
+    assert config.is_complete()
+
+
+def test_oidc_configuration_is_incomplete_without_client_id():
+    config = OIDCConfiguration(
+        well_known_url="https://idp.example.com/.well-known/openid-configuration"
+    )
+    assert not config.is_complete()
+
+
+def test_oidc_configuration_is_incomplete_without_endpoint_source():
+    config = OIDCConfiguration(client_id="client")
+    assert not config.is_complete()
+
+
+def test_oidc_configuration_with_partial_endpoints_raises():
+    config = OIDCConfiguration(
+        client_id="client",
+        authorization_endpoint="https://idp.example.com/auth",
+    )
+    with pytest.raises(ValueError, match="both authorization_endpoint and token_endpoint"):
+        OIDCSessionFactory.from_configuration(
+            "https://api.example.com",
+            config,
+            requests.Session(),
+        )
+
+
+def test_oidc_configuration_without_endpoint_source_raises():
+    config = OIDCConfiguration(client_id="client")
+    with pytest.raises(ValueError, match="well_known_url or both"):
+        OIDCSessionFactory.from_configuration(
+            "https://api.example.com",
+            config,
+            requests.Session(),
+        )
+
+
+def test_upfront_oidc_configuration_skips_api_call():
+    api_url = "https://localhost/mi_servicelayer"
+    authority_url = "https://contoso.b2clogin.com/contoso.onmicrosoft.com/b2c_1_susi"
+    well_known_url = f"{authority_url}/v2.0/.well-known/openid-configuration"
+    client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
+    well_known_response = json.dumps(
+        {
+            "token_endpoint": f"{authority_url}/oauth2/v2.0/token",
+            "authorization_endpoint": f"{authority_url}/oauth2/v2.0/authorize",
+        }
+    )
+
+    oidc_configuration = OIDCConfiguration(
+        client_id=client_id,
+        well_known_url=well_known_url,
+        scopes=["openid", "offline_access"],
+    )
+
+    with requests_mock.Mocker() as m:
+        m.get(
+            well_known_url,
+            status_code=200,
+            text=well_known_response,
+        )
+        session_builder = ApiClientFactory(api_url).with_oidc(oidc_configuration=oidc_configuration)
+        auth = session_builder._session_factory._auth
+
+        assert all(api_url not in str(request.url) for request in m.request_history)
+        assert auth.token_url == f"{authority_url}/oauth2/v2.0/token"
+        assert auth.refresh_data["client_id"] == client_id
+        assert auth.refresh_data["scope"] == "openid offline_access"
+
+
+def test_upfront_oidc_configuration_skips_well_known_when_endpoints_provided():
+    api_url = "https://localhost/mi_servicelayer"
+    client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
+    authorization_endpoint = "https://idp.example.com/auth"
+    token_endpoint = "https://idp.example.com/token"
+    well_known_url = "https://idp.example.com/.well-known/openid-configuration"
+
+    oidc_configuration = OIDCConfiguration(
+        client_id=client_id,
+        well_known_url=well_known_url,
+        authorization_endpoint=authorization_endpoint,
+        token_endpoint=token_endpoint,
+    )
+
+    with requests_mock.Mocker() as m:
+        session_builder = ApiClientFactory(api_url).with_oidc(oidc_configuration=oidc_configuration)
+        auth = session_builder._session_factory._auth
+
+        assert not m.called
+        assert auth.token_url == token_endpoint
+
+
+def test_redirect_uri_from_configuration_is_wired():
+    config = OIDCConfiguration(
+        client_id="client",
+        well_known_url="https://idp.example.com/.well-known/openid-configuration",
+        redirect_uri="http://localhost:1729/callback",
+    )
+    kwargs = OIDCSessionFactory._redirect_uri_kwargs(config)
+    assert kwargs == {
+        "redirect_uri_domain": "localhost",
+        "redirect_uri_port": 1729,
+        "redirect_uri_endpoint": "callback",
+    }
