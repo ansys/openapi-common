@@ -42,7 +42,11 @@ def get_package_name() -> str:
 class TestMissingExtras:
     real_import = __import__
     blocked_import = ""
-    base_module_list = ["ansys.openapi.common._session", "ansys.openapi.common"]
+    base_module_list = [
+        "ansys.openapi.common._session",
+        "ansys.openapi.common._oidc",
+        "ansys.openapi.common",
+    ]
 
     @pytest.fixture(autouse=True)
     def module_clearing_fixture(self):
@@ -68,6 +72,14 @@ class TestMissingExtras:
 
         package_name = get_package_name()
         assert f"`pip install {package_name}[oidc]`" in str(excinfo.value)
+
+    def test_oidc_configuration_is_none_without_oidc_extra(self, mocker):
+        self.blocked_import = "requests_auth"
+        mocker.patch("builtins.__import__", side_effect=self.mocked_import)
+
+        import ansys.openapi.common as common
+
+        assert common.OIDCConfiguration is None
 
     @pytest.mark.skipif(os.name == "nt", reason="Test only applies to linux")
     def test_create_autologon_on_linux_with_no_extra_throws(self, mocker):
