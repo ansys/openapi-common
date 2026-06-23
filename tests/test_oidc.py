@@ -467,43 +467,6 @@ def test_redirect_uri_from_configuration_is_wired():
     }
 
 
-def _unauthorized_oidc_response(api_url: str, authority_url: str) -> requests.Response:
-    response = requests.Response()
-    response.url = api_url
-    response.status_code = 401
-    response.headers["WWW-Authenticate"] = (
-        f'Bearer redirecturi="{REQUIRED_HEADERS["redirecturi"]}", '
-        f'authority="{authority_url}", clientid="{REQUIRED_HEADERS["clientid"]}"'
-    )
-    return response
-
-
-def test_oidc_session_factory_init_delegates_to_unauthorized_response():
-    api_url = "https://api.example.com/v1"
-    authority_url = "https://www.example.com/authority/"
-    response = _unauthorized_oidc_response(api_url, authority_url)
-    well_known_response = json.dumps(
-        {
-            "token_endpoint": f"{authority_url}token",
-            "authorization_endpoint": f"{authority_url}authorization",
-        }
-    )
-
-    with requests_mock.Mocker() as m:
-        m.get(
-            f"{authority_url}.well-known/openid-configuration",
-            status_code=200,
-            text=well_known_response,
-        )
-        initial_session = requests.Session()
-        via_init = OIDCSessionFactory(initial_session, response)
-        via_classmethod = OIDCSessionFactory.from_unauthorized_response(initial_session, response)
-
-        assert via_init._api_url == via_classmethod._api_url
-        assert via_init._oidc_config.client_id == via_classmethod._oidc_config.client_id
-        assert via_init._auth.token_url == via_classmethod._auth.token_url
-
-
 def test_from_configuration_without_client_id_raises():
     config = OIDCConfiguration(
         well_known_url="https://idp.example.com/.well-known/openid-configuration"

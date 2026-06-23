@@ -114,27 +114,19 @@ class OIDCConfiguration:
 
 
 class OIDCSessionFactory:
-    """
-    Creates an OpenID Connect session with the configuration fetched from the API server.
+    """Builds authenticated API sessions from OpenID Connect configuration.
 
-    This class uses either the provided token credentials or authorizes a user with a browser-based
-    interactive prompt.
+    Use :meth:`from_unauthorized_response` when parameters are discovered from a
+    ``401`` response, or :meth:`from_configuration` when settings are provided upfront.
 
-    Parameters
-    ----------
-    initial_session : requests.Session
-        Session to use while negotiating with the identity provider.
-    initial_response : requests.Response
-        Initial 401 response from the API server when no ``Authorization`` header is provided.
-    api_session_configuration : SessionConfiguration, optional
-        Configuration settings for connections to the API server.
-    idp_session_configuration : SessionConfiguration, optional
-        Configuration settings for connections to the OpenID identity provider.
+    Once constructed, the factory can supply a session using a stored token, a provided
+    refresh token, an access token, or an interactive browser login.
 
     Notes
     -----
-    The ``headers`` field in ``idp_session_configuration`` is not fully respected. The ``Accept`` and
-    ``Content-Type`` headers will be overridden. Other settings are respected.
+    The ``headers`` field in ``idp_session_configuration`` is not fully respected. The
+    ``Accept`` and ``Content-Type`` headers will be overridden. Other settings are
+    respected.
     """
 
     _api_url: str
@@ -145,20 +137,27 @@ class OIDCSessionFactory:
     _authorized_session: requests.Session
     _auth: OAuth2AuthorizationCodePKCE
 
-    def __init__(
-        self,
+    @classmethod
+    def _from_parsed_config(
+        cls,
+        api_url: str,
+        oidc_config: OIDCConfiguration,
         initial_session: requests.Session,
-        initial_response: requests.Response,
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
-    ) -> None:
-        configured = OIDCSessionFactory.from_unauthorized_response(
+        *,
+        default_scopes: bool = False,
+    ) -> "OIDCSessionFactory":
+        factory = cls.__new__(cls)
+        factory._api_url = api_url
+        factory._oidc_config = oidc_config
+        factory._initialize_sessions(
             initial_session,
-            initial_response,
             api_session_configuration,
             idp_session_configuration,
         )
-        self.__dict__.update(configured.__dict__)
+        factory._configure_oauth(default_scopes=default_scopes)
+        return factory
 
     @classmethod
     def from_unauthorized_response(
@@ -168,22 +167,31 @@ class OIDCSessionFactory:
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> "OIDCSessionFactory":
-        """Create a factory using parameters from the API ``401`` response."""
-        factory = cls.__new__(cls)
-        factory._api_url = initial_response.url
+        """Create a factory using parameters from the API ``401`` response.
 
+        Parameters
+        ----------
+        initial_session : requests.Session
+            Session to use while negotiating with the identity provider.
+        initial_response : requests.Response
+            Initial ``401`` response from the API server when no ``Authorization`` header
+            is provided.
+        api_session_configuration : SessionConfiguration, optional
+            Configuration settings for connections to the API server.
+        idp_session_configuration : SessionConfiguration, optional
+            Configuration settings for connections to the OpenID identity provider.
+        """
         logger.debug("Creating OIDC session handler from unauthorized response...")
 
         bearer_parameters = cls._parse_unauthorized_header(initial_response)
-        factory._oidc_config = cls._oidc_config_from_bearer(bearer_parameters)
-
-        factory._initialize_sessions(
+        oidc_config = cls._oidc_config_from_bearer(bearer_parameters)
+        return cls._from_parsed_config(
+            initial_response.url,
+            oidc_config,
             initial_session,
             api_session_configuration,
             idp_session_configuration,
         )
-        factory._configure_oauth()
-        return factory
 
     @classmethod
     def from_configuration(
@@ -194,7 +202,21 @@ class OIDCSessionFactory:
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> "OIDCSessionFactory":
-        """Create a factory using upfront OpenID Connect configuration."""
+        """Create a factory using upfront OpenID Connect configuration.
+
+        Parameters
+        ----------
+        api_url : str
+            Base URL of the API server.
+        oidc_configuration : OIDCConfiguration
+            OpenID Connect provider settings.
+        initial_session : requests.Session
+            Session to use while negotiating with the identity provider.
+        api_session_configuration : SessionConfiguration, optional
+            Configuration settings for connections to the API server.
+        idp_session_configuration : SessionConfiguration, optional
+            Configuration settings for connections to the OpenID identity provider.
+        """
         if not oidc_configuration.client_id:
             raise ValueError("OIDC configuration must include client_id.")
 
@@ -210,19 +232,16 @@ class OIDCSessionFactory:
         ):
             raise ValueError(_ENDPOINT_CONFIGURATION_ERROR)
 
-        factory = cls.__new__(cls)
-        factory._api_url = api_url
-        factory._oidc_config = oidc_configuration
-
         logger.debug("Creating OIDC session handler from provided configuration...")
 
-        factory._initialize_sessions(
+        return cls._from_parsed_config(
+            api_url,
+            oidc_configuration,
             initial_session,
             api_session_configuration,
             idp_session_configuration,
+            default_scopes=True,
         )
-        factory._configure_oauth(default_scopes=True)
-        return factory
 
     def _initialize_sessions(
         self,
