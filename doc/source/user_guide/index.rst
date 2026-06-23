@@ -41,6 +41,38 @@ file on your system.
 Windows and Linux users can authenticate with OIDC-enabled APIs by using the ``[oidc]`` extra.
 Currently only the Authorization Code authentication flow is supported.
 
+For identity providers such as Azure AD B2C that do not advertise OIDC settings in a
+``401`` response, provide an :class:`~.OIDCConfiguration` to
+:meth:`~ansys.openapi.common.ApiClientFactory.with_oidc`:
+
+.. code:: python
+
+   from ansys.openapi.common import ApiClientFactory, OIDCConfiguration
+
+   client = (
+       ApiClientFactory("https://my-api.com/v1.svc")
+       .with_oidc(
+           oidc_configuration=OIDCConfiguration(
+               client_id="your-app-client-id",
+               well_known_url=(
+                   "https://contoso.b2clogin.com/contoso.onmicrosoft.com/"
+                   "b2c_1_susi/v2.0/.well-known/openid-configuration"
+               ),
+               scopes=[
+                   "openid",
+                   "offline_access",
+                   "https://contoso.onmicrosoft.com/your-api-id/access_as_user",
+               ],
+               redirect_uri_port=32284,
+           )
+       )
+       .authorize()
+       .connect()
+   )
+
+When ``oidc_configuration`` is provided, ``with_oidc()`` does not contact the API to
+discover authentication settings.
+
 .. list-table:: Authentication methods by platform
    :header-rows: 1
    :widths: 30 15 15 40
