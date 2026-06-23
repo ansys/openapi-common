@@ -43,7 +43,7 @@ Currently only the Authorization Code authentication flow is supported.
 
 For identity providers such as Azure AD B2C that do not advertise OIDC settings in a
 ``401`` response, provide an :class:`~.OIDCConfiguration` to
-:meth:`~ansys.openapi.common.ApiClientFactory.with_oidc`:
+:meth:`~.ApiClientFactory.with_oidc`:
 
 .. code:: python
 
