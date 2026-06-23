@@ -357,7 +357,7 @@ def test_oidc_configuration_is_complete_with_endpoints():
     config = OIDCConfiguration(
         client_id="client",
         authorization_endpoint="https://idp.example.com/auth",
-        token_endpoint="https://idp.example.com/token",
+        token_endpoint="https://idp.example.com/token",  # nosec B106
     )
     assert config.is_complete()
 
@@ -434,7 +434,7 @@ def test_upfront_oidc_configuration_skips_well_known_when_endpoints_provided():
     api_url = "https://localhost/mi_servicelayer"
     client_id = "b4e44bfa-6b73-4d6a-9df6-8055216a5836"
     authorization_endpoint = "https://idp.example.com/auth"
-    token_endpoint = "https://idp.example.com/token"
+    token_endpoint = "https://idp.example.com/token"  # nosec B105
     well_known_url = "https://idp.example.com/.well-known/openid-configuration"
 
     oidc_configuration = OIDCConfiguration(

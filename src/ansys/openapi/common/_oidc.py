@@ -322,7 +322,8 @@ class OIDCSessionFactory:
         return self._authorized_session
 
     def get_session_with_stored_token(
-        self, token_name: str = "ansys-openapi-common-oidc"
+        self,
+        token_name: str = "ansys-openapi-common-oidc",  # nosec B107
     ) -> requests.Session:
         """Create a :class:`OAuth2Session` object with a stored token.
 

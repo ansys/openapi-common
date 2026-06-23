@@ -112,6 +112,9 @@ filterwarnings = [
 ]
 xfail_strict = true
 
+[tool.bandit.assert_used]
+skips = ["*_test.py", "*test_*.py", "tests/*", "./tests/*"]
+
 [tool.pydocstyle]
 convention = "numpy"
 
