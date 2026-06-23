@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from typing import Optional
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Union
 import urllib.parse
 
 import keyring
@@ -40,9 +40,77 @@ from ._util import (
     set_session_kwargs,
 )
 
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from . import SessionConfiguration
+_DEFAULT_SCOPES = ["openid", "offline_access"]
+
+_ENDPOINT_CONFIGURATION_ERROR = (
+    "OIDC configuration must include client_id and either well_known_url or both "
+    "authorization_endpoint and token_endpoint."
+)
+
+
+@dataclass
+class OIDCConfiguration:
+    """OpenID Connect settings for API authentication.
+
+    When provided on :meth:`~ansys.openapi.common.ApiClientFactory.with_oidc`, the OIDC
+    session is configured without contacting the API for a ``401`` response.
+
+    Parameters
+    ----------
+    client_id : str, optional
+        OAuth client identifier. Maps from the ``clientid`` ``WWW-Authenticate`` parameter.
+    authority : str, optional
+        Identity provider authority URL from a ``401`` response. Used only for legacy
+        API-driven discovery when ``well_known_url`` and explicit endpoints are not set.
+    authorization_endpoint : str, optional
+        Authorization endpoint URL. When set together with ``token_endpoint``,
+        the well-known endpoint is not contacted.
+    token_endpoint : str, optional
+        Token endpoint URL.
+    well_known_url : str, optional
+        OpenID Provider metadata URL. When provided without explicit endpoints,
+        ``authorization_endpoint`` and ``token_endpoint`` are fetched from this URL.
+    scopes : list[str], optional
+        OAuth scopes to request. Maps from the ``scope`` ``WWW-Authenticate`` parameter.
+    api_audience : str, optional
+        API audience for Auth0-style providers. Maps from the ``apiAudience``
+        ``WWW-Authenticate`` parameter. Omit for Azure AD B2C.
+    redirect_uri : str, optional
+        Registered redirect URI for the interactive login flow. Maps from the
+        ``redirecturi`` ``WWW-Authenticate`` parameter.
+    redirect_uri_port : int, optional
+        Local port used for the browser redirect when ``redirect_uri`` is not set.
+        The default is ``32284``.
+    """
+
+    client_id: Optional[str] = None
+    authority: Optional[str] = None
+    authorization_endpoint: Optional[str] = None
+    token_endpoint: Optional[str] = None
+    well_known_url: Optional[str] = None
+    scopes: Optional[List[str]] = None
+    api_audience: Optional[str] = None
+    redirect_uri: Optional[str] = None
+    redirect_uri_port: int = 32284
+
+    def is_complete(self) -> bool:
+        """Return whether enough configuration is present to skip ``401`` discovery."""
+        if not self.client_id:
+            return False
+        if self.authorization_endpoint and self.token_endpoint:
+            return True
+        return bool(self.well_known_url)
+
+    def has_explicit_endpoints(self) -> bool:
+        """Return whether both OAuth endpoints were provided directly."""
+        return bool(self.authorization_endpoint and self.token_endpoint)
+
+    def has_partial_endpoints(self) -> bool:
+        """Return whether only one OAuth endpoint was provided."""
+        return (
+            bool(self.authorization_endpoint or self.token_endpoint)
+            and not self.has_explicit_endpoints()
+        )
 
 
 class OIDCSessionFactory:
@@ -69,6 +137,14 @@ class OIDCSessionFactory:
     ``Content-Type`` headers will be overridden. Other settings are respected.
     """
 
+    _api_url: str
+    _oidc_config: OIDCConfiguration
+    _api_session_configuration: RequestsConfiguration
+    _idp_session_configuration: RequestsConfiguration
+    _oauth_requests_session: requests.Session
+    _authorized_session: requests.Session
+    _auth: OAuth2AuthorizationCodePKCE
+
     def __init__(
         self,
         initial_session: requests.Session,
@@ -76,12 +152,84 @@ class OIDCSessionFactory:
         api_session_configuration: Optional[SessionConfiguration] = None,
         idp_session_configuration: Optional[SessionConfiguration] = None,
     ) -> None:
-        self._api_url = initial_response.url
+        configured = OIDCSessionFactory.from_unauthorized_response(
+            initial_session,
+            initial_response,
+            api_session_configuration,
+            idp_session_configuration,
+        )
+        self.__dict__.update(configured.__dict__)
 
-        logger.debug("Creating OIDC session handler...")
+    @classmethod
+    def from_unauthorized_response(
+        cls,
+        initial_session: requests.Session,
+        initial_response: requests.Response,
+        api_session_configuration: Optional[SessionConfiguration] = None,
+        idp_session_configuration: Optional[SessionConfiguration] = None,
+    ) -> "OIDCSessionFactory":
+        """Create a factory using parameters from the API ``401`` response."""
+        factory = cls.__new__(cls)
+        factory._api_url = initial_response.url
 
-        self._authenticate_parameters = self._parse_unauthorized_header(initial_response)
+        logger.debug("Creating OIDC session handler from unauthorized response...")
 
+        bearer_parameters = cls._parse_unauthorized_header(initial_response)
+        factory._oidc_config = cls._oidc_config_from_bearer(bearer_parameters)
+
+        factory._initialize_sessions(
+            initial_session,
+            api_session_configuration,
+            idp_session_configuration,
+        )
+        factory._configure_oauth()
+        return factory
+
+    @classmethod
+    def from_configuration(
+        cls,
+        api_url: str,
+        oidc_configuration: OIDCConfiguration,
+        initial_session: requests.Session,
+        api_session_configuration: Optional[SessionConfiguration] = None,
+        idp_session_configuration: Optional[SessionConfiguration] = None,
+    ) -> "OIDCSessionFactory":
+        """Create a factory using upfront OpenID Connect configuration."""
+        if not oidc_configuration.client_id:
+            raise ValueError("OIDC configuration must include client_id.")
+
+        if oidc_configuration.has_partial_endpoints():
+            raise ValueError(
+                "OIDC configuration must include both authorization_endpoint and "
+                "token_endpoint when either is provided."
+            )
+
+        if (
+            not oidc_configuration.has_explicit_endpoints()
+            and not oidc_configuration.well_known_url
+        ):
+            raise ValueError(_ENDPOINT_CONFIGURATION_ERROR)
+
+        factory = cls.__new__(cls)
+        factory._api_url = api_url
+        factory._oidc_config = oidc_configuration
+
+        logger.debug("Creating OIDC session handler from provided configuration...")
+
+        factory._initialize_sessions(
+            initial_session,
+            api_session_configuration,
+            idp_session_configuration,
+        )
+        factory._configure_oauth(default_scopes=True)
+        return factory
+
+    def _initialize_sessions(
+        self,
+        initial_session: requests.Session,
+        api_session_configuration: Optional[SessionConfiguration],
+        idp_session_configuration: Optional[SessionConfiguration],
+    ) -> None:
         if api_session_configuration is None:
             api_session_configuration = SessionConfiguration()
         if idp_session_configuration is None:
@@ -95,31 +243,26 @@ class OIDCSessionFactory:
         self._oauth_requests_session = initial_session
         set_session_kwargs(self._oauth_requests_session, self._idp_session_configuration)
 
-        self._well_known_parameters = self._fetch_and_parse_well_known(
-            self._authenticate_parameters["authority"]
-        )
+        self._authorized_session = requests.Session()
+        set_session_kwargs(self._authorized_session, self._api_session_configuration)
 
+    def _configure_oauth(self, default_scopes: bool = False) -> None:
         self._add_api_audience_if_set()
+        well_known_parameters = self._resolve_oauth_endpoints()
 
         logger.info("Configuring session...")
-        scopes = (
-            self._authenticate_parameters["scope"]
-            if "scope" in self._authenticate_parameters
-            else []
-        )
+        scopes = self._normalized_scopes(self._oidc_config.scopes, default_scopes=default_scopes)
+        oauth_kwargs = self._redirect_uri_kwargs(self._oidc_config)
+        if self._oidc_config.api_audience is not None:
+            oauth_kwargs["audience"] = self._oidc_config.api_audience
+        oauth_kwargs["client_id"] = self._oidc_config.client_id
+        oauth_kwargs["scope"] = scopes
+        oauth_kwargs["session"] = self._oauth_requests_session
 
         self._auth = OAuth2AuthorizationCodePKCE(
-            authorization_url=self._well_known_parameters["authorization_endpoint"],
-            token_url=self._well_known_parameters["token_endpoint"],
-            redirect_uri_port=32284,
-            audience=(
-                self._authenticate_parameters["apiAudience"]
-                if "apiAudience" in self._authenticate_parameters
-                else None
-            ),
-            client_id=self._authenticate_parameters["clientid"],
-            scope=scopes,
-            session=self._oauth_requests_session,
+            authorization_url=well_known_parameters["authorization_endpoint"],
+            token_url=well_known_parameters["token_endpoint"],
+            **oauth_kwargs,
         )
 
         # If using Auth0 we cannot provide an audience with requests
@@ -128,8 +271,6 @@ class OIDCSessionFactory:
         # required to access the user_info endpoint.
         self._auth.refresh_data.pop("audience", None)
 
-        self._authorized_session = requests.Session()
-        set_session_kwargs(self._authorized_session, self._api_session_configuration)
         logger.info("Configuration complete.")
 
     def get_session_with_access_token(self, access_token: str) -> requests.Session:
@@ -220,6 +361,48 @@ class OIDCSessionFactory:
         return self._authorized_session
 
     @staticmethod
+    def _oidc_config_from_bearer(bearer_parameters: CaseInsensitiveDict) -> OIDCConfiguration:
+        scopes: Optional[List[str]] = None
+        if "scope" in bearer_parameters:
+            scope_value = bearer_parameters["scope"]
+            if isinstance(scope_value, str):
+                scopes = scope_value.split()
+            elif isinstance(scope_value, list):
+                scopes = scope_value
+
+        return OIDCConfiguration(
+            client_id=bearer_parameters["clientid"],
+            authority=bearer_parameters["authority"],
+            redirect_uri=bearer_parameters.get("redirecturi"),
+            scopes=scopes,
+            api_audience=bearer_parameters.get("apiAudience"),
+        )
+
+    @staticmethod
+    def _normalized_scopes(
+        scopes: Optional[List[str]], *, default_scopes: bool = False
+    ) -> Union[str, List[str]]:
+        if scopes is None:
+            if default_scopes:
+                return " ".join(_DEFAULT_SCOPES)
+            return []
+        return " ".join(scopes)
+
+    @staticmethod
+    def _redirect_uri_kwargs(oidc_config: OIDCConfiguration) -> Dict[str, Any]:
+        if oidc_config.redirect_uri:
+            parsed = urllib.parse.urlparse(oidc_config.redirect_uri)
+            if parsed.hostname:
+                endpoint = parsed.path.lstrip("/")
+                default_port = 443 if parsed.scheme == "https" else 80
+                return {
+                    "redirect_uri_domain": parsed.hostname,
+                    "redirect_uri_port": parsed.port or default_port,
+                    "redirect_uri_endpoint": endpoint,
+                }
+        return {"redirect_uri_port": oidc_config.redirect_uri_port}
+
+    @staticmethod
     def _parse_unauthorized_header(
         unauthorized_response: "requests.Response",
     ) -> "CaseInsensitiveDict":
@@ -273,21 +456,43 @@ class OIDCSessionFactory:
         else:
             return bearer_parameters
 
-    def _fetch_and_parse_well_known(self, url: str) -> CaseInsensitiveDict:
-        """Fetch and process the required parameters from identity provider's the well-known endpoint.
+    def _resolve_oauth_endpoints(self) -> CaseInsensitiveDict:
+        if self._oidc_config.has_partial_endpoints():
+            raise ValueError(
+                "OIDC configuration must include both authorization_endpoint and "
+                "token_endpoint when either is provided."
+            )
 
-        Perform a GET request to the endpoint and verify that the required parameters are returned.
+        if self._oidc_config.has_explicit_endpoints():
+            return CaseInsensitiveDict(
+                {
+                    "authorization_endpoint": self._oidc_config.authorization_endpoint,
+                    "token_endpoint": self._oidc_config.token_endpoint,
+                }
+            )
+
+        if self._oidc_config.well_known_url:
+            return self._fetch_and_parse_well_known(self._oidc_config.well_known_url)
+
+        if self._oidc_config.authority:
+            authority = self._oidc_config.authority
+            if not authority.endswith("/"):
+                authority += "/"
+            well_known_url = urllib.parse.urljoin(authority, ".well-known/openid-configuration")
+            return self._fetch_and_parse_well_known(well_known_url)
+
+        raise ValueError(_ENDPOINT_CONFIGURATION_ERROR)
+
+    def _fetch_and_parse_well_known(self, well_known_url: str) -> CaseInsensitiveDict:
+        """Fetch and process the required parameters from the well-known endpoint.
 
         Parameters
         ----------
-        url : str
-            URL referencing the OpenID identity provider's well-known endpoint.
+        well_known_url : str
+            OpenID Provider metadata URL.
         """
-        logger.info(f"Fetching configuration information from Identity Provider {url}")
-        if not url.endswith("/"):
-            url += "/"
-        well_known_endpoint = urllib.parse.urljoin(url, ".well-known/openid-configuration")
-        authority_response = self._oauth_requests_session.get(well_known_endpoint)
+        logger.info(f"Fetching configuration information from {well_known_url}")
+        authority_response = self._oauth_requests_session.get(well_known_url)
 
         logger.debug("Received configuration:")
         oidc_configuration = CaseInsensitiveDict(authority_response.json())  # type: CaseInsensitiveDict
@@ -340,9 +545,9 @@ class OIDCSessionFactory:
 
         Only add if provided by the OpenID identity provider. This is mainly required for Auth0.
         """
-        if "apiAudience" not in self._authenticate_parameters:
+        if self._oidc_config.api_audience is None:
             return
         mi_headers: CaseInsensitiveDict = self._api_session_configuration["headers"]
-        mi_headers["audience"] = self._authenticate_parameters["apiAudience"]
+        mi_headers["audience"] = self._oidc_config.api_audience
         idp_headers: CaseInsensitiveDict = self._idp_session_configuration["headers"]
-        idp_headers["audience"] = self._authenticate_parameters["apiAudience"]
+        idp_headers["audience"] = self._oidc_config.api_audience
