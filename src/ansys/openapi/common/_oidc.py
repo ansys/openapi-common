@@ -19,7 +19,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Union
 import urllib.parse
 
@@ -33,6 +32,7 @@ from requests_auth import (  # type: ignore[import-untyped, unused-ignore]
 )
 
 from ._logger import logger
+from ._oidc_config import OIDCConfiguration
 from ._util import (
     RequestsConfiguration,
     SessionConfiguration,
@@ -46,71 +46,6 @@ _ENDPOINT_CONFIGURATION_ERROR = (
     "OIDC configuration must include client_id and either well_known_url or both "
     "authorization_endpoint and token_endpoint."
 )
-
-
-@dataclass
-class OIDCConfiguration:
-    """OpenID Connect settings for API authentication.
-
-    When provided on :meth:`~ansys.openapi.common.ApiClientFactory.with_oidc`, the OIDC
-    session is configured without contacting the API for a ``401`` response.
-
-    Parameters
-    ----------
-    client_id : str, optional
-        OAuth client identifier. Maps from the ``clientid`` ``WWW-Authenticate`` parameter.
-    authority : str, optional
-        Identity provider authority URL from a ``401`` response. Used only for legacy
-        API-driven discovery when ``well_known_url`` and explicit endpoints are not set.
-    authorization_endpoint : str, optional
-        Authorization endpoint URL. When set together with ``token_endpoint``,
-        the well-known endpoint is not contacted.
-    token_endpoint : str, optional
-        Token endpoint URL.
-    well_known_url : str, optional
-        OpenID Provider metadata URL. When provided without explicit endpoints,
-        ``authorization_endpoint`` and ``token_endpoint`` are fetched from this URL.
-    scopes : list[str], optional
-        OAuth scopes to request. Maps from the ``scope`` ``WWW-Authenticate`` parameter.
-    api_audience : str, optional
-        API audience for Auth0-style providers. Maps from the ``apiAudience``
-        ``WWW-Authenticate`` parameter. Omit for Azure AD B2C.
-    redirect_uri : str, optional
-        Registered redirect URI for the interactive login flow. Maps from the
-        ``redirecturi`` ``WWW-Authenticate`` parameter.
-    redirect_uri_port : int, optional
-        Local port used for the browser redirect when ``redirect_uri`` is not set.
-        The default is ``32284``.
-    """
-
-    client_id: Optional[str] = None
-    authority: Optional[str] = None
-    authorization_endpoint: Optional[str] = None
-    token_endpoint: Optional[str] = None
-    well_known_url: Optional[str] = None
-    scopes: Optional[List[str]] = None
-    api_audience: Optional[str] = None
-    redirect_uri: Optional[str] = None
-    redirect_uri_port: int = 32284
-
-    def is_complete(self) -> bool:
-        """Return whether enough configuration is present to skip ``401`` discovery."""
-        if not self.client_id:
-            return False
-        if self.authorization_endpoint and self.token_endpoint:
-            return True
-        return bool(self.well_known_url)
-
-    def has_explicit_endpoints(self) -> bool:
-        """Return whether both OAuth endpoints were provided directly."""
-        return bool(self.authorization_endpoint and self.token_endpoint)
-
-    def has_partial_endpoints(self) -> bool:
-        """Return whether only one OAuth endpoint was provided."""
-        return (
-            bool(self.authorization_endpoint or self.token_endpoint)
-            and not self.has_explicit_endpoints()
-        )
 
 
 class OIDCSessionFactory:
