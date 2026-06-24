@@ -35,6 +35,7 @@ from . import __version__
 from ._api_client import ApiClient
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
+from ._oidc_config import OIDCConfiguration
 from ._util import (
     CaseInsensitiveOrderedDict,
     SessionConfiguration,
@@ -55,7 +56,7 @@ try:
     import keyring
     import requests_auth  # type: ignore[import-untyped, unused-ignore]  # noqa: F401
 
-    from ._oidc import OIDCConfiguration, OIDCSessionFactory
+    from ._oidc import OIDCSessionFactory
 except ImportError:
     _oidc_enabled = False
 
@@ -353,7 +354,7 @@ class ApiClientFactory:
     def with_oidc(
         self,
         idp_session_configuration: Optional[SessionConfiguration] = None,
-        oidc_configuration: "Optional[OIDCConfiguration]" = None,
+        oidc_configuration: Optional[OIDCConfiguration] = None,
     ) -> "OIDCSessionBuilder":
         """Set up client authentication for use with OpenID Connect.
 
