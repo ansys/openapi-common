@@ -453,18 +453,83 @@ def test_upfront_oidc_configuration_skips_well_known_when_endpoints_provided():
         assert auth.token_url == token_endpoint
 
 
-def test_redirect_uri_from_configuration_is_wired():
+@pytest.mark.parametrize(
+    ("redirect_uri", "redirect_uri_port", "expected"),
+    [
+        (
+            "http://localhost:1729/callback",
+            32284,
+            {
+                "redirect_uri_domain": "localhost",
+                "redirect_uri_port": 1729,
+                "redirect_uri_endpoint": "callback",
+            },
+        ),
+        (
+            "https://callback.example.com/oauth/callback",
+            32284,
+            {
+                "redirect_uri_domain": "callback.example.com",
+                "redirect_uri_port": 443,
+                "redirect_uri_endpoint": "oauth/callback",
+            },
+        ),
+        (
+            "http://callback.example.com/oauth/callback",
+            32284,
+            {
+                "redirect_uri_domain": "callback.example.com",
+                "redirect_uri_port": 80,
+                "redirect_uri_endpoint": "oauth/callback",
+            },
+        ),
+        (
+            "https://callback.example.com:8443/callback",
+            32284,
+            {
+                "redirect_uri_domain": "callback.example.com",
+                "redirect_uri_port": 8443,
+                "redirect_uri_endpoint": "callback",
+            },
+        ),
+        (
+            "http://127.0.0.1:8080/",
+            32284,
+            {
+                "redirect_uri_domain": "127.0.0.1",
+                "redirect_uri_port": 8080,
+                "redirect_uri_endpoint": "",
+            },
+        ),
+        (
+            "https://127.0.0.1",
+            32284,
+            {
+                "redirect_uri_domain": "127.0.0.1",
+                "redirect_uri_port": 443,
+                "redirect_uri_endpoint": "",
+            },
+        ),
+        (
+            None,
+            32284,
+            {"redirect_uri_port": 32284},
+        ),
+        (
+            None,
+            49152,
+            {"redirect_uri_port": 49152},
+        ),
+    ],
+)
+def test_redirect_uri_kwargs(redirect_uri, redirect_uri_port, expected):
     config = OIDCConfiguration(
         client_id="client",
         well_known_url="https://idp.example.com/.well-known/openid-configuration",
-        redirect_uri="http://localhost:1729/callback",
+        redirect_uri=redirect_uri,
+        redirect_uri_port=redirect_uri_port,
     )
-    kwargs = OIDCSessionFactory._redirect_uri_kwargs(config)
-    assert kwargs == {
-        "redirect_uri_domain": "localhost",
-        "redirect_uri_port": 1729,
-        "redirect_uri_endpoint": "callback",
-    }
+    assert OIDCSessionFactory._redirect_uri_kwargs(config) == expected
 
 
 def test_from_configuration_without_client_id_raises():
