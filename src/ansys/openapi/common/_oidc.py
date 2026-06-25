@@ -51,8 +51,9 @@ _ENDPOINT_CONFIGURATION_ERROR = (
 class OIDCSessionFactory:
     """Builds authenticated API sessions from OpenID Connect configuration.
 
-    Use :meth:`from_unauthorized_response` when parameters are discovered from a
-    ``401`` response, or :meth:`from_configuration` when settings are provided upfront.
+    Construct directly with an :class:`~ansys.openapi.common.OIDCConfiguration`, or use
+    :meth:`from_unauthorized_response` when parameters are discovered from a ``401``
+    response, or :meth:`from_configuration` when settings are provided upfront.
 
     Once constructed, the factory can supply a session using a stored token, a provided
     refresh token, an access token, or an interactive browser login.
@@ -72,9 +73,8 @@ class OIDCSessionFactory:
     _authorized_session: requests.Session
     _auth: OAuth2AuthorizationCodePKCE
 
-    @classmethod
-    def _from_parsed_config(
-        cls,
+    def __init__(
+        self,
         api_url: str,
         oidc_config: OIDCConfiguration,
         initial_session: requests.Session,
@@ -82,17 +82,49 @@ class OIDCSessionFactory:
         idp_session_configuration: Optional[SessionConfiguration] = None,
         *,
         default_scopes: bool = False,
-    ) -> "OIDCSessionFactory":
-        factory = cls.__new__(cls)
-        factory._api_url = api_url
-        factory._oidc_config = oidc_config
-        factory._initialize_sessions(
+    ) -> None:
+        """Create a factory from OpenID Connect configuration.
+
+        Parameters
+        ----------
+        api_url : str
+            Base URL of the API server.
+        oidc_config : OIDCConfiguration
+            OpenID Connect provider settings.
+        initial_session : requests.Session
+            Session to use while negotiating with the identity provider.
+        api_session_configuration : SessionConfiguration, optional
+            Configuration settings for connections to the API server.
+        idp_session_configuration : SessionConfiguration, optional
+            Configuration settings for connections to the OpenID identity provider.
+        default_scopes : bool, optional
+            When ``True`` and ``oidc_config.scopes`` is unset, request ``openid`` and
+            ``offline_access``. The default is ``False``.
+        """
+        if not oidc_config.client_id:
+            raise ValueError("OIDC configuration must include client_id.")
+
+        if oidc_config.has_partial_endpoints():
+            raise ValueError(
+                "OIDC configuration must include both authorization_endpoint and "
+                "token_endpoint when either is provided."
+            )
+
+        if (
+            not oidc_config.has_explicit_endpoints()
+            and not oidc_config.well_known_url
+            and not oidc_config.authority
+        ):
+            raise ValueError(_ENDPOINT_CONFIGURATION_ERROR)
+
+        self._api_url = api_url
+        self._oidc_config = oidc_config
+        self._initialize_sessions(
             initial_session,
             api_session_configuration,
             idp_session_configuration,
         )
-        factory._configure_oauth(default_scopes=default_scopes)
-        return factory
+        self._configure_oauth(default_scopes=default_scopes)
 
     @classmethod
     def from_unauthorized_response(
@@ -120,7 +152,7 @@ class OIDCSessionFactory:
 
         bearer_parameters = cls._parse_unauthorized_header(initial_response)
         oidc_config = cls._oidc_config_from_bearer(bearer_parameters)
-        return cls._from_parsed_config(
+        return cls(
             initial_response.url,
             oidc_config,
             initial_session,
@@ -152,15 +184,6 @@ class OIDCSessionFactory:
         idp_session_configuration : SessionConfiguration, optional
             Configuration settings for connections to the OpenID identity provider.
         """
-        if not oidc_configuration.client_id:
-            raise ValueError("OIDC configuration must include client_id.")
-
-        if oidc_configuration.has_partial_endpoints():
-            raise ValueError(
-                "OIDC configuration must include both authorization_endpoint and "
-                "token_endpoint when either is provided."
-            )
-
         if (
             not oidc_configuration.has_explicit_endpoints()
             and not oidc_configuration.well_known_url
@@ -169,7 +192,7 @@ class OIDCSessionFactory:
 
         logger.debug("Creating OIDC session handler from provided configuration...")
 
-        return cls._from_parsed_config(
+        return cls(
             api_url,
             oidc_configuration,
             initial_session,
