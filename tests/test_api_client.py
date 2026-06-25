@@ -742,7 +742,7 @@ class TestRequestDispatch:
         self._transport = requests.Session()
         self._client = ApiClient(self._transport, TEST_URL, SessionConfiguration())
 
-    @pytest.mark.parametrize(("verb", "method_call"), (zip(verbs, method_names)))
+    @pytest.mark.parametrize(("verb", "method_call"), list(zip(verbs, method_names)))
     def test_request_dispatch(self, mocker, verb, method_call):
         # TODO: Can we move the logic deciding which parameters must be provided into the test, rather than the
         #  function above?
