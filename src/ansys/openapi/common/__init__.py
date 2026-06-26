@@ -34,6 +34,7 @@ from ._exceptions import (
     AuthenticationWarning,
     UndefinedObjectWarning,
 )
+from ._oidc_config import OIDCConfiguration
 from ._session import ApiClientFactory, AuthenticationScheme, OIDCSessionBuilder
 from ._util import SessionConfiguration, generate_user_agent
 
@@ -47,6 +48,7 @@ __all__ = [
     "AuthenticationWarning",
     "generate_user_agent",
     "OIDCSessionBuilder",
+    "OIDCConfiguration",
     "ApiBase",
     "ApiClientBase",
     "ModelBase",

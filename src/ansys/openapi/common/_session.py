@@ -35,6 +35,7 @@ from . import __version__
 from ._api_client import ApiClient
 from ._exceptions import ApiConnectionException, AuthenticationWarning
 from ._logger import logger
+from ._oidc_config import OIDCConfiguration
 from ._util import (
     CaseInsensitiveOrderedDict,
     SessionConfiguration,
@@ -353,6 +354,7 @@ class ApiClientFactory:
     def with_oidc(
         self,
         idp_session_configuration: Optional[SessionConfiguration] = None,
+        oidc_configuration: Optional[OIDCConfiguration] = None,
     ) -> "OIDCSessionBuilder":
         """Set up client authentication for use with OpenID Connect.
 
@@ -360,6 +362,11 @@ class ApiClientFactory:
         ----------
         idp_session_configuration : ~ansys.openapi.common.SessionConfiguration, optional
             Additional configuration settings for the requests session when connected to the OpenID identity provider.
+        oidc_configuration : ~ansys.openapi.common.OIDCConfiguration, optional
+            OpenID Connect provider settings. When omitted, authentication parameters are discovered
+            from the API ``401`` response. When provided, explicit ``authorization_endpoint`` and
+            ``token_endpoint`` values are used if set; otherwise ``well_known_url`` is used to
+            discover them.
 
         Returns
         -------
@@ -374,11 +381,22 @@ class ApiClientFactory:
             raise ImportError(
                 "OpenID Connect features are not enabled. To use them, run `pip install ansys-openapi-common[oidc]`."
             )
+
+        if oidc_configuration is not None:
+            session_factory = OIDCSessionFactory.from_configuration(
+                self._api_url,
+                oidc_configuration,
+                self._session,
+                self._session_configuration,
+                idp_session_configuration,
+            )
+            return OIDCSessionBuilder(self, session_factory)
+
         initial_response = self._session.get(self._api_url)
         if self.__handle_initial_response(initial_response):
             return OIDCSessionBuilder(self)
 
-        session_factory = OIDCSessionFactory(
+        session_factory = OIDCSessionFactory.from_unauthorized_response(
             self._session,
             initial_response,
             self._session_configuration,
@@ -491,7 +509,7 @@ class OIDCSessionBuilder:
         self._client_factory = client_factory
         self._session_factory = session_factory
 
-    def with_stored_token(self, token_name: str = "ansys-openapi-common-oidc") -> ApiClientFactory:
+    def with_stored_token(self, token_name: str = "ansys-openapi-common-oidc") -> ApiClientFactory:  # nosec B107
         """Use a token stored in the system keyring to authenticate the session.
 
         This method requires a correctly configured system keyring backend.
