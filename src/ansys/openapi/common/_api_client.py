@@ -44,12 +44,6 @@ from urllib.parse import quote
 import requests
 
 from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
-from ._codec_types import (
-    DICT_MATCH_REGEX,
-    LIST_MATCH_REGEX,
-    NATIVE_TYPES_MAPPING,
-    PRIMITIVE_TYPES,
-)
 from ._deserializer import Deserializer
 from ._exceptions import ApiException
 from ._logger import logger
@@ -95,11 +89,6 @@ class ApiClient(ApiClientBase):
     ... ssl_client
     <ApiClient url: https://secure-api/API/v1.svc>
     """
-
-    PRIMITIVE_TYPES = PRIMITIVE_TYPES
-    NATIVE_TYPES_MAPPING = NATIVE_TYPES_MAPPING
-    LIST_MATCH_REGEX = LIST_MATCH_REGEX
-    DICT_MATCH_REGEX = DICT_MATCH_REGEX
 
     def __init__(
         self,
