@@ -20,13 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import datetime
-from enum import Enum
 import json
 import mimetypes
 import os
-import re
-import tempfile
+from enum import Enum
 from types import ModuleType
 from typing import (
     IO,
@@ -43,14 +40,21 @@ from typing import (
     cast,
 )
 from urllib.parse import quote
-import warnings
 
-from dateutil.parser import parse
 import requests
 
-from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType, Unset
-from ._exceptions import ApiException, UndefinedObjectWarning
+from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
+from ._codec_types import (
+    DICT_MATCH_REGEX,
+    LIST_MATCH_REGEX,
+    NATIVE_TYPES_MAPPING,
+    PRIMITIVE_TYPES,
+)
+from ._deserializer import Deserializer
+from ._exceptions import ApiException
 from ._logger import logger
+from ._model_registry import ModelRegistry
+from ._serializer import Serializer
 from ._util import SessionConfiguration
 
 
@@ -92,18 +96,10 @@ class ApiClient(ApiClientBase):
     <ApiClient url: https://secure-api/API/v1.svc>
     """
 
-    PRIMITIVE_TYPES = (float, bool, bytes, str, int)
-    NATIVE_TYPES_MAPPING = {
-        "int": int,
-        "bytes": bytes,
-        "float": float,
-        "str": str,
-        "bool": bool,
-        "date": datetime.date,
-        "datetime": datetime.datetime,
-    }
-    LIST_MATCH_REGEX = re.compile(r"list\[(.*)]")
-    DICT_MATCH_REGEX = re.compile(r"dict\(([^,]*), (.*)\)")
+    PRIMITIVE_TYPES = PRIMITIVE_TYPES
+    NATIVE_TYPES_MAPPING = NATIVE_TYPES_MAPPING
+    LIST_MATCH_REGEX = LIST_MATCH_REGEX
+    DICT_MATCH_REGEX = DICT_MATCH_REGEX
 
     def __init__(
         self,
@@ -111,10 +107,20 @@ class ApiClient(ApiClientBase):
         api_url: str,
         configuration: SessionConfiguration,
     ):
-        self.models: Dict[str, Union[Type[ModelBase], Type[Enum]]] = {}
+        self._model_registry = ModelRegistry()
+        self._serializer = Serializer()
+        self._deserializer = Deserializer(
+            self._model_registry,
+            temp_folder_path=configuration.temp_folder_path,
+        )
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
+
+    @property
+    def models(self) -> Dict[str, Union[Type[ModelBase], Type[Enum]]]:
+        """Registered model and enum classes keyed by their OpenAPI type name."""
+        return self._model_registry.models
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
@@ -138,7 +144,7 @@ class ApiClient(ApiClientBase):
         ... import ApiModels as model_module
         ... client.setup_client(model_module)
         """
-        self.models = models.__dict__
+        self._model_registry.register_module(models)
 
     def __call_api(
         self,
@@ -285,29 +291,7 @@ class ApiClient(ApiClientBase):
         ... client.sanitize_for_serialization(datetime.datetime(2015, 10, 21, 10, 5, 10))
         '2015-10-21T10:05:10'
         """
-        if obj is None:
-            return None
-        elif isinstance(obj, self.PRIMITIVE_TYPES):
-            return obj
-        elif isinstance(obj, list):
-            return [self.sanitize_for_serialization(sub_obj) for sub_obj in obj]
-        elif isinstance(obj, tuple):
-            return tuple(self.sanitize_for_serialization(sub_obj) for sub_obj in obj)
-        elif isinstance(obj, (datetime.datetime, datetime.date)):
-            return obj.isoformat()
-        elif isinstance(obj, Enum):
-            return obj.value
-
-        if isinstance(obj, dict):
-            obj_dict = obj
-        else:
-            obj_dict = {
-                obj.attribute_map[attr]: getattr(obj, attr)
-                for attr in obj.swagger_types
-                if getattr(obj, attr) is not Unset
-            }
-
-        return {key: self.sanitize_for_serialization(val) for key, val in obj_dict.items()}
+        return self._serializer.serialize(obj)
 
     def deserialize(
         self, response: requests.Response, response_type: Optional[str]
@@ -354,7 +338,7 @@ class ApiClient(ApiClientBase):
             return None
 
         if response_type == "file":
-            return self.__deserialize_file(response)
+            return self._deserializer.deserialize_response(response, response_type)
 
         if response_type == "str":
             data: SerializedType = response.text
@@ -367,79 +351,8 @@ class ApiClient(ApiClientBase):
         return self.__deserialize(data, response_type)
 
     def __deserialize(self, data: SerializedType, klass_name: str) -> DeserializedType:
-        """Deserialize ``dict``, ``list``, and ``str`` into an object.
-
-        Parameters
-        ----------
-        data : Union[dict, list, str]
-            Response data to deserialize.
-        klass_name : str
-            Type of object to deserialize the data to. The type can be a:
-
-            * String class name
-            * String type definition for list or dictionary
-            * "object" literal, which returns the dictionary as-is
-        """
-        if data is None:
-            return None
-
-        if klass_name == "object":
-            warnings.warn(
-                "Attempting to deserialize an object with no defined type. Returning "
-                "the raw data as a dictionary. Check your OpenAPI definition and ensure "
-                "all types are fully defined.",
-                UndefinedObjectWarning,
-            )
-            return data
-
-        list_match = self.LIST_MATCH_REGEX.match(klass_name)
-        if list_match is not None:
-            if not isinstance(data, list):
-                raise TypeError(
-                    f"Expected list for deserializing to {klass_name}, got {type(data)}"
-                )
-            sub_kls = list_match.group(1)
-            return [self.__deserialize(sub_data, sub_kls) for sub_data in data]
-
-        dict_match = self.DICT_MATCH_REGEX.match(klass_name)
-        if dict_match is not None:
-            if not isinstance(data, dict):
-                raise TypeError(
-                    f"Expected dict for deserializing to {klass_name}, got {type(data)}"
-                )
-            sub_kls = dict_match.group(2)
-            return {k: self.__deserialize(v, sub_kls) for k, v in data.items()}
-
-        if klass_name in self.NATIVE_TYPES_MAPPING:
-            klass = self.NATIVE_TYPES_MAPPING[klass_name]
-            if klass in self.PRIMITIVE_TYPES:
-                if not isinstance(data, (str, int, float, bool, bytes)):
-                    raise TypeError(
-                        f"Expected primitive type for deserializing to {klass_name}, got {type(data)}"
-                    )
-                return self.__deserialize_primitive(data, klass)
-            elif klass == datetime.date:
-                if not isinstance(data, str):
-                    raise TypeError(
-                        f"Expected string for deserializing to {klass_name}, got {type(data)}"
-                    )
-                return self.__deserialize_date(data)
-            elif klass == datetime.datetime:
-                if not isinstance(data, str):
-                    raise TypeError(
-                        f"Expected string for deserializing to {klass_name}, got {type(data)}"
-                    )
-                return self.__deserialize_datetime(data)
-
-        klass = self.models[klass_name]
-        if issubclass(klass, Enum):
-            return klass(data)
-        else:
-            if not isinstance(data, (dict, str)):
-                raise TypeError(
-                    f"Expected dict or string for deserializing to {klass_name}, got {type(data)}"
-                )
-            return self.__deserialize_model(data, klass)
+        """Deserialize ``dict``, ``list``, and ``str`` into an object."""
+        return self._deserializer.deserialize(data, klass_name)
 
     def call_api(
         self,
@@ -765,148 +678,9 @@ class ApiClient(ApiClientBase):
         else:
             return content_types[0]
 
-    def __deserialize_file(self, response: requests.Response) -> str:
-        """Deserialize the body to a file.
-
-        This method saves the response body in a file in a temporary folder,
-        using the file name from the ``Content-Disposition`` header if provided.
-
-        Parameters
-        ----------
-        response : requests.Response
-            The API response object to deserialize.
-        """
-        fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
-        os.close(fd)
-        os.remove(path)
-
-        if "Content-Disposition" in response.headers:
-            filename_match = re.search(
-                r'filename=[\'"]?([^\'"\s]+)[\'"]?',
-                response.headers["Content-Disposition"],
-            )
-            if filename_match is not None:
-                filename = filename_match.group(1)
-                path = os.path.join(os.path.dirname(path), filename)
-
-        with open(path, "wb") as f:
-            f.write(response.content)
-
-        return path
-
     @staticmethod
     def __deserialize_primitive(
         data: PrimitiveType, klass: Callable[..., PrimitiveType]
     ) -> PrimitiveType:
-        """Deserialize to the primitive type.
-
-        Parameters
-        ----------
-        data : Union[str, int, float, bool, bytes]
-            Data to deserialize into the primitive type.
-        klass : Type
-            Type of target object for deserialization.
-        """
-        try:
-            return klass(data)
-        except UnicodeEncodeError:
-            return str(data)
-        except (ValueError, TypeError):
-            return data
-
-    @staticmethod
-    def __deserialize_object(value: object) -> object:
-        """Return an original value.
-
-        Parameters
-        ----------
-        value : object
-            Generic object that does not match any specific deserialization strategy.
-        """
-        return value
-
-    @staticmethod
-    def __deserialize_date(value: str) -> datetime.date:
-        """Deserialize string to ``datetime.date``.
-
-        Parameters
-        ----------
-        value : str
-            String representation of a date object in ISO 8601 format or otherwise.
-        """
-        try:
-            return parse(value).date()
-        except ValueError:
-            raise ApiException(
-                status_code=0,
-                reason_phrase=f"Failed to parse `{value}` as date object",
-            )
-
-    @staticmethod
-    def __deserialize_datetime(value: str) -> datetime.datetime:
-        """Deserialize string to ``datetime.datetime``.
-
-        Parameters
-        ----------
-        value : str
-            String representation of the ``datetime`` object in ISO 8601 format.
-        """
-        try:
-            return parse(value)
-        except ValueError:
-            raise ApiException(
-                status_code=0,
-                reason_phrase=f"Failed to parse `{value}` as datetime object",
-            )
-
-    def __deserialize_model(
-        self, data: Union[Dict, str], klass: Type[ModelBase]
-    ) -> Union[ModelBase, Dict, str]:
-        """Deserialize model representation to model.
-
-        Given a model type and the serialized data, deserialize into an instance of the model class.
-
-        Parameters
-        ----------
-        data : Union[Dict, str]
-            Serialized representation of the model object.
-        klass : ModelType
-            Type of the model to deserialize.
-        """
-        if not klass.swagger_types:
-            try:
-                klass.get_real_child_model(klass(), {})
-            except NotImplementedError:
-                return data
-            except BaseException:
-                pass
-
-        kwargs = {}
-        if klass.swagger_types is not None:
-            for attr, attr_type in klass.swagger_types.items():
-                if (
-                    data is not None
-                    and klass.attribute_map[attr] in data
-                    and isinstance(data, (list, dict))
-                ):
-                    value = data[klass.attribute_map[attr]]
-                    kwargs[attr] = self.__deserialize(value, attr_type)
-
-        instance = klass(**kwargs)
-
-        if (
-            isinstance(instance, dict)
-            and klass.swagger_types is not None
-            and isinstance(data, dict)
-        ):
-            for key, value in data.items():
-                if key not in klass.swagger_types:
-                    instance[key] = value
-        try:
-            klass_name = instance.get_real_child_model(data)  # type: ignore[arg-type]
-            if klass_name:
-                instance = self.__deserialize(data, klass_name)  # type: ignore[assignment]
-        except NotImplementedError:
-            pass
-
-        return instance
+        """Deserialize to the primitive type."""
+        return Deserializer._deserialize_primitive(data, klass)
