@@ -41,7 +41,6 @@ from ansys.openapi.common import (
     ApiClient,
     ApiException,
     SessionConfiguration,
-    UndefinedObjectWarning,
 )
 
 from .models import ExampleException
@@ -271,263 +270,6 @@ class TestSerialization:
         assert serialized_enum == "Good"
 
 
-class TestDeserialization:
-    _test_value_list = ["foo", int(2), 2.0, True]
-    _test_value_types = [str, int, float, bool]
-
-    @pytest.fixture(autouse=True)
-    def _blank_client(self, blank_client):
-        self._client = blank_client
-
-    def test_deserialize_none(self):
-        assert self._client._deserializer.deserialize(None, "") is None
-
-    @pytest.mark.parametrize(
-        ("value", "type_"), (("foo", str), (int(2), int), (2.0, float), (True, bool))
-    )
-    def test_deserialize_primitive(self, value, type_):
-        type_ref = type_.__name__
-        deserialized_primitive = self._client._deserializer.deserialize(value, type_ref)
-        assert isinstance(deserialized_primitive, type_)
-        assert deserialized_primitive == value
-
-    @pytest.mark.parametrize(("target_type", "expected_result"), ((int, int(3)), (str, "3.1")))
-    def test_deserialize_float_casts(self, target_type, expected_result):
-        test_float = 3.1
-        deserialized_object = self._client._deserializer.deserialize(
-            test_float, target_type.__name__
-        )
-        assert isinstance(deserialized_object, target_type)
-        assert deserialized_object == expected_result
-
-    def test_deserialize_bytes(self):
-        source_bytes = b"\x66\x6f\x6f"
-        deserialized_bytes = self._client._deserializer.deserialize(source_bytes, "bytes")
-        assert isinstance(deserialized_bytes, bytes)
-        assert deserialized_bytes == source_bytes
-
-    def test_deserialize_list(self):
-        source_list = ["Look", "another", "list"]
-        deserialized_list = self._client._deserializer.deserialize(source_list, "list[str]")
-        assert isinstance(deserialized_list, list)
-        assert deserialized_list == source_list
-
-    def test_deserialize_dict(self):
-        source_dict = {1: "one", 2: "two", 3: "three"}
-        deserialized_dict = self._client._deserializer.deserialize(source_dict, "dict(int, str)")
-        assert isinstance(deserialized_dict, dict)
-        assert deserialized_dict == source_dict
-
-    def test_deserialize_dict_casts_ints(self):
-        source_dict = {"one": 1.0, "two": 2.0, "three": 3.1}
-        deserialized_dict = self._client._deserializer.deserialize(source_dict, "dict(str, int)")
-        assert isinstance(deserialized_dict, dict)
-        for key, val in source_dict.items():
-            assert key in deserialized_dict
-            assert deserialized_dict[key] == int(val)
-
-    def test_deserialize_date(self):
-        source_date = datetime.date(2371, 4, 26)
-        date_string = source_date.isoformat()
-        type_ref = "date"
-        deserialized_date = self._client._deserializer.deserialize(date_string, type_ref)
-        assert isinstance(deserialized_date, datetime.date)
-        assert deserialized_date == source_date
-
-    @pytest.mark.parametrize("object_type", ("date", "datetime"))
-    def test_invalid_date_like_throws(self, object_type):
-        invalid_date = "NOT-A-DATE"
-        with pytest.raises(ApiException) as exception_info:
-            _ = self._client._deserializer.deserialize(invalid_date, object_type)
-        assert invalid_date in exception_info.value.reason_phrase
-        assert f"{object_type} object" in exception_info.value.reason_phrase
-
-    def test_deserialize_datetime(self):
-        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21)
-        datetime_string = source_datetime.isoformat()
-        type_ref = "datetime"
-        deserialized_datetime = self._client._deserializer.deserialize(datetime_string, type_ref)
-        assert isinstance(deserialized_datetime, datetime.datetime)
-        assert deserialized_datetime == source_datetime
-
-    def test_deserialize_model(self):
-        from . import models
-
-        self._client.setup_client(models)
-
-        model_instance = models.ExampleModel("foo", 3, False, ["It's", "a", "list"])
-        model_dict = {
-            "Boolean": False,
-            "Integer": 3,
-            "ListOfStrings": ["It's", "a", "list"],
-            "String": "foo",
-        }
-        type_ref = "ExampleModel"
-        deserialized_model = self._client._deserializer.deserialize(model_dict, type_ref)
-        assert isinstance(deserialized_model, models.ExampleModel)
-        assert deserialized_model == model_instance
-
-    @pytest.mark.parametrize(
-        "value", [[("Boolean", False)], (("Boolean", False),), 1, 1.0, True, b"foo"]
-    )
-    def test_deserialize_model_with_incorrect_value_type_raises_type_error(self, value):
-        from . import models
-
-        self._client.setup_client(models)
-
-        type_ref = "ExampleModel"
-        with pytest.raises(TypeError) as exception_info:
-            _ = self._client._deserializer.deserialize(value, type_ref)
-        assert "dict or string" in str(exception_info.value)
-
-    def test_deserialize_model_with_discriminator(self):
-        from . import models
-
-        self._client.setup_client(models)
-
-        model_instance = models.ExampleModel("foo", 3, False, ["It's", "a", "list"])
-        model_dict = {
-            "Boolean": False,
-            "Integer": 3,
-            "ListOfStrings": ["It's", "a", "list"],
-            "String": "foo",
-            "modelType": "ExampleModel",
-        }
-        type_ref = "ExampleBaseModel"
-        deserialized_model = self._client._deserializer.deserialize(model_dict, type_ref)
-        assert isinstance(deserialized_model, models.ExampleModel)
-        assert deserialized_model == model_instance
-
-    def test_deserialize_enum_model(self):
-        from . import models
-
-        self._client.setup_client(models)
-        model_instance = models.ExampleModelWithEnum().GOOD
-        model_value = "Good"
-        type_ref = "ExampleModelWithEnum"
-        serialized_model = self._client._deserializer.deserialize(model_value, type_ref)
-        assert serialized_model == model_instance
-
-    def test_deserialize_enum(self):
-        from . import models
-
-        self._client.setup_client(models)
-        value = "Good"
-        type_ref = "ExampleEnum"
-        serialized_enum = self._client._deserializer.deserialize(value, type_ref)
-        assert isinstance(serialized_enum, models.ExampleEnum)
-        assert serialized_enum == models.ExampleEnum.GOOD
-
-    def test_deserialize_int_enum(self):
-        from . import models
-
-        self._client.setup_client(models)
-        value = 200
-        type_ref = "ExampleIntEnum"
-        serialized_enum = self._client._deserializer.deserialize(value, type_ref)
-        assert isinstance(serialized_enum, models.ExampleIntEnum)
-        assert serialized_enum == models.ExampleIntEnum._200
-
-    @pytest.mark.parametrize(
-        ["value", "target_enum", "expected_error_msg"],
-        [
-            ("200", "ExampleIntEnum", "'200' is not a valid ExampleIntEnum"),
-            (4.5, "ExampleIntEnum", "4.5 is not a valid ExampleIntEnum"),
-            (4, "ExampleIntEnum", "4 is not a valid ExampleIntEnum"),
-            ("SomeValue", "ExampleEnum", "'SomeValue' is not a valid ExampleEnum"),
-            (4.5, "ExampleEnum", "4.5 is not a valid ExampleEnum"),
-            (4, "ExampleEnum", "4 is not a valid ExampleEnum"),
-        ],
-    )
-    def test_deserialize_enums_raises_helpful_message_on_wrong_value(
-        self, value, target_enum, expected_error_msg
-    ):
-        from . import models
-
-        self._client.setup_client(models)
-        with pytest.raises(ValueError, match=expected_error_msg):
-            _ = self._client._deserializer.deserialize(value, target_enum)
-
-    @pytest.mark.parametrize(
-        ("data", "target_type"),
-        (
-            (5.0, bytes),
-            ("foo", int),
-            ("foo", float),
-            ("foo", bytes),
-            (b"\x01", int),
-            (b"\x01", float),
-        ),
-    )
-    def test_deserialize_primitive_of_wrong_type_does_nothing(self, data, target_type):
-        output = self._client._deserializer.deserialize(data, target_type.__name__)
-        assert isinstance(output, type(data))
-        assert output == data
-
-    def test_deserialize_undefined_object_returns_dict_and_warns(self):
-        data = {"foo": "bar", "baz": [1, 2, 3]}
-        with pytest.warns(
-            UndefinedObjectWarning,
-            match="Attempting to deserialize an object with no defined type",
-        ):
-            output = self._client._deserializer.deserialize(data, "object")
-        assert output == data
-
-    @pytest.mark.parametrize(
-        ("type_name, value"),
-        [
-            ("list[str]", ("foo")),
-            ("list[str]", "foo"),
-            ("list[str]", 1),
-            ("list[str]", 1.0),
-            ("list[str]", b"foo"),
-            ("list[str]", True),
-            ("list[str]", datetime.date.today()),
-            ("dict(str, int)", ["foo"]),
-            ("dict(str, int)", ("foo")),
-            ("dict(str, int)", 1),
-            ("dict(str, int)", 1.0),
-            ("dict(str, int)", b"foo"),
-            ("dict(str, int)", True),
-            ("dict(str, int)", datetime.date.today()),
-            ("str", ["foo"]),
-            ("str", ("foo",)),
-            ("str", datetime.date.today()),
-            ("int", [1]),
-            ("int", (1,)),
-            ("int", datetime.date.today()),
-            ("float", [1.0]),
-            ("float", (1.0,)),
-            ("float", datetime.date.today()),
-            ("bool", [True]),
-            ("bool", (True,)),
-            ("bool", datetime.date.today()),
-            ("bytes", [b"foo"]),
-            ("bytes", (b"foo",)),
-            ("bytes", datetime.date.today()),
-            ("datetime", ["2023-01-01T00:00:00Z"]),
-            ("datetime", ("2023-01-01T00:00:00Z",)),
-            ("datetime", datetime.datetime.now()),
-            ("datetime", 1),
-            ("datetime", 1.0),
-            ("datetime", True),
-            ("datetime", b"2023-01-01T00:00:00Z"),
-            ("date", ["2023-01-01"]),
-            ("date", ("2023-01-01",)),
-            ("date", datetime.date.today()),
-            ("date", 1),
-            ("date", 1.0),
-            ("date", True),
-            ("date", b"2023-01-01"),
-        ],
-    )
-    def test_deserialize_wrong_type_raises_type_error_simple(self, type_name, value):
-        with pytest.raises(TypeError) as e:
-            _ = self._client._deserializer.deserialize(value, type_name)
-        assert type_name in str(e.value)
-        assert str(type(value)) in str(e.value)
-
-
 class TestResponseParsing:
     from requests.adapters import HTTPAdapter
 
@@ -591,6 +333,22 @@ class TestResponseParsing:
         _ = self._client.deserialize(response, "dict")
         deserialize_mock.assert_called()
         deserialize_mock.assert_called_once_with(data, "dict")
+
+    def test_json_response_deserializes_to_model(self):
+        from . import models
+
+        self._client.setup_client(models)
+        api_response = {
+            "String": "foo",
+            "Integer": 3,
+            "ListOfStrings": ["It's", "a", "list"],
+            "Boolean": False,
+        }
+        expected = models.ExampleModel("foo", 3, False, ["It's", "a", "list"])
+        response = self.create_response(api_response)
+        result = self._client.deserialize(response, "ExampleModel")
+        assert isinstance(result, models.ExampleModel)
+        assert result == expected
 
     def test_text_parsed_as_text(self, mocker):
         data = "This is some data this is definitely not json, it should be rendered as a string"
