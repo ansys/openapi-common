@@ -20,43 +20,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-"""Provides a helper to create sessions for use with Ansys OpenAPI clients."""
+import datetime
+import re
 
-from importlib import metadata as metadata
-
-__version__ = metadata.version("ansys-openapi-common")
-
-from ._api_client import ApiClient
-from ._base import ApiBase, ApiClientBase, ModelBase, Unset, Unset_Type
-from ._deserializer import Deserializer
-from ._exceptions import (
-    ApiConnectionException,
-    ApiException,
-    AuthenticationWarning,
-    UndefinedObjectWarning,
-)
-from ._model_registry import ModelRegistry
-from ._oidc_config import OIDCConfiguration
-from ._session import ApiClientFactory, AuthenticationScheme, OIDCSessionBuilder
-from ._util import SessionConfiguration, generate_user_agent
-
-__all__ = [
-    "ApiClient",
-    "ApiClientFactory",
-    "AuthenticationScheme",
-    "SessionConfiguration",
-    "ApiException",
-    "ApiConnectionException",
-    "AuthenticationWarning",
-    "generate_user_agent",
-    "OIDCSessionBuilder",
-    "OIDCConfiguration",
-    "ApiBase",
-    "ApiClientBase",
-    "ModelBase",
-    "ModelRegistry",
-    "Deserializer",
-    "UndefinedObjectWarning",
-    "Unset",
-    "Unset_Type",
-]
+PRIMITIVE_TYPES = (float, bool, bytes, str, int)
+NATIVE_TYPES_MAPPING = {
+    "int": int,
+    "bytes": bytes,
+    "float": float,
+    "str": str,
+    "bool": bool,
+    "date": datetime.date,
+    "datetime": datetime.datetime,
+}
+LIST_MATCH_REGEX = re.compile(r"list\[(.*)]")
+DICT_MATCH_REGEX = re.compile(r"dict\(([^,]*), (.*)\)")
