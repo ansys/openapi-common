@@ -280,45 +280,47 @@ class TestDeserialization:
         self._client = blank_client
 
     def test_deserialize_none(self):
-        assert self._client._ApiClient__deserialize(None, "") is None
+        assert self._client._deserializer.deserialize(None, "") is None
 
     @pytest.mark.parametrize(
         ("value", "type_"), (("foo", str), (int(2), int), (2.0, float), (True, bool))
     )
     def test_deserialize_primitive(self, value, type_):
         type_ref = type_.__name__
-        deserialized_primitive = self._client._ApiClient__deserialize(value, type_ref)
+        deserialized_primitive = self._client._deserializer.deserialize(value, type_ref)
         assert isinstance(deserialized_primitive, type_)
         assert deserialized_primitive == value
 
     @pytest.mark.parametrize(("target_type", "expected_result"), ((int, int(3)), (str, "3.1")))
     def test_deserialize_float_casts(self, target_type, expected_result):
         test_float = 3.1
-        deserialized_object = self._client._ApiClient__deserialize(test_float, target_type.__name__)
+        deserialized_object = self._client._deserializer.deserialize(
+            test_float, target_type.__name__
+        )
         assert isinstance(deserialized_object, target_type)
         assert deserialized_object == expected_result
 
     def test_deserialize_bytes(self):
         source_bytes = b"\x66\x6f\x6f"
-        deserialized_bytes = self._client._ApiClient__deserialize(source_bytes, "bytes")
+        deserialized_bytes = self._client._deserializer.deserialize(source_bytes, "bytes")
         assert isinstance(deserialized_bytes, bytes)
         assert deserialized_bytes == source_bytes
 
     def test_deserialize_list(self):
         source_list = ["Look", "another", "list"]
-        deserialized_list = self._client._ApiClient__deserialize(source_list, "list[str]")
+        deserialized_list = self._client._deserializer.deserialize(source_list, "list[str]")
         assert isinstance(deserialized_list, list)
         assert deserialized_list == source_list
 
     def test_deserialize_dict(self):
         source_dict = {1: "one", 2: "two", 3: "three"}
-        deserialized_dict = self._client._ApiClient__deserialize(source_dict, "dict(int, str)")
+        deserialized_dict = self._client._deserializer.deserialize(source_dict, "dict(int, str)")
         assert isinstance(deserialized_dict, dict)
         assert deserialized_dict == source_dict
 
     def test_deserialize_dict_casts_ints(self):
         source_dict = {"one": 1.0, "two": 2.0, "three": 3.1}
-        deserialized_dict = self._client._ApiClient__deserialize(source_dict, "dict(str, int)")
+        deserialized_dict = self._client._deserializer.deserialize(source_dict, "dict(str, int)")
         assert isinstance(deserialized_dict, dict)
         for key, val in source_dict.items():
             assert key in deserialized_dict
@@ -328,7 +330,7 @@ class TestDeserialization:
         source_date = datetime.date(2371, 4, 26)
         date_string = source_date.isoformat()
         type_ref = "date"
-        deserialized_date = self._client._ApiClient__deserialize(date_string, type_ref)
+        deserialized_date = self._client._deserializer.deserialize(date_string, type_ref)
         assert isinstance(deserialized_date, datetime.date)
         assert deserialized_date == source_date
 
@@ -336,7 +338,7 @@ class TestDeserialization:
     def test_invalid_date_like_throws(self, object_type):
         invalid_date = "NOT-A-DATE"
         with pytest.raises(ApiException) as exception_info:
-            _ = self._client._ApiClient__deserialize(invalid_date, object_type)
+            _ = self._client._deserializer.deserialize(invalid_date, object_type)
         assert invalid_date in exception_info.value.reason_phrase
         assert f"{object_type} object" in exception_info.value.reason_phrase
 
@@ -344,7 +346,7 @@ class TestDeserialization:
         source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21)
         datetime_string = source_datetime.isoformat()
         type_ref = "datetime"
-        deserialized_datetime = self._client._ApiClient__deserialize(datetime_string, type_ref)
+        deserialized_datetime = self._client._deserializer.deserialize(datetime_string, type_ref)
         assert isinstance(deserialized_datetime, datetime.datetime)
         assert deserialized_datetime == source_datetime
 
@@ -361,7 +363,7 @@ class TestDeserialization:
             "String": "foo",
         }
         type_ref = "ExampleModel"
-        deserialized_model = self._client._ApiClient__deserialize(model_dict, type_ref)
+        deserialized_model = self._client._deserializer.deserialize(model_dict, type_ref)
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
 
@@ -375,7 +377,7 @@ class TestDeserialization:
 
         type_ref = "ExampleModel"
         with pytest.raises(TypeError) as exception_info:
-            _ = self._client._ApiClient__deserialize(value, type_ref)
+            _ = self._client._deserializer.deserialize(value, type_ref)
         assert "dict or string" in str(exception_info.value)
 
     def test_deserialize_model_with_discriminator(self):
@@ -392,7 +394,7 @@ class TestDeserialization:
             "modelType": "ExampleModel",
         }
         type_ref = "ExampleBaseModel"
-        deserialized_model = self._client._ApiClient__deserialize(model_dict, type_ref)
+        deserialized_model = self._client._deserializer.deserialize(model_dict, type_ref)
         assert isinstance(deserialized_model, models.ExampleModel)
         assert deserialized_model == model_instance
 
@@ -403,7 +405,7 @@ class TestDeserialization:
         model_instance = models.ExampleModelWithEnum().GOOD
         model_value = "Good"
         type_ref = "ExampleModelWithEnum"
-        serialized_model = self._client._ApiClient__deserialize(model_value, type_ref)
+        serialized_model = self._client._deserializer.deserialize(model_value, type_ref)
         assert serialized_model == model_instance
 
     def test_deserialize_enum(self):
@@ -412,7 +414,7 @@ class TestDeserialization:
         self._client.setup_client(models)
         value = "Good"
         type_ref = "ExampleEnum"
-        serialized_enum = self._client._ApiClient__deserialize(value, type_ref)
+        serialized_enum = self._client._deserializer.deserialize(value, type_ref)
         assert isinstance(serialized_enum, models.ExampleEnum)
         assert serialized_enum == models.ExampleEnum.GOOD
 
@@ -422,7 +424,7 @@ class TestDeserialization:
         self._client.setup_client(models)
         value = 200
         type_ref = "ExampleIntEnum"
-        serialized_enum = self._client._ApiClient__deserialize(value, type_ref)
+        serialized_enum = self._client._deserializer.deserialize(value, type_ref)
         assert isinstance(serialized_enum, models.ExampleIntEnum)
         assert serialized_enum == models.ExampleIntEnum._200
 
@@ -444,7 +446,7 @@ class TestDeserialization:
 
         self._client.setup_client(models)
         with pytest.raises(ValueError, match=expected_error_msg):
-            _ = self._client._ApiClient__deserialize(value, target_enum)
+            _ = self._client._deserializer.deserialize(value, target_enum)
 
     @pytest.mark.parametrize(
         ("data", "target_type"),
@@ -458,7 +460,7 @@ class TestDeserialization:
         ),
     )
     def test_deserialize_primitive_of_wrong_type_does_nothing(self, data, target_type):
-        output = self._client._ApiClient__deserialize_primitive(data, target_type)
+        output = self._client._deserializer.deserialize(data, target_type.__name__)
         assert isinstance(output, type(data))
         assert output == data
 
@@ -468,7 +470,7 @@ class TestDeserialization:
             UndefinedObjectWarning,
             match="Attempting to deserialize an object with no defined type",
         ):
-            output = self._client._ApiClient__deserialize(data, "object")
+            output = self._client._deserializer.deserialize(data, "object")
         assert output == data
 
     @pytest.mark.parametrize(
@@ -521,7 +523,7 @@ class TestDeserialization:
     )
     def test_deserialize_wrong_type_raises_type_error_simple(self, type_name, value):
         with pytest.raises(TypeError) as e:
-            _ = self._client._ApiClient__deserialize(value, type_name)
+            _ = self._client._deserializer.deserialize(value, type_name)
         assert type_name in str(e.value)
         assert str(type(value)) in str(e.value)
 
@@ -576,15 +578,15 @@ class TestResponseParsing:
     def test_response_is_not_deserialized_if_type_is_none(self, mocker):
         data = {"one": 1, "two": 2, "three": 3}
         response = self.create_response(data)
-        _deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock = mocker.patch.object(self._client._deserializer, "deserialize")
         result = self._client.deserialize(response, None)
         assert result is None
-        _deserialize_mock.assert_not_called()
+        deserialize_mock.assert_not_called()
 
     def test_json_parsed_as_json(self, mocker):
         data = {"one": 1, "two": 2, "three": 3}
         response = self.create_response(data)
-        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock = mocker.patch.object(self._client._deserializer, "deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "dict")
         deserialize_mock.assert_called()
@@ -593,7 +595,7 @@ class TestResponseParsing:
     def test_text_parsed_as_text(self, mocker):
         data = "This is some data this is definitely not json, it should be rendered as a string"
         response = self.create_response(text=data, content_type="text/plain")
-        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock = mocker.patch.object(self._client._deserializer, "deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "str")
         deserialize_mock.assert_called()
@@ -602,7 +604,7 @@ class TestResponseParsing:
     def test_deserialize_json_as_string_returns_string(self, mocker):
         data = json.dumps({"foo": "bar", "baz": [1, 2, 3]})
         response = self.create_response(text=data, content_type="text/plain")
-        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock = mocker.patch.object(self._client._deserializer, "deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "str")
         deserialize_mock.assert_called()
@@ -615,7 +617,7 @@ class TestResponseParsing:
         response = self.create_response(content=data, content_type="application/octet-stream")
         if not provide_content_type:
             response.headers.pop("Content-Type")
-        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock = mocker.patch.object(self._client._deserializer, "deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "bytes")
         deserialize_mock.assert_called()
@@ -629,7 +631,7 @@ class TestResponseParsing:
             <body>Don't forget me this weekend!</body>
         </note>"""
         response = self.create_response(text=data, content_type="application/xml")
-        deserialize_mock = mocker.patch.object(ApiClient, "_ApiClient__deserialize")
+        deserialize_mock = mocker.patch.object(self._client._deserializer, "deserialize")
         deserialize_mock.return_value = True
         _ = self._client.deserialize(response, "str")
         deserialize_mock.assert_called()

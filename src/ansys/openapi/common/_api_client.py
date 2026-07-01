@@ -23,12 +23,13 @@
 import json
 import mimetypes
 import os
+import re
+import tempfile
 from enum import Enum
 from types import ModuleType
 from typing import (
     IO,
     Any,
-    Callable,
     Dict,
     Iterable,
     List,
@@ -43,13 +44,16 @@ from urllib.parse import quote
 
 import requests
 
-from ._base import ApiClientBase, DeserializedType, ModelBase, PrimitiveType, SerializedType
+from ._base import ApiClientBase, DeserializedType, ModelBase, SerializedType
 from ._deserializer import Deserializer
 from ._exceptions import ApiException
 from ._logger import logger
 from ._model_registry import ModelRegistry
 from ._serializer import Serializer
 from ._util import SessionConfiguration
+
+
+FILE_NAME_REGEX = re.compile(r'filename=[\'"]?([^\'"\s]+)[\'"]?')
 
 
 # noinspection DuplicatedCode
@@ -98,10 +102,7 @@ class ApiClient(ApiClientBase):
     ):
         self._model_registry = ModelRegistry()
         self._serializer = Serializer()
-        self._deserializer = Deserializer(
-            self._model_registry,
-            temp_folder_path=configuration.temp_folder_path,
-        )
+        self._deserializer = Deserializer(self._model_registry)
         self.api_url = api_url
         self.rest_client = session
         self.configuration = configuration
@@ -327,7 +328,15 @@ class ApiClient(ApiClientBase):
             return None
 
         if response_type == "file":
-            return self._deserializer.deserialize_response(response, response_type)
+            filename = None
+            if "Content-Disposition" in response.headers:
+                filename_match = re.search(
+                    FILE_NAME_REGEX,
+                    response.headers["Content-Disposition"],
+                )
+                if filename_match is not None:
+                    filename = filename_match.group(1)
+            return self._save_to_file(response.content, filename)
 
         if response_type == "str":
             data: SerializedType = response.text
@@ -337,11 +346,21 @@ class ApiClient(ApiClientBase):
             except ValueError:
                 data = response.content
 
-        return self.__deserialize(data, response_type)
+        return self._deserializer.deserialize(data, response_type)
 
-    def __deserialize(self, data: SerializedType, klass_name: str) -> DeserializedType:
-        """Deserialize ``dict``, ``list``, and ``str`` into an object."""
-        return self._deserializer.deserialize(data, klass_name)
+    def _save_to_file(self, content: bytes, filename: Optional[str] = None) -> str:
+        """Write response body bytes to a file and return its path."""
+        fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
+        os.close(fd)
+        os.remove(path)
+
+        if filename:
+            path = os.path.join(os.path.dirname(path), filename)
+
+        with open(path, "wb") as f:
+            f.write(content)
+
+        return path
 
     def call_api(
         self,
@@ -666,10 +685,3 @@ class ApiClient(ApiClientBase):
             return "application/json"
         else:
             return content_types[0]
-
-    @staticmethod
-    def __deserialize_primitive(
-        data: PrimitiveType, klass: Callable[..., PrimitiveType]
-    ) -> PrimitiveType:
-        """Deserialize to the primitive type."""
-        return Deserializer._deserialize_primitive(data, klass)

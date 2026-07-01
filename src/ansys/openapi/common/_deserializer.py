@@ -22,14 +22,10 @@
 
 import datetime
 from enum import Enum
-import os
-import re
-import tempfile
-from typing import Callable, Dict, Optional, Type, Union
+from typing import Callable, Dict, Type, Union
 import warnings
 
 from dateutil.parser import parse
-import requests
 
 from ._base import DeserializedType, ModelBase, PrimitiveType, SerializedType
 from ._codec_types import (
@@ -43,38 +39,10 @@ from ._model_registry import ModelRegistry
 
 
 class Deserializer:
-    """Deserializes wire-ready structures and HTTP responses into Python objects."""
+    """Deserializes wire-ready data structures into Python objects."""
 
-    def __init__(
-        self,
-        model_registry: ModelRegistry,
-        *,
-        temp_folder_path: Optional[str] = None,
-    ) -> None:
+    def __init__(self, model_registry: ModelRegistry) -> None:
         self._model_registry = model_registry
-        self._temp_folder_path = (
-            temp_folder_path if temp_folder_path is not None else tempfile.gettempdir()
-        )
-
-    def deserialize_response(
-        self, response: requests.Response, response_type: Optional[str]
-    ) -> DeserializedType:
-        """Deserialize an HTTP response into an object."""
-        if response_type is None:
-            return None
-
-        if response_type == "file":
-            return self._deserialize_file(response)
-
-        if response_type == "str":
-            data: SerializedType = response.text
-        else:
-            try:
-                data = response.json()
-            except ValueError:
-                data = response.content
-
-        return self.deserialize(data, response_type)
 
     def deserialize(self, data: SerializedType, response_type: str) -> DeserializedType:
         """Deserialize wire-ready data into an object."""
@@ -138,26 +106,6 @@ class Deserializer:
                     f"Expected dict or string for deserializing to {response_type}, got {type(data)}"
                 )
             return self._deserialize_model(data, klass)
-
-    def _deserialize_file(self, response: requests.Response) -> str:
-        """Deserialize the body to a file."""
-        fd, path = tempfile.mkstemp(dir=self._temp_folder_path)
-        os.close(fd)
-        os.remove(path)
-
-        if "Content-Disposition" in response.headers:
-            filename_match = re.search(
-                r'filename=[\'"]?([^\'"\s]+)[\'"]?',
-                response.headers["Content-Disposition"],
-            )
-            if filename_match is not None:
-                filename = filename_match.group(1)
-                path = os.path.join(os.path.dirname(path), filename)
-
-        with open(path, "wb") as f:
-            f.write(response.content)
-
-        return path
 
     @staticmethod
     def _deserialize_primitive(
