@@ -1,0 +1,6 @@
+NATIVE\_TYPES\_MAPPING
+======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: ApiClient.NATIVE_TYPES_MAPPING

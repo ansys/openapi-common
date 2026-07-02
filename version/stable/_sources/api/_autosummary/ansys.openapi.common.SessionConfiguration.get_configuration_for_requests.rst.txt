@@ -1,0 +1,6 @@
+get\_configuration\_for\_requests
+=================================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: SessionConfiguration.get_configuration_for_requests

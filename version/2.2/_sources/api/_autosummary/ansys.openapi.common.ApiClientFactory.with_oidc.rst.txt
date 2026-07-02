@@ -1,0 +1,6 @@
+with\_oidc
+==========
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClientFactory.with_oidc

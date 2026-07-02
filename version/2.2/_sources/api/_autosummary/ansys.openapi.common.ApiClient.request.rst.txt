@@ -1,0 +1,6 @@
+request
+=======
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.request
