@@ -1,0 +1,6 @@
+PRIMITIVE\_TYPES
+================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: ApiClient.PRIMITIVE_TYPES

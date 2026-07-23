@@ -1,0 +1,6 @@
+call\_api
+=========
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.call_api

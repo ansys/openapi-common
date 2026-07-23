@@ -1,0 +1,6 @@
+authorization\_endpoint
+=======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.authorization_endpoint
