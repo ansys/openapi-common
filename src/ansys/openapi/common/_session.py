@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import os
+import sys
 import warnings
 from collections.abc import Mapping
 from enum import Enum
@@ -30,8 +31,12 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth
-from typing_extensions import Self
 from urllib3.util.retry import Retry
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from . import __version__
 from ._api_client import ApiClient
