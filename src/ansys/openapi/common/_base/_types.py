@@ -25,23 +25,12 @@ import datetime
 import pprint
 from collections.abc import Mapping
 from enum import Enum
-from typing import Any, Literal
+from typing import Any, Literal, TypeAlias
 
 import requests
 
-PrimitiveType = float | bool | bytes | str | int
-DeserializedType = (
-    None
-    | PrimitiveType
-    | datetime.datetime
-    | datetime.date
-    | Enum
-    | list
-    | tuple
-    | dict
-    | "ModelBase"
-)
-SerializedType = None | PrimitiveType | list | tuple | dict
+PrimitiveType: TypeAlias = float | bool | bytes | str | int
+SerializedType: TypeAlias = None | PrimitiveType | list | tuple | dict
 
 
 class ModelBase(metaclass=abc.ABCMeta):
@@ -101,6 +90,19 @@ class ModelBase(metaclass=abc.ABCMeta):
     def get_real_child_model(self, data: dict[str, str]) -> str:
         """Classes with discriminators will override this method and may change the method signature."""
         raise NotImplementedError()
+
+
+DeserializedType: TypeAlias = (
+    None
+    | PrimitiveType
+    | datetime.datetime
+    | datetime.date
+    | Enum
+    | list
+    | tuple
+    | dict
+    | ModelBase
+)
 
 
 class ApiBase(metaclass=abc.ABCMeta):
