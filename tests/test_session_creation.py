@@ -20,11 +20,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from contextlib import nullcontext
-from functools import wraps
 import json
 import os
 import sys
+from contextlib import nullcontext
+from functools import wraps
 from urllib.parse import parse_qs
 
 import pytest
@@ -115,7 +115,7 @@ def test_can_connect_with_pre_emptive_basic():
             password="PASSWORD",
             authentication_scheme=AuthenticationScheme.BASIC,
         )
-        assert m.called_once
+        assert m.call_count == 1
 
 
 def test_can_connect_with_basic_and_domain():
@@ -148,7 +148,7 @@ def test_can_connect_with_pre_emptive_basic_and_domain():
             domain="DOMAIN",
             authentication_scheme=AuthenticationScheme.BASIC,
         )
-        assert m.called_once
+        assert m.call_count == 1
 
 
 # In Auto mode, the single call is during the initial request to retrieve the header
@@ -179,7 +179,7 @@ def test_only_called_once_with_basic_when_anonymous_is_ok(auth_mode, expect_warn
                 password="PASSWORD",
                 authentication_scheme=auth_mode,
             )
-        assert m.called_once
+        assert m.call_count == 1
 
 
 @pytest.mark.parametrize(
@@ -314,7 +314,7 @@ def test_only_called_once_with_autologon_when_anonymous_is_ok():
         m.get(SERVICELAYER_URL, status_code=200)
         with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
             _ = ApiClientFactory(SERVICELAYER_URL).with_autologon()
-        assert m.called_once
+        assert m.call_count == 1
 
 
 def test_can_connect_with_oidc():
@@ -326,7 +326,7 @@ def test_only_called_once_with_oidc_when_anonymous_is_ok():
         m.get(SERVICELAYER_URL, status_code=200)
         with pytest.warns(AuthenticationWarning, match="Continuing without credentials"):
             _ = ApiClientFactory(SERVICELAYER_URL).with_oidc().authorize()
-        assert m.called_once
+        assert m.call_count == 1
 
 
 def test_can_connect_with_oidc_using_token():

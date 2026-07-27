@@ -24,12 +24,12 @@ import json
 from unittest.mock import MagicMock, Mock
 from urllib.parse import parse_qs
 
-from covertable import make
 import pytest
 import requests
+import requests_mock
+from covertable import make
 from requests.models import CaseInsensitiveDict
 from requests_auth import OAuth2
-import requests_mock
 
 from ansys.openapi.common import ApiClientFactory, OIDCConfiguration
 from ansys.openapi.common._oidc import OIDCSessionFactory
@@ -81,12 +81,8 @@ def test_no_bearer_throws(authenticate_parsing_fixture):
 @pytest.mark.parametrize("missing_argument", REQUIRED_HEADERS.keys())
 def test_missing_parameters_throws(authenticate_parsing_fixture, missing_argument):
     response = authenticate_parsing_fixture
-    pairs = [
-        "=".join([k, '"{}"'.format(v)])
-        for k, v in REQUIRED_HEADERS.items()
-        if k != missing_argument
-    ]
-    response.headers["WWW-Authenticate"] = "Bearer {0}".format(", ".join(pairs))
+    pairs = ["=".join([k, f'"{v}"']) for k, v in REQUIRED_HEADERS.items() if k != missing_argument]
+    response.headers["WWW-Authenticate"] = "Bearer {}".format(", ".join(pairs))
     exception_info = try_parse_and_assert_failed(response)
     assert missing_argument in str(exception_info.value)
 
@@ -101,8 +97,8 @@ def test_missing_multiple_parameters_throws(authenticate_parsing_fixture):
 
 def test_valid_header_returns_correct_values(authenticate_parsing_fixture):
     response = authenticate_parsing_fixture
-    pairs = ["=".join([k, '"{}"'.format(v)]) for k, v in REQUIRED_HEADERS.items()]
-    response.headers["WWW-Authenticate"] = "Bearer {0}".format(", ".join(pairs))
+    pairs = ["=".join([k, f'"{v}"']) for k, v in REQUIRED_HEADERS.items()]
+    response.headers["WWW-Authenticate"] = "Bearer {}".format(", ".join(pairs))
     parsed_header = OIDCSessionFactory._parse_unauthorized_header(response)
     assert all(parsed_header[k] == v for k, v in REQUIRED_HEADERS.items())
 

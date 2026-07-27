@@ -21,7 +21,6 @@
 # SOFTWARE.
 
 from dataclasses import dataclass
-from typing import List, Optional
 
 
 @dataclass
@@ -59,14 +58,14 @@ class OIDCConfiguration:
         The default is ``32284``.
     """
 
-    client_id: Optional[str] = None
-    authority: Optional[str] = None
-    authorization_endpoint: Optional[str] = None
-    token_endpoint: Optional[str] = None
-    well_known_url: Optional[str] = None
-    scopes: Optional[List[str]] = None
-    api_audience: Optional[str] = None
-    redirect_uri: Optional[str] = None
+    client_id: str | None = None
+    authority: str | None = None
+    authorization_endpoint: str | None = None
+    token_endpoint: str | None = None
+    well_known_url: str | None = None
+    scopes: list[str] | None = None
+    api_audience: str | None = None
+    redirect_uri: str | None = None
     redirect_uri_port: int = 32284
 
     def is_complete(self) -> bool:

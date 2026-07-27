@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import ClassVar
+
 from ansys.openapi.common import ModelBase, Unset
 
 
@@ -35,21 +37,21 @@ class ExampleModel(ModelBase):
       attribute_map (dict): The key is attribute name
                             and the value is json key in definition.
     """
-    swagger_types = {
+    swagger_types: ClassVar[dict[str, str]] = {
         "string_property": "str",
         "int_property": "int",
         "bool_property": "bool",
         "list_property": "list[str]",
     }
 
-    attribute_map = {
+    attribute_map: ClassVar[dict[str, str]] = {
         "string_property": "String",
         "int_property": "Integer",
         "bool_property": "Boolean",
         "list_property": "ListOfStrings",
     }
 
-    subtype_mapping = {}
+    subtype_mapping: ClassVar[dict[str, str]] = {}
 
     def __init__(
         self,
@@ -57,7 +59,7 @@ class ExampleModel(ModelBase):
         int_property=Unset,
         bool_property=Unset,
         list_property=Unset,
-    ):  # noqa: E501
+    ):
         self._string_property = None
         self._int_property = None
         self._bool_property = None

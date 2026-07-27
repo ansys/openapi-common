@@ -23,10 +23,10 @@
 from multiprocessing import Process
 from time import sleep
 
-from fastapi import Depends, FastAPI, Request
-from fastapi.security import HTTPBasic, HTTPBasicCredentials
 import pytest
 import uvicorn
+from fastapi import Depends, FastAPI, Request
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from ansys.openapi.common import (
     ApiClientFactory,
@@ -62,22 +62,21 @@ async def modify_response_headers(request: Request, call_next):
 async def patch_model(
     model_id: str,
     example_model: ExampleModelPyd,
-    credentials: HTTPBasicCredentials = Depends(security),
+    credentials: HTTPBasicCredentials = Depends(security),  # noqa: B008
 ):
     validate_user_basic(credentials)
     return return_model(model_id, example_model)
 
 
 @custom_test_app.get("/test_api")
-async def get_test_api(credentials: HTTPBasicCredentials = Depends(security)):
+async def get_test_api(credentials: HTTPBasicCredentials = Depends(security)):  # noqa: B008
     validate_user_basic(credentials)
     return {"msg": "OK"}
 
 
 @custom_test_app.get("/")
-async def get_none(credentials: HTTPBasicCredentials = Depends(security)):
+async def get_none(credentials: HTTPBasicCredentials = Depends(security)):  # noqa: B008
     validate_user_basic(credentials)
-    return None
 
 
 def run_server():

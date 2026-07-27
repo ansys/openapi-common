@@ -22,7 +22,6 @@
 
 from enum import Enum
 from types import ModuleType
-from typing import Dict, Type, Union
 
 from ._base import ModelBase
 
@@ -31,14 +30,14 @@ class ModelRegistry:
     """Maps OpenAPI model and enum type names to their Python classes."""
 
     def __init__(self) -> None:
-        self._models: Dict[str, Union[Type[ModelBase], Type[Enum]]] = {}
+        self._models: dict[str, type[ModelBase | Enum]] = {}
 
     @property
-    def models(self) -> Dict[str, Union[Type[ModelBase], Type[Enum]]]:
+    def models(self) -> dict[str, type[ModelBase] | type[Enum]]:
         """Registered model and enum classes keyed by their OpenAPI type name."""
         return self._models
 
-    def register(self, name: str, klass: Union[Type[ModelBase], Type[Enum]]) -> None:
+    def register(self, name: str, klass: type[ModelBase] | type[Enum]) -> None:
         """Register a single model or enum class."""
         self._models[name] = klass
 
@@ -50,7 +49,7 @@ class ModelRegistry:
             ):
                 self._models[name] = value
 
-    def get(self, name: str) -> Union[Type[ModelBase], Type[Enum]]:
+    def get(self, name: str) -> type[ModelBase] | type[Enum]:
         """Return the class registered under ``name``."""
         return self._models[name]
 

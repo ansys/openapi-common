@@ -22,37 +22,38 @@
 
 import abc
 import datetime
-from enum import Enum
 import pprint
-from typing import Any, Dict, List, Literal, Mapping, Optional, Tuple, Union
+from collections.abc import Mapping
+from enum import Enum
+from typing import Any, Literal
 
 import requests
 
-PrimitiveType = Union[float, bool, bytes, str, int]
-DeserializedType = Union[
-    None,
-    PrimitiveType,
-    datetime.datetime,
-    datetime.date,
-    Enum,
-    List,
-    Tuple,
-    Dict,
-    "ModelBase",
-]
-SerializedType = Union[None, PrimitiveType, List, Tuple, Dict]
+PrimitiveType = float | bool | bytes | str | int
+DeserializedType = (
+    None
+    | PrimitiveType
+    | datetime.datetime
+    | datetime.date
+    | Enum
+    | list
+    | tuple
+    | dict
+    | "ModelBase"
+)
+SerializedType = None | PrimitiveType | list | tuple | dict
 
 
 class ModelBase(metaclass=abc.ABCMeta):
     """Provides a base class for all generated models."""
 
-    swagger_types: Dict[str, str]
-    attribute_map: Dict[str, str]
+    swagger_types: dict[str, str]
+    attribute_map: dict[str, str]
 
     @abc.abstractmethod
     def __init__(self, *args: Any, **kwargs: Any) -> None: ...
 
-    def to_dict(self) -> Dict:
+    def to_dict(self) -> dict:
         """Return the model properties as a dict.
 
         Returns
@@ -62,7 +63,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         """
         result = {}
 
-        for attr in self.swagger_types.keys():
+        for attr in self.swagger_types:
             value = getattr(self, attr)
             if isinstance(value, list):
                 result[attr] = [
@@ -97,7 +98,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         """
         return pprint.pformat(self.to_dict())
 
-    def get_real_child_model(self, data: Dict[str, str]) -> str:
+    def get_real_child_model(self, data: dict[str, str]) -> str:
         """Classes with discriminators will override this method and may change the method signature."""
         raise NotImplementedError()
 
@@ -114,12 +115,12 @@ class ApiClientBase(metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
+    def select_header_accept(accepts: list[str] | None) -> str | None:
         """Provide method signature for determining header priority."""
 
     @staticmethod
     @abc.abstractmethod
-    def select_header_content_type(content_types: Optional[List[str]]) -> str:
+    def select_header_content_type(content_types: list[str] | None) -> str:
         """Provide method signature for determining header priority."""
 
     @abc.abstractmethod
@@ -127,19 +128,19 @@ class ApiClientBase(metaclass=abc.ABCMeta):
         self,
         resource_path: str,
         method: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        header_params: Union[Dict[str, Union[str, int]], None] = None,
-        body: Optional[DeserializedType] = None,
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[Mapping[str, str]] = None,
-        response_type: Optional[str] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, str | int] | list[tuple] | None = None,
+        query_params: dict[str, str | int] | list[tuple] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: DeserializedType | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> requests.Response | DeserializedType | None:
         """Provide method signature for calling the API."""
 
 

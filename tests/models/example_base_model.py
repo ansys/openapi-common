@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import ClassVar
+
 from ansys.openapi.common import ModelBase
 
 
@@ -36,14 +38,14 @@ class ExampleBaseModel(ModelBase):
                             and the value is json key in definition.
     """
 
-    swagger_types = {"model_type": "str"}
+    swagger_types: ClassVar[dict[str, str]] = {"model_type": "str"}
 
-    attribute_map = {"model_type": "modelType"}
+    attribute_map: ClassVar[dict[str, str]] = {"model_type": "modelType"}
 
-    discriminator_value_class_map = {"examplemodel": "ExampleModel"}
+    discriminator_value_class_map: ClassVar[dict[str, str]] = {"examplemodel": "ExampleModel"}
 
-    def __init__(self, model_type=None):  # noqa: E501
-        """Model - a model defined in Swagger"""  # noqa: E501
+    def __init__(self, model_type=None):
+        """Model - a model defined in Swagger"""
         self.discriminator = "modelType"
         self._model_type = model_type
 
@@ -54,7 +56,7 @@ class ExampleBaseModel(ModelBase):
     @model_type.setter
     def model_type(self, model_type):
         if model_type is None:
-            raise ValueError("Invalid value for `model_type`, must not be `None`")  # noqa: E501
+            raise ValueError("Invalid value for `model_type`, must not be `None`")
 
         self._model_type = model_type
 

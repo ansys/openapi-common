@@ -19,8 +19,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-from typing import Any, Dict, List, Optional, Union
 import urllib.parse
+from typing import Any
 
 import keyring
 import requests
@@ -78,8 +78,8 @@ class OIDCSessionFactory:
         api_url: str,
         oidc_config: OIDCConfiguration,
         initial_session: requests.Session,
-        api_session_configuration: Optional[SessionConfiguration] = None,
-        idp_session_configuration: Optional[SessionConfiguration] = None,
+        api_session_configuration: SessionConfiguration | None = None,
+        idp_session_configuration: SessionConfiguration | None = None,
         *,
         default_scopes: bool = False,
     ) -> None:
@@ -131,8 +131,8 @@ class OIDCSessionFactory:
         cls,
         initial_session: requests.Session,
         initial_response: requests.Response,
-        api_session_configuration: Optional[SessionConfiguration] = None,
-        idp_session_configuration: Optional[SessionConfiguration] = None,
+        api_session_configuration: SessionConfiguration | None = None,
+        idp_session_configuration: SessionConfiguration | None = None,
     ) -> "OIDCSessionFactory":
         """Create a factory using parameters from the API ``401`` response.
 
@@ -166,8 +166,8 @@ class OIDCSessionFactory:
         api_url: str,
         oidc_configuration: OIDCConfiguration,
         initial_session: requests.Session,
-        api_session_configuration: Optional[SessionConfiguration] = None,
-        idp_session_configuration: Optional[SessionConfiguration] = None,
+        api_session_configuration: SessionConfiguration | None = None,
+        idp_session_configuration: SessionConfiguration | None = None,
     ) -> "OIDCSessionFactory":
         """Create a factory using upfront OpenID Connect configuration.
 
@@ -204,8 +204,8 @@ class OIDCSessionFactory:
     def _initialize_sessions(
         self,
         initial_session: requests.Session,
-        api_session_configuration: Optional[SessionConfiguration],
-        idp_session_configuration: Optional[SessionConfiguration],
+        api_session_configuration: SessionConfiguration | None,
+        idp_session_configuration: SessionConfiguration | None,
     ) -> None:
         if api_session_configuration is None:
             api_session_configuration = SessionConfiguration()
@@ -340,7 +340,7 @@ class OIDCSessionFactory:
 
     @staticmethod
     def _oidc_config_from_bearer(bearer_parameters: CaseInsensitiveDict) -> OIDCConfiguration:
-        scopes: Optional[List[str]] = None
+        scopes: list[str] | None = None
         if "scope" in bearer_parameters:
             scope_value = bearer_parameters["scope"]
             if isinstance(scope_value, str):
@@ -358,8 +358,8 @@ class OIDCSessionFactory:
 
     @staticmethod
     def _normalized_scopes(
-        scopes: Optional[List[str]], *, default_scopes: bool = False
-    ) -> Union[str, List[str]]:
+        scopes: list[str] | None, *, default_scopes: bool = False
+    ) -> str | list[str]:
         if scopes is None:
             if default_scopes:
                 return " ".join(_DEFAULT_SCOPES)
@@ -367,7 +367,7 @@ class OIDCSessionFactory:
         return " ".join(scopes)
 
     @staticmethod
-    def _redirect_uri_kwargs(oidc_config: OIDCConfiguration) -> Dict[str, Any]:
+    def _redirect_uri_kwargs(oidc_config: OIDCConfiguration) -> dict[str, Any]:
         if oidc_config.redirect_uri:
             parsed = urllib.parse.urlparse(oidc_config.redirect_uri)
             if parsed.hostname:
@@ -398,27 +398,21 @@ class OIDCSessionFactory:
         auth_header = unauthorized_response.headers["WWW-Authenticate"]
         authenticate_parameters = parse_authenticate(auth_header)
         if "bearer" not in authenticate_parameters:
-            logger.debug(
-                "Detected authentication methods: "
-                + ", ".join([method for method in authenticate_parameters.keys()])
-            )
+            logger.debug("Detected authentication methods: " + ", ".join(authenticate_parameters))
             raise ConnectionError(
                 "Unable to connect with OpenID Connect: not supported on this server."
             )
 
         mandatory_headers = ["redirecturi", "authority", "clientid"]
         missing_headers = []
-        bearer_parameters: Optional["CaseInsensitiveDict"] = authenticate_parameters["bearer"]
+        bearer_parameters: CaseInsensitiveDict | None = authenticate_parameters["bearer"]
         if bearer_parameters is None:
             bearer_parameters = CaseInsensitiveDict()
 
         for header_name in mandatory_headers:
             if header_name not in bearer_parameters:
                 missing_headers.append(header_name)
-        logger.debug(
-            "Detected bearer configuration headers: "
-            + ", ".join([parameter for parameter in bearer_parameters.keys()])
-        )
+        logger.debug("Detected bearer configuration headers: " + ", ".join(bearer_parameters))
 
         if len(missing_headers) > 1:
             missing_header_string = '", "'.join(missing_headers)

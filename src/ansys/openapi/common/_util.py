@@ -20,26 +20,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import http.cookiejar
+import tempfile
 import typing
 from collections import OrderedDict
-import http.cookiejar
+from collections.abc import Collection
 from itertools import chain
-import tempfile
 from typing import (
     Any,
-    Collection,
-    Dict,
-    List,
-    Optional,
-    Tuple,
+    ClassVar,
     TypedDict,
-    Union,
     cast,
 )
 
 import pyparsing as pp
 import requests
 from requests.structures import CaseInsensitiveDict
+
+_MISSING = object()
 
 
 class CaseInsensitiveOrderedDict(OrderedDict):
@@ -54,8 +52,8 @@ class CaseInsensitiveOrderedDict(OrderedDict):
     @staticmethod
     def _process_args(mapping: Any = (), **kwargs: Any) -> Any:
         if hasattr(mapping, "items"):
-            mapping = getattr(mapping, "items")()
-        return ((k.lower(), v) for k, v in chain(mapping, getattr(kwargs, "items")()))
+            mapping = mapping.items()
+        return ((k.lower(), v) for k, v in chain(mapping, kwargs.items()))
 
     def __init__(self, mapping: Any = (), **kwargs: Any) -> None:
         super().__init__(self._process_args(mapping, **kwargs))
@@ -72,17 +70,17 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         """Override __delitem__ to delete lower-case key."""
         return super().__delitem__(k.lower())
 
-    def get(self, k: str, default: Optional[Any] = None) -> Any:
+    def get(self, k: str, default: Any | None = None) -> Any:
         """Override get to retrieve lower-case key."""
         return super().get(k.lower(), default)
 
-    def setdefault(self, k: str, default: Optional[Any] = None) -> Any:
+    def setdefault(self, k: str, default: Any | None = None) -> Any:
         """Override setdefault to use lower-case key."""
         return super().setdefault(k.lower(), default)
 
-    def pop(self, k: str, v: Any = object()) -> Any:
+    def pop(self, k: str, v: Any = _MISSING) -> Any:
         """Override pop to use lower-case key."""
-        if v is object():
+        if v is _MISSING:
             return super().pop(k.lower())
         return super().pop(k.lower(), v)
 
@@ -103,14 +101,14 @@ class CaseInsensitiveOrderedDict(OrderedDict):
     def fromkeys(
         cls,
         keys: Collection[str],
-        v: Optional[Any] = None,
+        v: Any | None = None,
     ) -> "CaseInsensitiveOrderedDict":
         """Override fromkeys to use lower-case keys."""
         return cast("CaseInsensitiveOrderedDict", super().fromkeys((k.lower() for k in keys), v))
 
     def __repr__(self) -> str:
         """Printable representation of the object."""
-        return "{0}({1})".format(type(self).__name__, super().__repr__())
+        return f"{type(self).__name__}({super().__repr__()})"
 
 
 class Singleton(type):
@@ -121,12 +119,12 @@ class Singleton(type):
     class will fetch the existing instance, rather than creating a new one.
     """
 
-    _instances: Dict[type, object] = {}
+    _instances: ClassVar[dict[type, object]] = {}
 
     def __call__(cls, *args: Any, **kwargs: Any) -> Any:
         """Invoke when calling this object."""
         if cls not in cls._instances:
-            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+            cls._instances[cls] = super().__call__(*args, **kwargs)
         return cls._instances[cls]
 
 
@@ -176,8 +174,8 @@ class AuthenticateHeaderParser(metaclass=Singleton):
 
     @staticmethod
     def _render_options(
-        scheme: List[Union[str, List[str]]],
-    ) -> Optional[Union[str, CaseInsensitiveOrderedDict]]:
+        scheme: list[str | list[str]],
+    ) -> str | CaseInsensitiveOrderedDict | None:
         if len(scheme) == 1:
             return None
         if isinstance(scheme[1], str):
@@ -220,10 +218,10 @@ def set_session_kwargs(session: requests.Session, property_dict: "RequestsConfig
 class RequestsConfiguration(TypedDict):
     """Configuration for requests session."""
 
-    cert: Union[None, str, Tuple[str, str]]
-    verify: Union[None, str, bool]
+    cert: None | str | tuple[str, str]
+    verify: None | str | bool
     cookies: http.cookiejar.CookieJar
-    proxies: Dict[str, str]
+    proxies: dict[str, str]
     headers: CaseInsensitiveDict
     max_redirects: int
 
@@ -270,15 +268,15 @@ class SessionConfiguration:
 
     def __init__(
         self,
-        client_cert_path: Optional[str] = None,
-        client_cert_key: Optional[str] = None,
-        cookies: Optional[http.cookiejar.CookieJar] = None,
-        headers: Optional[CaseInsensitiveDict] = None,
+        client_cert_path: str | None = None,
+        client_cert_key: str | None = None,
+        cookies: http.cookiejar.CookieJar | None = None,
+        headers: CaseInsensitiveDict | None = None,
         max_redirects: int = 10,
-        proxies: Optional[Dict[str, str]] = None,
+        proxies: dict[str, str] | None = None,
         verify_ssl: bool = True,
-        cert_store_path: Optional[str] = None,
-        temp_folder_path: Optional[str] = None,
+        cert_store_path: str | None = None,
+        temp_folder_path: str | None = None,
         debug: bool = False,
         safe_chars_for_path_param: str = "",
         retry_count: int = 3,
@@ -299,7 +297,7 @@ class SessionConfiguration:
         self.request_timeout = request_timeout
 
     @property
-    def _cert(self) -> Union[None, str, Tuple[str, str]]:
+    def _cert(self) -> None | str | tuple[str, str]:
         if self.client_cert_path is None:
             return None
         elif self.client_cert_key is None:
@@ -308,7 +306,7 @@ class SessionConfiguration:
             return self.client_cert_path, self.client_cert_key
 
     @property
-    def _verify(self) -> Union[None, bool, str]:
+    def _verify(self) -> None | bool | str:
         if self.cert_store_path is None:
             return self.verify_ssl
         else:
