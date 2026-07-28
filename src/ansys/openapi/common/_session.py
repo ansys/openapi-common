@@ -20,16 +20,23 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from enum import Enum
 import os
-from typing import TYPE_CHECKING, Any, Literal, Mapping, Optional, Tuple, TypeVar, Union
+import sys
 import warnings
+from collections.abc import Mapping
+from enum import Enum
+from typing import Any, Literal, TypeVar
 
 import requests
 from requests.adapters import HTTPAdapter
 from requests.auth import HTTPBasicAuth
 from requests_ntlm import HttpNtlmAuth
 from urllib3.util.retry import Retry
+
+if sys.version_info >= (3, 11):
+    from typing import Self
+else:
+    from typing_extensions import Self
 
 from . import __version__
 from ._api_client import ApiClient
@@ -43,9 +50,6 @@ from ._util import (
     parse_authenticate,
     set_session_kwargs,
 )
-
-if TYPE_CHECKING:
-    from ._util import CaseInsensitiveOrderedDict
 
 _oidc_enabled = True
 _linux_kerberos_enabled = True
@@ -128,7 +132,7 @@ class ApiClientFactory:
     _configured: bool
 
     def __init__(
-        self, api_url: str, session_configuration: Optional[SessionConfiguration] = None
+        self, api_url: str, session_configuration: SessionConfiguration | None = None
     ) -> None:
         self._session = requests.Session()
         self._api_url = api_url
@@ -194,7 +198,7 @@ class ApiClientFactory:
         self._validate_builder()
         return ApiClient(self._session, self._api_url, self._session_configuration)
 
-    def with_anonymous(self: Api_Client_Factory) -> Api_Client_Factory:
+    def with_anonymous(self) -> Self:
         """Set up client authentication for anonymous use.
 
         This does not configure any authentication or authorization headers. Users must provide any
@@ -214,12 +218,12 @@ class ApiClientFactory:
         return self
 
     def with_credentials(
-        self: Api_Client_Factory,
+        self,
         username: str,
         password: str,
-        domain: Optional[str] = None,
+        domain: str | None = None,
         authentication_scheme: AuthenticationScheme = AuthenticationScheme.AUTO,
-    ) -> Api_Client_Factory:
+    ) -> Self:
         """Set up client authentication for use with provided credentials.
 
         The default operation of this method is to attempt to connect to the API and to use the provided
@@ -275,10 +279,7 @@ class ApiClientFactory:
             if self.__handle_initial_response(initial_response):
                 return self
             headers = self.__get_authenticate_header(initial_response)
-            logger.debug(
-                "Detected authentication methods: "
-                + ", ".join([method for method in headers.keys()])
-            )
+            logger.debug("Detected authentication methods: " + ", ".join(headers))
         else:
             headers = CaseInsensitiveOrderedDict()
 
@@ -286,14 +287,13 @@ class ApiClientFactory:
             "Negotiate" in headers
             or "NTLM" in headers
             or authentication_scheme == AuthenticationScheme.NTLM
-        ):
-            if _platform_windows:
-                logger.debug("Attempting to connect with NTLM authentication...")
-                self._session.auth = HttpNtlmAuth(username, password)
-                self.__test_connection()
-                logger.info("Connection successful.")
-                self._configured = True
-                return self
+        ) and _platform_windows:
+            logger.debug("Attempting to connect with NTLM authentication...")
+            self._session.auth = HttpNtlmAuth(username, password)
+            self.__test_connection()
+            logger.info("Connection successful.")
+            self._configured = True
+            return self
         if "Basic" in headers or authentication_scheme == AuthenticationScheme.BASIC:
             logger.debug("Attempting connection with Basic authentication...")
             self._session.auth = HTTPBasicAuth(username, password)
@@ -303,7 +303,7 @@ class ApiClientFactory:
             return self
         raise ConnectionError("Unable to connect with credentials provided.")
 
-    def with_autologon(self: Api_Client_Factory) -> Api_Client_Factory:
+    def with_autologon(self) -> Self:
         """Set up client authentication for use with Kerberos (also known as integrated Windows authentication).
 
         The default operation of this method is to attempt to connect to the API and to use the provided
@@ -338,9 +338,7 @@ class ApiClientFactory:
         if self.__handle_initial_response(initial_response):
             return self
         headers = self.__get_authenticate_header(initial_response)
-        logger.debug(
-            "Detected authentication methods: " + ", ".join([method for method in headers.keys()])
-        )
+        logger.debug("Detected authentication methods: " + ", ".join(headers))
         if "Negotiate" in headers:
             logger.debug(f"Using {NegotiateAuth.__qualname__} as a Negotiate backend.")
             logger.debug("Attempting connection with Negotiate authentication...")
@@ -353,8 +351,8 @@ class ApiClientFactory:
 
     def with_oidc(
         self,
-        idp_session_configuration: Optional[SessionConfiguration] = None,
-        oidc_configuration: Optional[OIDCConfiguration] = None,
+        idp_session_configuration: SessionConfiguration | None = None,
+        oidc_configuration: OIDCConfiguration | None = None,
     ) -> "OIDCSessionBuilder":
         """Set up client authentication for use with OpenID Connect.
 
@@ -432,7 +430,7 @@ class ApiClientFactory:
 
     def __handle_initial_response(
         self, initial_response: requests.Response
-    ) -> "Optional[ApiClientFactory]":
+    ) -> "ApiClientFactory | None":
         """Verify that an initial 401 response is returned if we expect to require authentication.
 
         If a 2XX response is returned, then all is well, but we will not use any authentication in
@@ -504,7 +502,7 @@ class OIDCSessionBuilder:
     def __init__(
         self,
         client_factory: ApiClientFactory,
-        session_factory: "Optional[OIDCSessionFactory]" = None,
+        session_factory: "OIDCSessionFactory | None" = None,
     ) -> None:
         self._client_factory = client_factory
         self._session_factory = session_factory
@@ -656,10 +654,10 @@ class _RequestsTimeoutAdapter(HTTPAdapter):
         self,
         request: requests.PreparedRequest,
         stream: bool = False,
-        timeout: Union[None, float, Tuple[float, float], Tuple[float, None]] = None,
-        verify: Union[bool, str] = True,
-        cert: Union[None, bytes, str, Tuple[Union[bytes, str], Union[bytes, str]]] = None,
-        proxies: Optional[Mapping[str, str]] = None,
+        timeout: None | float | tuple[float, float] | tuple[float, None] = None,
+        verify: bool | str = True,
+        cert: None | bytes | str | tuple[bytes | str, bytes | str] = None,
+        proxies: Mapping[str, str] | None = None,
     ) -> requests.Response:
         """Send a request to the API.
 

@@ -169,7 +169,7 @@ class TestDeserialization:
         assert configuration_obj.client_cert_key is None
         assert configuration_obj.client_cert_path is None
         assert isinstance(configuration_obj.cookies, http.cookiejar.CookieJar)
-        assert configuration_obj.cookies._cookies == {}  # noqa
+        assert configuration_obj.cookies._cookies == {}
         assert configuration_obj.headers == CaseInsensitiveDict()
         assert configuration_obj.proxies == {}
         assert configuration_obj.max_redirects == 10

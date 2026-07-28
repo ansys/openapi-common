@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 import datetime
+from typing import ClassVar
 
 import pytest
 
@@ -31,8 +32,8 @@ from ansys.openapi.common._model_registry import ModelRegistry
 
 
 class DictBackedModel(dict, ModelBase):
-    swagger_types = {"label": "str"}
-    attribute_map = {"label": "Label"}
+    swagger_types: ClassVar[dict[str, str]] = {"label": "str"}
+    attribute_map: ClassVar[dict[str, str]] = {"label": "Label"}
 
     def __init__(self, label=None):
         super().__init__()
@@ -48,16 +49,16 @@ class DictBackedModel(dict, ModelBase):
 
 
 class EmptyModelReturningRawData(ModelBase):
-    swagger_types = {}
-    attribute_map = {}
+    swagger_types: ClassVar[dict[str, str]] = {}
+    attribute_map: ClassVar[dict[str, str]] = {}
 
     def __init__(self):
         pass
 
 
 class EmptyModelWithProbeError(ModelBase):
-    swagger_types = {}
-    attribute_map = {}
+    swagger_types: ClassVar[dict[str, str]] = {}
+    attribute_map: ClassVar[dict[str, str]] = {}
 
     def __init__(self):
         pass
@@ -69,8 +70,8 @@ class EmptyModelWithProbeError(ModelBase):
 
 
 class ModelWithoutDiscriminator(ModelBase):
-    swagger_types = {"name": "str"}
-    attribute_map = {"name": "Name"}
+    swagger_types: ClassVar[dict[str, str]] = {"name": "str"}
+    attribute_map: ClassVar[dict[str, str]] = {"name": "Name"}
 
     def __init__(self, name=None):
         self._name = name
@@ -121,7 +122,7 @@ class TestDeserializeBasics:
 
 class TestDeserializePrimitives:
     @pytest.mark.parametrize(
-        ("value", "type_"), (("foo", str), (int(2), int), (2.0, float), (True, bool))
+        ("value", "type_"), (("foo", str), (2, int), (2.0, float), (True, bool))
     )
     def test_primitive_round_trip(self, deserializer, value, type_):
         type_ref = type_.__name__
@@ -135,7 +136,7 @@ class TestDeserializePrimitives:
         assert isinstance(result, bytes)
         assert result == source_bytes
 
-    @pytest.mark.parametrize(("target_type", "expected_result"), ((int, int(3)), (str, "3.1")))
+    @pytest.mark.parametrize(("target_type", "expected_result"), ((int, 3), (str, "3.1")))
     def test_float_casts(self, deserializer, target_type, expected_result):
         result = deserializer.deserialize(3.1, target_type.__name__)
         assert isinstance(result, target_type)
@@ -190,45 +191,45 @@ class TestDeserializeCollections:
     @pytest.mark.parametrize(
         ("type_name", "value"),
         [
-            ("list[str]", ("foo")),
+            ("list[str]", ("foo",)),
             ("list[str]", "foo"),
             ("list[str]", 1),
             ("list[str]", 1.0),
             ("list[str]", b"foo"),
             ("list[str]", True),
-            ("list[str]", datetime.date.today()),
+            ("list[str]", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("dict(str, int)", ["foo"]),
             ("dict(str, int)", ("foo")),
             ("dict(str, int)", 1),
             ("dict(str, int)", 1.0),
             ("dict(str, int)", b"foo"),
             ("dict(str, int)", True),
-            ("dict(str, int)", datetime.date.today()),
+            ("dict(str, int)", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("str", ["foo"]),
             ("str", ("foo",)),
-            ("str", datetime.date.today()),
+            ("str", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("int", [1]),
             ("int", (1,)),
-            ("int", datetime.date.today()),
+            ("int", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("float", [1.0]),
             ("float", (1.0,)),
-            ("float", datetime.date.today()),
+            ("float", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("bool", [True]),
             ("bool", (True,)),
-            ("bool", datetime.date.today()),
+            ("bool", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("bytes", [b"foo"]),
             ("bytes", (b"foo",)),
-            ("bytes", datetime.date.today()),
+            ("bytes", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("datetime", ["2023-01-01T00:00:00Z"]),
             ("datetime", ("2023-01-01T00:00:00Z",)),
-            ("datetime", datetime.datetime.now()),
+            ("datetime", datetime.datetime.now(tz=datetime.timezone.utc)),
             ("datetime", 1),
             ("datetime", 1.0),
             ("datetime", True),
             ("datetime", b"2023-01-01T00:00:00Z"),
             ("date", ["2023-01-01"]),
             ("date", ("2023-01-01",)),
-            ("date", datetime.date.today()),
+            ("date", datetime.datetime.now(tz=datetime.timezone.utc).date()),
             ("date", 1),
             ("date", 1.0),
             ("date", True),
@@ -250,7 +251,7 @@ class TestDeserializeDates:
         assert result == source_date
 
     def test_datetime_round_trip(self, deserializer):
-        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21)
+        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21, tzinfo=datetime.timezone.utc)
         result = deserializer.deserialize(source_datetime.isoformat(), "datetime")
         assert isinstance(result, datetime.datetime)
         assert result == source_datetime

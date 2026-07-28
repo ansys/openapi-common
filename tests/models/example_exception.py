@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import ClassVar
+
 from ansys.openapi.common import ModelBase, Unset
 
 
@@ -35,26 +37,26 @@ class ExampleException(ModelBase):
       attribute_map (dict): The key is attribute name
                             and the value is json key in definition.
     """
-    swagger_types = {
+    swagger_types: ClassVar[dict[str, str]] = {
         "exception_text": "str",
         "exception_code": "int",
         "stack_trace": "list[str]",
     }
 
-    attribute_map = {
+    attribute_map: ClassVar[dict[str, str]] = {
         "exception_text": "ExceptionText",
         "exception_code": "ExceptionCode",
         "stack_trace": "StackTrace",
     }
 
-    subtype_mapping = {}
+    subtype_mapping: ClassVar[dict[str, str]] = {}
 
     def __init__(
         self,
         exception_text=Unset,
         exception_code=Unset,
         stack_trace=Unset,
-    ):  # noqa: E501
+    ):
         self._exception_text = (None,)
         self._exception_code = (None,)
         self._stack_trace = (None,)

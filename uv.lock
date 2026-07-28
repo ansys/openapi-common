@@ -55,6 +55,7 @@ dependencies = [
     { name = "requests" },
     { name = "requests-negotiate-sspi", marker = "sys_platform == 'win32'" },
     { name = "requests-ntlm" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
 
 [package.optional-dependencies]
@@ -105,6 +106,7 @@ requires-dist = [
     { name = "requests-kerberos", marker = "sys_platform == 'linux' and extra == 'linux-kerberos'", specifier = ">=0.13,<0.16" },
     { name = "requests-negotiate-sspi", marker = "sys_platform == 'win32'", specifier = ">=0.5.2,<0.6" },
     { name = "requests-ntlm", specifier = ">=1.1,<2.0" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'", specifier = ">=4.0" },
 ]
 provides-extras = ["oidc", "linux-kerberos"]
 

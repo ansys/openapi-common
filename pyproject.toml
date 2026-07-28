@@ -42,6 +42,7 @@ dependencies = [
   "requests-ntlm>=1.1,<2.0",
   "pyparsing>=3.2,<3.4",
   "python-dateutil>=2.9",
+  "typing_extensions>=4.0; python_version < '3.11'",
 ]
 
 [dependency-groups]
