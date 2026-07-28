@@ -37,6 +37,8 @@ import pyparsing as pp
 import requests
 from requests.structures import CaseInsensitiveDict
 
+_MISSING = object()
+
 
 class CaseInsensitiveOrderedDict(OrderedDict):
     """Preserves order of insertion and is case-insensitive.
@@ -76,9 +78,9 @@ class CaseInsensitiveOrderedDict(OrderedDict):
         """Override setdefault to use lower-case key."""
         return super().setdefault(k.lower(), default)
 
-    def pop(self, k: str, v: Any = object()) -> Any:  # noqa: B008
+    def pop(self, k: str, v: Any = _MISSING) -> Any:
         """Override pop to use lower-case key."""
-        if v is object():
+        if v is _MISSING:
             return super().pop(k.lower())
         return super().pop(k.lower(), v)
 
