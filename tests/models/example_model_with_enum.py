@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import ClassVar
+
 from ansys.openapi.common import ModelBase
 
 
@@ -43,14 +45,14 @@ class ExampleModelWithEnum(ModelBase):
       attribute_map (dict): The key is attribute name
                             and the value is json key in definition.
     """
-    swagger_types = {}
+    swagger_types: ClassVar[dict[str, str]] = {}
 
-    attribute_map = {}
+    attribute_map: ClassVar[dict[str, str]] = {}
 
-    subtype_mapping = {}
+    subtype_mapping: ClassVar[dict[str, str]] = {}
 
-    def __init__(self):  # noqa: E501
-        """ExampleModelWithEnum - a model defined in Swagger"""  # noqa: E501
+    def __init__(self):
+        """ExampleModelWithEnum - a model defined in Swagger"""
         self.discriminator = None
 
     def __repr__(self):

@@ -25,19 +25,12 @@ import mimetypes
 import os
 import re
 import tempfile
+from collections.abc import Iterable, Mapping
 from enum import Enum
 from types import ModuleType
 from typing import (
     IO,
     Any,
-    Dict,
-    Iterable,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    Type,
-    Union,
     cast,
 )
 from urllib.parse import quote
@@ -51,7 +44,6 @@ from ._logger import logger
 from ._model_registry import ModelRegistry
 from ._serializer import Serializer
 from ._util import SessionConfiguration
-
 
 FILE_NAME_REGEX = re.compile(r'filename=[\'"]?([^\'"\s]+)[\'"]?')
 
@@ -108,7 +100,7 @@ class ApiClient(ApiClientBase):
         self.configuration = configuration
 
     @property
-    def models(self) -> Dict[str, Union[Type[ModelBase], Type[Enum]]]:
+    def models(self) -> dict[str, type[ModelBase] | type[Enum]]:
         """Registered model and enum classes keyed by their OpenAPI type name."""
         return self._model_registry.models
 
@@ -140,21 +132,19 @@ class ApiClient(ApiClientBase):
         self,
         resource_path: str,
         method: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        header_params: Union[Dict[str, Union[str, int]], None] = None,
-        body: Optional[Any] = None,
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[
-            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
-        ] = None,
-        response_type: Optional[str] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, str | int] | list[tuple] | None = None,
+        query_params: dict[str, str | int] | list[tuple] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: Any | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO | Iterable[str | bytes | IO]] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> requests.Response | DeserializedType | None:
         # header parameters
         header_params = header_params or {}
         if header_params:
@@ -205,7 +195,7 @@ class ApiClient(ApiClientBase):
         self.last_response = response_data
         logger.debug(f"response body: {response_data.text}")
 
-        return_data: Union[requests.Response, DeserializedType, None] = response_data
+        return_data: requests.Response | DeserializedType | None = response_data
         if _preload_content:
             _response_type = response_type
             if response_type_map is not None:
@@ -227,8 +217,8 @@ class ApiClient(ApiClientBase):
     def __handle_path_params(
         self,
         resource_path: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None],
-        collection_formats: Optional[Dict[str, str]],
+        path_params: dict[str, str | int] | list[tuple] | None,
+        collection_formats: dict[str, str] | None,
     ) -> str:
         path_params_sanitized = self.sanitize_for_serialization(path_params)
         path_params_tuples = self.parameters_to_tuples(path_params_sanitized, collection_formats)
@@ -242,8 +232,8 @@ class ApiClient(ApiClientBase):
 
     def __handle_query_params(
         self,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None],
-        collection_formats: Optional[Dict[str, str]],
+        query_params: dict[str, str | int] | list[tuple] | None,
+        collection_formats: dict[str, str] | None,
     ) -> str:
         query_params_sanitized = self.sanitize_for_serialization(query_params)
         query_params_tuples = self.parameters_to_tuples(query_params_sanitized, collection_formats)
@@ -284,7 +274,7 @@ class ApiClient(ApiClientBase):
         return self._serializer.serialize(obj)
 
     def deserialize(
-        self, response: requests.Response, response_type: Optional[str]
+        self, response: requests.Response, response_type: str | None
     ) -> DeserializedType:
         """Deserialize the response into an object.
 
@@ -348,7 +338,7 @@ class ApiClient(ApiClientBase):
 
         return self._deserializer.deserialize(data, response_type)
 
-    def _save_to_file(self, content: bytes, filename: Optional[str] = None) -> str:
+    def _save_to_file(self, content: bytes, filename: str | None = None) -> str:
         """Write response body bytes to a file and return its path."""
         fd, path = tempfile.mkstemp(dir=self.configuration.temp_folder_path)
         os.close(fd)
@@ -366,19 +356,19 @@ class ApiClient(ApiClientBase):
         self,
         resource_path: str,
         method: str,
-        path_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        query_params: Union[Dict[str, Union[str, int]], List[Tuple], None] = None,
-        header_params: Union[Dict[str, Union[str, int]], None] = None,
-        body: Optional[DeserializedType] = None,
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[Mapping[str, Union[str, bytes, IO]]] = None,
-        response_type: Optional[str] = None,
-        _return_http_data_only: Optional[bool] = None,
-        collection_formats: Optional[Dict[str, str]] = None,
+        path_params: dict[str, str | int] | list[tuple] | None = None,
+        query_params: dict[str, str | int] | list[tuple] | None = None,
+        header_params: dict[str, str | int] | None = None,
+        body: DeserializedType | None = None,
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO] | None = None,
+        response_type: str | None = None,
+        _return_http_data_only: bool | None = None,
+        collection_formats: dict[str, str] | None = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
-        response_type_map: Optional[Mapping[int, Union[str, None]]] = None,
-    ) -> Union[requests.Response, DeserializedType, None]:
+        _request_timeout: float | tuple[float, float] | None = None,
+        response_type_map: Mapping[int, str | None] | None = None,
+    ) -> requests.Response | DeserializedType | None:
         """Make the HTTP request and return the deserialized data.
 
         Parameters
@@ -440,14 +430,12 @@ class ApiClient(ApiClientBase):
         self,
         method: str,
         url: str,
-        query_params: Optional[str] = None,
-        headers: Optional[Dict] = None,
-        post_params: Optional[
-            Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]
-        ] = None,
-        body: Optional[Any] = None,
+        query_params: str | None = None,
+        headers: dict | None = None,
+        post_params: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]] | None = None,
+        body: Any | None = None,
         _preload_content: bool = True,
-        _request_timeout: Union[float, Tuple[float, float], None] = None,
+        _request_timeout: float | tuple[float, float] | None = None,
     ) -> requests.Response:
         """Make the HTTP request and return it directly.
 
@@ -546,8 +534,8 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def parameters_to_tuples(
-        params: Union[Dict, List[Tuple]], collection_formats: Optional[Dict[str, str]]
-    ) -> List[Tuple[Any, Any]]:
+        params: dict | list[tuple], collection_formats: dict[str, str] | None
+    ) -> list[tuple[Any, Any]]:
         """Get parameters as a list of tuples, formatting collections.
 
         Parameters
@@ -558,7 +546,7 @@ class ApiClient(ApiClientBase):
         collection_formats : Dict[str, str]
             Dictionary with a parameter name and collection type specifier.
         """
-        new_params: List[Tuple[Any, Any]] = []
+        new_params: list[tuple[Any, Any]] = []
         if collection_formats is None:
             collection_formats = {}
         for k, v in params.items() if isinstance(params, dict) else params:
@@ -582,11 +570,9 @@ class ApiClient(ApiClientBase):
 
     @staticmethod
     def prepare_post_parameters(
-        post_params: Optional[List[Tuple[str, Union[str, bytes]]]] = None,
-        files: Optional[
-            Mapping[str, Union[str, bytes, IO, Iterable[Union[str, bytes, IO]]]]
-        ] = None,
-    ) -> Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]]:
+        post_params: list[tuple[str, str | bytes]] | None = None,
+        files: Mapping[str, str | bytes | IO | Iterable[str | bytes | IO]] | None = None,
+    ) -> Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]]:
         """Build form parameters.
 
         This method combines plain form parameters and file parameters into a structure suitable for transmission.
@@ -599,7 +585,7 @@ class ApiClient(ApiClientBase):
             File parameters. Each value may be a file path (``str`` or ``bytes``), an open
             file-like object (``IO``), or an iterable of any combination thereof.
         """
-        params: List[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]] = []
+        params: list[tuple[str, str | bytes | tuple[str, str | bytes, str]]] = []
 
         if post_params:
             params.extend(post_params)
@@ -617,7 +603,7 @@ class ApiClient(ApiClientBase):
                         param = ApiClient._process_file(file_content)
                         params.append((parameter, param))
                     else:
-                        file_name = cast(Union[str, bytes], file_name_or_content)
+                        file_name = cast(str | bytes, file_name_or_content)
                         with open(file_name, "rb") as f:
                             param = ApiClient._process_file(f)
                             params.append((parameter, param))
@@ -625,14 +611,14 @@ class ApiClient(ApiClientBase):
         return params
 
     @staticmethod
-    def _process_file(fp: IO) -> Tuple[str, Union[str, bytes], str]:
+    def _process_file(fp: IO) -> tuple[str, str | bytes, str]:
         filename = os.path.basename(fp.name)
         file_data = fp.read()
         mimetype = mimetypes.guess_type(filename)[0] or "application/octet-stream"
         return filename, file_data, mimetype
 
     @staticmethod
-    def select_header_accept(accepts: Optional[List[str]]) -> Optional[str]:
+    def select_header_accept(accepts: list[str] | None) -> str | None:
         """Return a correctly formatted ``Accept`` header value from the provided array of accepted content types.
 
         Parameters
@@ -653,7 +639,7 @@ class ApiClient(ApiClientBase):
         return ", ".join(accepts)
 
     @staticmethod
-    def select_header_content_type(content_types: Optional[List[str]]) -> str:
+    def select_header_content_type(content_types: list[str] | None) -> str:
         """Return the preferred ``Content-Type`` header value from the provided array of valid content types.
 
         Parameters

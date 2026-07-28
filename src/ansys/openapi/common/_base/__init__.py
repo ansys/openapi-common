@@ -21,12 +21,12 @@
 # SOFTWARE.
 
 from ._types import (
-    Unset_Type,
-    Unset,
-    ModelBase,
     ApiBase,
     ApiClientBase,
+    DeserializedType,
+    ModelBase,
     PrimitiveType,
     SerializedType,
-    DeserializedType,
+    Unset,
+    Unset_Type,
 )

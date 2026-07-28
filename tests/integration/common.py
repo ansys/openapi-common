@@ -22,7 +22,6 @@
 
 import os
 import secrets
-from typing import List, Optional
 
 from fastapi import HTTPException, Response, status
 from fastapi.security import HTTPBasicCredentials
@@ -60,10 +59,10 @@ def validate_user_basic(credentials: HTTPBasicCredentials) -> None:
 
 
 class ExampleModelPyd(BaseModel):
-    String: Optional[str] = None
-    Integer: Optional[int] = None
-    ListOfStrings: Optional[List[str]] = None
-    Boolean: Optional[bool] = None
+    String: str | None = None
+    Integer: int | None = None
+    ListOfStrings: list[str] | None = None
+    Boolean: bool | None = None
 
 
 def return_model(model_id: str, example_model: ExampleModelPyd):
@@ -99,7 +98,7 @@ class CustomResponseHeaders:
 
     HEADER_ENVIRON_ROOT = "OPENAPI_COMMON_INT_TEST_HEADER_"
 
-    def __init__(self, name: str, value: Optional[str]) -> None:
+    def __init__(self, name: str, value: str | None) -> None:
         self._environ_name = f"{self.HEADER_ENVIRON_ROOT}{name}"
         self._value = value if value is not None else ""
 

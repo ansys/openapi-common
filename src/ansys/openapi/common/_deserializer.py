@@ -21,9 +21,9 @@
 # SOFTWARE.
 
 import datetime
-from enum import Enum
-from typing import Callable, Dict, Type, Union
 import warnings
+from collections.abc import Callable
+from enum import Enum
 
 from dateutil.parser import parse
 
@@ -142,15 +142,15 @@ class Deserializer:
             )
 
     def _deserialize_model(
-        self, data: Union[Dict, str], klass: Type[ModelBase]
-    ) -> Union[ModelBase, Dict, str]:
+        self, data: dict | str, klass: type[ModelBase]
+    ) -> ModelBase | dict | str:
         """Deserialize model representation to model."""
         if not klass.swagger_types:
             try:
                 klass.get_real_child_model(klass(), {})
             except NotImplementedError:
                 return data
-            except BaseException:
+            except Exception:  # noqa: BLE001, S110
                 pass
 
         kwargs = {}

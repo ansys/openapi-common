@@ -20,14 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from multiprocessing import Process
 import sys
+from multiprocessing import Process
 from time import sleep
 
-from fastapi import FastAPI
 import pytest
-from starlette.requests import Request
 import uvicorn
+from fastapi import FastAPI
+from starlette.requests import Request
 
 from ansys.openapi.common import ApiClientFactory, ApiConnectionException, SessionConfiguration
 from tests.integration.common import (
@@ -70,7 +70,6 @@ async def get_test_api(request: Request):
 @custom_test_app.get("/")
 async def get_none(request: Request):
     validate_user_principal(request, TEST_PRINCIPAL)
-    return None
 
 
 def run_server():
@@ -150,7 +149,6 @@ class TestNegotiateFailures:
         @custom_test_app.get("/")
         async def get_forbidden(request: Request):
             validate_user_principal(request, "otheruser@EXAMPLE.COM")
-            return None
 
         proc = Process(target=run_server, args=(), daemon=True)
         proc.start()

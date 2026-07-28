@@ -45,7 +45,7 @@ def test_api_connection_exception_repr():
 
     assert response.status_code == args["status_code"]
     api_connection_exception = ApiConnectionException(response)
-    assert all([str(v) in str(api_connection_exception) for v in args.values()])
+    assert all(str(v) in str(api_connection_exception) for v in args.values())
 
     assert repr(response) in repr(api_connection_exception)
 
@@ -53,7 +53,7 @@ def test_api_connection_exception_repr():
 def test_api_exception_repr():
     status_code = 404
     reason_phrase = "Not Found"
-    message = f'Record with ID "{str(uuid.uuid4())}" not found'
+    message = f'Record with ID "{uuid.uuid4()!s}" not found'
 
     api_exception = ApiException(status_code, reason_phrase, message)
     exception_repr = api_exception.__repr__()
@@ -86,7 +86,7 @@ def test_api_exception_str(include_headers, include_body):
     else:
         headers = None
     if include_body:
-        body = f"Record with ID '{str(uuid.uuid4())}' not found"
+        body = f"Record with ID '{uuid.uuid4()!s}' not found"
     else:
         body = None
     api_connection_exception = ApiException(status_code, reason_phrase, body=body, headers=headers)

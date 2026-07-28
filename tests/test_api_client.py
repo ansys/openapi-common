@@ -23,17 +23,18 @@
 import datetime
 import json
 import os
-from pathlib import Path
 import secrets
 import sys
 import tempfile
-from typing import IO, Dict, Iterable, List, Tuple, Union
 import uuid
+from collections.abc import Iterable
+from pathlib import Path
+from typing import IO, ClassVar
 
 import pytest
 import requests
-from requests.packages.urllib3.response import HTTPResponse
 import requests_mock
+from requests.packages.urllib3.response import HTTPResponse
 from requests_mock.request import _RequestObjectProxy
 from requests_mock.response import _FakeConnection, _IOReader
 
@@ -129,8 +130,8 @@ class TestParameterHandling:
 
 
 class TestSerialization:
-    _test_value_list = ["foo", int(2), 2.0, True]
-    _test_value_types = [str, int, float, bool]
+    _test_value_list: ClassVar[list] = ["foo", 2, 2.0, True]
+    _test_value_types: ClassVar[list] = [str, int, float, bool]
 
     @pytest.fixture(autouse=True)
     def _blank_client(self, blank_client):
@@ -144,7 +145,7 @@ class TestSerialization:
         (
             ("foo", str),
             (b"\x66\x6f\x6f", bytes),
-            (int(2), int),
+            (2, int),
             (2.0, float),
             (True, bool),
         ),
@@ -182,7 +183,7 @@ class TestSerialization:
         assert len(serialized_dict.keys()) == len(self._test_value_list)
         for type_ in self._test_value_types:
             type_name = type_.__name__
-            assert type_name in serialized_dict.keys()
+            assert type_name in serialized_dict
             assert isinstance(serialized_dict[type_name], type_)
             assert serialized_dict[type_name] == source_dict[type_name]
 
@@ -194,7 +195,7 @@ class TestSerialization:
         assert serialized_date == date_string
 
     def test_serialize_datetime(self):
-        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21)
+        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21, tzinfo=datetime.timezone.utc)
         datetime_string = source_datetime.isoformat()
         serialized_datetime = self._client.sanitize_for_serialization(source_datetime)
         assert isinstance(serialized_datetime, str)
@@ -283,9 +284,9 @@ class TestResponseParsing:
 
     def create_response(
         self,
-        json_: Dict = None,
-        text: str = None,
-        content: bytes = None,
+        json_: dict | None = None,
+        text: str | None = None,
+        content: bytes | None = None,
         headers=None,
         content_type="application/json",
     ):
@@ -456,10 +457,10 @@ class TestRequestDispatch:
     url = "https://my-api.com/api.svc"
     timeout = 22.0
     query_params = "foo=bar&baz=qux"
-    post_params = [("clientId", secrets.token_hex(32))]
-    header_params = {"Accept": "application/json"}
+    post_params: ClassVar[list] = [("clientId", secrets.token_hex(32))]
+    header_params: ClassVar[dict] = {"Accept": "application/json"}
     stream = False
-    body = {
+    body: ClassVar[dict] = {
         "str": "foo",
         "int": 12,
         "array": ["foo", "bar"],
@@ -542,7 +543,7 @@ class TestResponseHandling:
             "GET",
             expected_url,
             status_code=200,
-            content="OK".encode("utf-8"),
+            content=b"OK",
             headers={"Content-Type": "text/plain"},
         )
         response, status_code, headers = self._client.call_api(
@@ -983,8 +984,8 @@ class TestResponseHandling:
         file_name_list = []
         file_contents_list = []
 
-        def create_files_for_test(file_count: int) -> Tuple[List[str], List[bytes]]:
-            for file_index in range(0, file_count):
+        def create_files_for_test(file_count: int) -> tuple[list[str], list[bytes]]:
+            for file_index in range(file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
                 file_contents = secrets.token_bytes(256)
@@ -1251,8 +1252,8 @@ class TestStaticMethods:
 
         def create_files_for_test(
             file_count: int,
-        ) -> Tuple[Iterable[str], Iterable[bytes]]:
-            for file_index in range(0, file_count):
+        ) -> tuple[Iterable[str], Iterable[bytes]]:
+            for file_index in range(file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
                 file_contents = secrets.token_bytes(32)
@@ -1269,14 +1270,14 @@ class TestStaticMethods:
 
     @pytest.fixture
     def opened_file_context(self, file_context):
-        file_name_list: List[str] = []
-        file_handle_list: List[IO] = []
-        file_contents_list: List[bytes] = []
+        file_name_list: list[str] = []
+        file_handle_list: list[IO] = []
+        file_contents_list: list[bytes] = []
 
         def create_files_for_test(
             file_count: int,
-        ) -> Tuple[Iterable[IO], Iterable[str], Iterable[bytes]]:
-            for file_index in range(0, file_count):
+        ) -> tuple[Iterable[IO], Iterable[str], Iterable[bytes]]:
+            for file_index in range(file_count):
                 fd, path = tempfile.mkstemp()
                 os.close(fd)
                 file_contents = secrets.token_bytes(32)
@@ -1284,7 +1285,7 @@ class TestStaticMethods:
                     f.write(file_contents)
                 file_name_list.append(path)
                 file_contents_list.append(file_contents)
-                file_handle_list.append(open(path, "rb"))
+                file_handle_list.append(open(path, "rb"))  # noqa: SIM115
             return file_handle_list, file_name_list, file_contents_list
 
         yield create_files_for_test
@@ -1318,7 +1319,7 @@ class TestStaticMethods:
 
     @staticmethod
     def _check_file_contents(
-        output: Iterable[Tuple[str, Union[str, bytes, Tuple[str, Union[str, bytes], str]]]],
+        output: Iterable[tuple[str, str | bytes | tuple[str, str | bytes, str]]],
         file_count: int,
         file_names: Iterable[str],
         file_contents: Iterable[bytes],

@@ -68,8 +68,8 @@ class TestCaseInsensitiveOrderedDict:
         with pytest.raises(KeyError):
             _ = self.example_dict["BaZ"]
         assert self.example_dict.pop("grault", "ftagn") == "ftagn"
-        default_obj = self.example_dict.pop("spam")
-        assert isinstance(default_obj, object)
+        with pytest.raises(KeyError):
+            self.example_dict.pop("spam")
 
     def test_update(self):
         self.example_dict.update({"BaZ": "grault", "gRaUlT": "ftagn"})

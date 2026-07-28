@@ -23,6 +23,7 @@
 import copy
 import os
 import sys
+from typing import ClassVar
 
 import pytest
 
@@ -42,7 +43,7 @@ def get_package_name() -> str:
 class TestMissingExtras:
     real_import = __import__
     blocked_import = ""
-    base_module_list = [
+    base_module_list: ClassVar[list[str]] = [
         "ansys.openapi.common._session",
         "ansys.openapi.common._oidc",
         "ansys.openapi.common._oidc_config",
@@ -78,7 +79,7 @@ class TestMissingExtras:
         self.blocked_import = "requests_auth"
         mocker.patch("builtins.__import__", side_effect=self.mocked_import)
 
-        import ansys.openapi.common as common
+        from ansys.openapi import common
 
         config = common.OIDCConfiguration(client_id="client")
         assert config.client_id == "client"
