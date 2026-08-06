@@ -1,0 +1,6 @@
+sanitize\_for\_serialization
+============================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.sanitize_for_serialization

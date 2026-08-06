@@ -1,0 +1,6 @@
+authority
+=========
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.authority
