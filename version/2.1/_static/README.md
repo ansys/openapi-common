@@ -1,0 +1,1 @@
+Find static files (like images and other assets) here.

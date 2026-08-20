@@ -1,0 +1,6 @@
+from\_dict
+==========
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: SessionConfiguration.from_dict

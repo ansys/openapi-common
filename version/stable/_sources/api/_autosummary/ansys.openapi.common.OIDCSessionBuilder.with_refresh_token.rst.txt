@@ -1,0 +1,6 @@
+with\_refresh\_token
+====================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: OIDCSessionBuilder.with_refresh_token

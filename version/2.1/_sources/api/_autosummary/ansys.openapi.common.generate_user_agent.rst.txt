@@ -1,0 +1,6 @@
+﻿generate\_user\_agent
+=====================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autofunction:: generate_user_agent
