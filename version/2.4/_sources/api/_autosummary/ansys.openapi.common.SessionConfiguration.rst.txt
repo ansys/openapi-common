@@ -1,0 +1,28 @@
+﻿SessionConfiguration
+====================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoclass:: SessionConfiguration
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      
+      
+      SessionConfiguration.from_dict
+      
+      
+      SessionConfiguration.get_configuration_for_requests
+      
+   
+   
+
+   
+   
+   

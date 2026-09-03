@@ -1,0 +1,31 @@
+﻿OIDCSessionBuilder
+==================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoclass:: OIDCSessionBuilder
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      
+      
+      OIDCSessionBuilder.authorize
+      
+      
+      OIDCSessionBuilder.with_stored_token
+      
+      
+      OIDCSessionBuilder.with_token
+      
+   
+   
+
+   
+   
+   

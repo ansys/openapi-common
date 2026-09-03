@@ -1,0 +1,6 @@
+select\_header\_accept
+======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.select_header_accept
