@@ -1,0 +1,6 @@
+has\_explicit\_endpoints
+========================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: OIDCConfiguration.has_explicit_endpoints

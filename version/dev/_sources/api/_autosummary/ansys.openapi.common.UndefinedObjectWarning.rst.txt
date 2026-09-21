@@ -1,0 +1,6 @@
+﻿UndefinedObjectWarning
+======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoexception:: UndefinedObjectWarning
