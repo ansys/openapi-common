@@ -31,7 +31,7 @@ from covertable import make
 from requests.models import CaseInsensitiveDict
 from requests_auth import OAuth2
 
-from ansys.openapi.common import ApiClientFactory, OIDCConfiguration
+from ansys.openapi.common import ApiClientFactory, OIDCConfiguration, SessionConfiguration
 from ansys.openapi.common._oidc import OIDCSessionFactory
 
 REQUIRED_HEADERS = {
@@ -556,6 +556,55 @@ def test_initialize_sessions_uses_default_session_configuration():
 
     assert factory._api_session_configuration["verify"] is True
     assert factory._idp_session_configuration["headers"]["accept"] == "application/json"
+
+
+def test_initialize_sessions_with_shared_configuration_instance_does_not_leak_idp_headers():
+    """Regression test: a single SessionConfiguration passed as both the API and IDP config.
+
+    Previously, ``get_configuration_for_requests()`` returned the same ``headers``/``cookies``/
+    ``proxies`` objects the ``SessionConfiguration`` owned (no copy). Since ``_override_idp_header``
+    mutates the IDP headers dict in place, passing the same ``SessionConfiguration`` instance for
+    both ``api_session_configuration`` and ``idp_session_configuration`` (a natural thing to do,
+    e.g. to share ``verify_ssl``) caused the IDP-only ``content-type``/``accept`` overrides to leak
+    into the API session, breaking multipart file uploads (415 responses).
+    """
+    shared_configuration = SessionConfiguration()
+    shared_configuration.headers["content-type"] = "multipart/form-data; boundary=example"
+    shared_configuration.headers["accept"] = "text/plain, application/json, text/json"
+
+    config = OIDCConfiguration(
+        client_id="client",
+        authorization_endpoint="https://idp.example.com/auth",
+        token_endpoint="https://idp.example.com/token",  # nosec B106
+    )
+    factory = OIDCSessionFactory.from_configuration(
+        "https://api.example.com",
+        config,
+        requests.Session(),
+        api_session_configuration=shared_configuration,
+        idp_session_configuration=shared_configuration,
+    )
+
+    # The API session must keep the original headers set by the caller...
+    assert (
+        factory._api_session_configuration["headers"]["content-type"]
+        == "multipart/form-data; boundary=example"
+    )
+    assert (
+        factory._api_session_configuration["headers"]["accept"]
+        == "text/plain, application/json, text/json"
+    )
+
+    # ...while the IDP session gets the overridden values required to talk to the identity provider.
+    assert (
+        factory._idp_session_configuration["headers"]["content-type"]
+        == "application/x-www-form-urlencoded;charset=UTF-8"
+    )
+    assert factory._idp_session_configuration["headers"]["accept"] == "application/json"
+
+    # The original SessionConfiguration instance passed by the caller must remain untouched.
+    assert shared_configuration.headers["content-type"] == "multipart/form-data; boundary=example"
+    assert shared_configuration.headers["accept"] == "text/plain, application/json, text/json"
 
 
 def test_oidc_config_from_bearer_accepts_scope_list():

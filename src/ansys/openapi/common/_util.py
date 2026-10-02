@@ -229,6 +229,9 @@ class RequestsConfiguration(TypedDict):
 class SessionConfiguration:
     """Provides configuration for the API client session.
 
+    .. note:: Using the same :class:`SessionConfiguration` object for both the IDP session configuration and the API
+     session configuration will result in both sessions sharing a single :class:`~http.cookiejar.CookieJar` instance.
+
     Parameters
     ----------
     client_cert_path : str, optional
@@ -320,8 +323,8 @@ class SessionConfiguration:
             "cert": self._cert,
             "verify": self._verify,
             "cookies": self.cookies,
-            "proxies": self.proxies,
-            "headers": self.headers,
+            "proxies": dict(self.proxies),
+            "headers": CaseInsensitiveDict(self.headers),
             "max_redirects": self.max_redirects,
         }
         return output
