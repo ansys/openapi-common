@@ -1,0 +1,6 @@
+with\_stored\_token
+===================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: OIDCSessionBuilder.with_stored_token

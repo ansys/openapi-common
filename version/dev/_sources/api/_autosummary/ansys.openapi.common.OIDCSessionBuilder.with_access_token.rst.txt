@@ -1,0 +1,6 @@
+with\_access\_token
+===================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: OIDCSessionBuilder.with_access_token

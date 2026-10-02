@@ -1,0 +1,6 @@
+prepare\_post\_parameters
+=========================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.prepare_post_parameters

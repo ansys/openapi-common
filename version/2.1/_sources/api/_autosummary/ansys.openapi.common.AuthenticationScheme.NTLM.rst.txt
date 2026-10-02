@@ -1,0 +1,6 @@
+NTLM
+====
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: AuthenticationScheme.NTLM
