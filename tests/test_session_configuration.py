@@ -144,6 +144,27 @@ def test_cookies():
     assert "131071" in prepared_request.headers["Cookie"]
 
 
+def test_get_configuration_for_requests_headers_are_independent_copy():
+    config = SessionConfiguration()
+    config.headers["X-Original"] = "value"
+
+    output = config.get_configuration_for_requests()
+    assert output["headers"] is not config.headers
+
+    output["headers"]["X-Extra"] = "other"
+    assert "X-Extra" not in config.headers
+
+
+def test_get_configuration_for_requests_proxies_are_independent_copy():
+    config = SessionConfiguration(proxies=dict(PROXY_CONFIG))
+
+    output = config.get_configuration_for_requests()
+    assert output["proxies"] is not config.proxies
+
+    output["proxies"]["http://extra.example.com"] = "http://proxy.example.com"
+    assert "http://extra.example.com" not in config.proxies
+
+
 def test_redirects():
     output = SessionConfiguration(max_redirects=12000).get_configuration_for_requests()
     assert output["max_redirects"] == 12000
