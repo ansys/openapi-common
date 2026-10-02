@@ -11,6 +11,42 @@ See `CHANGELOG.md <https://github.com/ansys/openapi-common/blob/main/CHANGELOG.m
 
 .. towncrier release notes start
 
+`2.4.1 <https://github.com/ansys/openapi-common/releases/tag/v2.4.1>`_ - October 02, 2026
+=========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Fixed
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Remove shared state between IdP and API sessions
+          - `#1179 <https://github.com/ansys/openapi-common/pull/1179>`_
+
+
+  .. tab-item:: Dependencies
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Prepare release 2.4.1
+          - `#1182 <https://github.com/ansys/openapi-common/pull/1182>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Bump PyPI publish action
+          - `#1184 <https://github.com/ansys/openapi-common/pull/1184>`_
+
+
 `2.4.0 <https://github.com/ansys/openapi-common/releases/tag/v2.4.0>`_ - March 04, 2026
 =======================================================================================
 
