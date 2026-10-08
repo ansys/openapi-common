@@ -1,0 +1,6 @@
+select\_header\_content\_type
+=============================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.select_header_content_type

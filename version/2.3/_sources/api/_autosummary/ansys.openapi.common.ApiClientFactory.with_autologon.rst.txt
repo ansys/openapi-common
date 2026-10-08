@@ -1,0 +1,6 @@
+with\_autologon
+===============
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClientFactory.with_autologon

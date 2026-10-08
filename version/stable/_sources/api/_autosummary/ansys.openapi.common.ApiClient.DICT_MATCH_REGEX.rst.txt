@@ -1,0 +1,6 @@
+DICT\_MATCH\_REGEX
+==================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: ApiClient.DICT_MATCH_REGEX

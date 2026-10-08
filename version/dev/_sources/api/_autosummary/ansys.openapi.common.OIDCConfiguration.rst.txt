@@ -1,0 +1,46 @@
+﻿OIDCConfiguration
+=================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoclass:: OIDCConfiguration
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      
+      
+      OIDCConfiguration.has_explicit_endpoints
+      
+      
+      OIDCConfiguration.has_partial_endpoints
+      
+      
+      OIDCConfiguration.is_complete
+      
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      OIDCConfiguration.api_audience
+      OIDCConfiguration.authority
+      OIDCConfiguration.authorization_endpoint
+      OIDCConfiguration.client_id
+      OIDCConfiguration.redirect_uri
+      OIDCConfiguration.redirect_uri_port
+      OIDCConfiguration.scopes
+      OIDCConfiguration.token_endpoint
+      OIDCConfiguration.well_known_url
+   
+   
