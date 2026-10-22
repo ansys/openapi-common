@@ -108,9 +108,9 @@ jobs:
     strategy:
       matrix:
         image:
-          - '{"name": "3.12", "hash": "82b148d4accffcc6ab22fcb35a036c4c008fde218a65d075891914794e1ccf77"}'
-          - '{"name": "3.13", "hash": "ab8274497b1ada14b32e4c7e514a321ee5a45c53b78245f48650e6ecbd377345"}'
-          - '{"name": "3.14", "hash": "e5aaa64cde4d6ddf80895aa98c51ab02a8122622bb4a882f816784ef32c30a19"}'
+          - '{"name": "3.12", "hash": "0d0db5b17f11b1b7d1aafa74ceadaa64ba0944b267ff6fc22008a197acd6b9ad"}'  # 3.12.15 - trixie
+          - '{"name": "3.13", "hash": "bf756c962c5d29f6fe30dbf70c692b1e978c272619e8f1096e1d697934c662bf"}'  # 3.13.17 - trixie
+          - '{"name": "3.14", "hash": "2c90493710bd462e097441e60b0218430d8f7e2b46779bfca3742b2efd386feb"}'  # 3.14.9 - trixie
 
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
