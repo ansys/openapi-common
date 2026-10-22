@@ -195,7 +195,7 @@ class TestSerialization:
         assert serialized_date == date_string
 
     def test_serialize_datetime(self):
-        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21, tzinfo=datetime.timezone.utc)
+        source_datetime = datetime.datetime(2371, 4, 26, 4, 39, 21, tzinfo=datetime.UTC)
         datetime_string = source_datetime.isoformat()
         serialized_datetime = self._client.sanitize_for_serialization(source_datetime)
         assert isinstance(serialized_datetime, str)

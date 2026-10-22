@@ -25,12 +25,12 @@ import datetime
 import pprint
 from collections.abc import Mapping
 from enum import Enum
-from typing import Any, Literal, TypeAlias
+from typing import Any, Literal
 
 import requests
 
-PrimitiveType: TypeAlias = float | bool | bytes | str | int
-SerializedType: TypeAlias = None | PrimitiveType | list | tuple | dict
+type PrimitiveType = float | bool | bytes | str | int
+type SerializedType = None | PrimitiveType | list | tuple | dict
 
 
 class ModelBase(metaclass=abc.ABCMeta):
@@ -92,7 +92,7 @@ class ModelBase(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
-DeserializedType: TypeAlias = (
+type DeserializedType = (
     None
     | PrimitiveType
     | datetime.datetime

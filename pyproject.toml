@@ -7,7 +7,7 @@ name = "ansys-openapi-common"
 description = "Provides a helper to create sessions for use with Ansys OpenAPI clients."
 version = "2.5.0.dev0"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     {name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}
 ]
@@ -42,7 +42,6 @@ dependencies = [
   "requests-ntlm>=1.1,<2.0",
   "pyparsing>=3.2,<3.4",
   "python-dateutil>=2.9",
-  "typing_extensions>=4.0; python_version < '3.11'",
 ]
 
 [dependency-groups]
