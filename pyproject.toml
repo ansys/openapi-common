@@ -7,7 +7,7 @@ name = "ansys-openapi-common"
 description = "Provides a helper to create sessions for use with Ansys OpenAPI clients."
 version = "2.5.0.dev0"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 authors = [
     {name = "ANSYS, Inc.", email = "pyansys.core@ansys.com"}
 ]
