@@ -12,7 +12,7 @@ on:
       - main
 
 env:
-  MAIN_PYTHON_VERSION: '3.10'
+  MAIN_PYTHON_VERSION: '3.13'
   LIBRARY_NAME: 'ansys-openapi-common'
   DOCUMENTATION_CNAME: 'openapi.docs.pyansys.com'
 
@@ -69,7 +69,7 @@ jobs:
     strategy:
        matrix:
            os: [ubuntu-latest, windows-latest]
-           python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+           python-version: ['3.12', '3.13', '3.14']
     steps:
       - uses: ansys/actions/build-wheelhouse@7410037bfb276c79ae91eb3617b9f5d2876f0c94  # v11.0.8
         with:
@@ -108,8 +108,6 @@ jobs:
     strategy:
       matrix:
         image:
-          - '{"name": "3.10", "hash": "5d05efdeffc712e5a134f8add70b7bdf0ddd3cb241c0f39c04b79df8a173b84f"}'
-          - '{"name": "3.11", "hash": "358fbe1d87faacef3d64760dc0ab915d3b6389eaa152bba133a3d74770f4f04c"}'
           - '{"name": "3.12", "hash": "82b148d4accffcc6ab22fcb35a036c4c008fde218a65d075891914794e1ccf77"}'
           - '{"name": "3.13", "hash": "ab8274497b1ada14b32e4c7e514a321ee5a45c53b78245f48650e6ecbd377345"}'
           - '{"name": "3.14", "hash": "e5aaa64cde4d6ddf80895aa98c51ab02a8122622bb4a882f816784ef32c30a19"}'
