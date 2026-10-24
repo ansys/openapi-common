@@ -1,0 +1,6 @@
+LIST\_MATCH\_REGEX
+==================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: ApiClient.LIST_MATCH_REGEX

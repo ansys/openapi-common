@@ -1,0 +1,6 @@
+well\_known\_url
+================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.well_known_url
