@@ -1,0 +1,6 @@
+redirect\_uri
+=============
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.redirect_uri

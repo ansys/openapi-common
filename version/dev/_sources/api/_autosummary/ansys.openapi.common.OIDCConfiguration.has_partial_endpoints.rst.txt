@@ -1,0 +1,6 @@
+has\_partial\_endpoints
+=======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: OIDCConfiguration.has_partial_endpoints

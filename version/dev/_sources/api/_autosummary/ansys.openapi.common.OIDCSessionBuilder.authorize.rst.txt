@@ -1,0 +1,6 @@
+authorize
+=========
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: OIDCSessionBuilder.authorize
