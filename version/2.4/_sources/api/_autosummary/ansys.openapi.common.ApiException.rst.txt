@@ -1,0 +1,6 @@
+﻿ApiException
+============
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoexception:: ApiException

@@ -1,0 +1,6 @@
+parameters\_to\_tuples
+======================
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClient.parameters_to_tuples

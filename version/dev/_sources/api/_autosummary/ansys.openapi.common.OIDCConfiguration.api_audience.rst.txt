@@ -1,0 +1,6 @@
+api\_audience
+=============
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.api_audience

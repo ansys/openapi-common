@@ -1,0 +1,6 @@
+﻿PrimitiveType
+=============
+
+.. currentmodule:: ansys.openapi.common._base
+
+.. autotype:: PrimitiveType
