@@ -1,0 +1,24 @@
+﻿AuthenticationScheme
+====================
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoclass:: AuthenticationScheme
+
+   
+
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      AuthenticationScheme.AUTO
+      AuthenticationScheme.BASIC
+      AuthenticationScheme.NTLM
+   
+   

@@ -1,0 +1,6 @@
+scopes
+======
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.scopes

@@ -1,0 +1,6 @@
+token\_endpoint
+===============
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoattribute:: OIDCConfiguration.token_endpoint
