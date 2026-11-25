@@ -189,7 +189,10 @@ def test_override_idp_configuration_with_no_headers_does_nothing():
     configuration = {
         "headers": None,
         "verify": False,
-        "proxies": {"www.example.com", "proxy.example.com"},
+        "proxies": {
+          'http': 'http://10.10.1.10:3128',
+          'https': 'http://10.10.1.10:1080',
+        },
     }
     response = OIDCSessionFactory._override_idp_header(configuration)
     assert response == configuration
