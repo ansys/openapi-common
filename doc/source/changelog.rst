@@ -11,6 +11,32 @@ See `CHANGELOG.md <https://github.com/ansys/openapi-common/blob/main/CHANGELOG.m
 
 .. towncrier release notes start
 
+`2.4.2 <https://github.com/ansys/openapi-common/releases/tag/v2.4.2>`_ - November 26, 2026
+==========================================================================================
+
+.. tab-set::
+
+
+  .. tab-item:: Miscellaneous
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Revert PR 1179 configuration mutability changes and reduce it to IDP configuration
+          - `#1238 <https://github.com/ansys/openapi-common/pull/1238>`_
+
+
+  .. tab-item:: Maintenance
+
+    .. list-table::
+        :header-rows: 0
+        :widths: auto
+
+        * - Prepare release 2.4.2
+          - `#1244 <https://github.com/ansys/openapi-common/pull/1244>`_
+
+
 `2.4.1 <https://github.com/ansys/openapi-common/releases/tag/v2.4.1>`_ - October 02, 2026
 =========================================================================================
 
