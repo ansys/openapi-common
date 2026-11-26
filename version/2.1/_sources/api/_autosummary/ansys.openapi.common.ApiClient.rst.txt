@@ -1,0 +1,59 @@
+﻿ApiClient
+=========
+
+.. currentmodule:: ansys.openapi.common
+
+.. autoclass:: ApiClient
+
+   
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+      :toctree:
+   
+      
+      
+      ApiClient.call_api
+      
+      
+      ApiClient.deserialize
+      
+      
+      ApiClient.parameters_to_tuples
+      
+      
+      ApiClient.prepare_post_parameters
+      
+      
+      ApiClient.request
+      
+      
+      ApiClient.sanitize_for_serialization
+      
+      
+      ApiClient.select_header_accept
+      
+      
+      ApiClient.select_header_content_type
+      
+      
+      ApiClient.setup_client
+      
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+      :toctree:
+   
+      ApiClient.DICT_MATCH_REGEX
+      ApiClient.LIST_MATCH_REGEX
+      ApiClient.NATIVE_TYPES_MAPPING
+      ApiClient.PRIMITIVE_TYPES
+   
+   

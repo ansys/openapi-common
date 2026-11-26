@@ -1,0 +1,6 @@
+with\_anonymous
+===============
+
+.. currentmodule:: ansys.openapi.common
+
+.. automethod:: ApiClientFactory.with_anonymous

@@ -1,0 +1,6 @@
+﻿SerializedType
+==============
+
+.. currentmodule:: ansys.openapi.common._base
+
+.. autodata:: SerializedType
