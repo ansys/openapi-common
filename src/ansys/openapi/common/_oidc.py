@@ -328,11 +328,15 @@ class OIDCSessionFactory:
         requests_configuration : RequestsConfiguration
             Configuration options for connection to the OpenID identity provider.
         """
-        if requests_configuration["headers"] is not None:
-            headers = requests_configuration["headers"]
+        configuration = RequestsConfiguration(**requests_configuration)
+        if "proxies" in configuration:
+            configuration["proxies"] = dict(**configuration["proxies"])
+        if configuration["headers"] is not None:
+            headers = CaseInsensitiveDict(**configuration["headers"])
             headers["accept"] = "application/json"
             headers["content-type"] = "application/x-www-form-urlencoded;charset=UTF-8"
-        return requests_configuration
+            configuration["headers"] = headers
+        return configuration
 
     def _add_api_audience_if_set(self) -> None:
         """Set the ``ApiAudience`` header on connection to the API.
