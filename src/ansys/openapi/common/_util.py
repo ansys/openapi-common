@@ -323,8 +323,8 @@ class SessionConfiguration:
             "cert": self._cert,
             "verify": self._verify,
             "cookies": self.cookies,
-            "proxies": dict(self.proxies),
-            "headers": CaseInsensitiveDict(self.headers),
+            "proxies": self.proxies,
+            "headers": self.headers,
             "max_redirects": self.max_redirects,
         }
         return output
